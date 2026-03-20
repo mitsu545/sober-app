@@ -47,7 +47,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; transition: transform 0.1s ease, opacity 0.2s; }
 button:active { transform: scale(0.96); opacity: 0.8; }
 input, textarea, select { font-family: inherit; outline: none; appearance: none; }
-::-webkit-scrollbar { display: none; } /* Hide scrollbar for clean UI */
+::-webkit-scrollbar { display: none; } 
 
 /* Layout */
 #danger-banner { background: linear-gradient(90deg,#450a0a,#7f1d1d); padding: 10px 16px; display: none; align-items: center; gap: 8px; font-size: 12px; color: #fca5a5; font-weight: 600; flex-shrink: 0; }
@@ -68,6 +68,7 @@ input, textarea, select { font-family: inherit; outline: none; appearance: none;
 .card { background: var(--bg2); border-radius: 18px; padding: 18px; border: 1px solid var(--border); margin-bottom: 0; position: relative; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
 .col { display: flex; flex-direction: column; gap: 16px; }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 .label-sm { font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; font-weight: 600; }
 
 /* Buttons & Inputs */
@@ -89,7 +90,6 @@ input, textarea, select { font-family: inherit; outline: none; appearance: none;
 /* Modal & Animations */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-@keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: flex; align-items: flex-end; justify-content: center; z-index: 200; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); animation: fadeIn 0.2s ease-out; }
 .sheet { background: #0a1628; border-radius: 24px 24px 0 0; padding: 24px 24px calc(var(--safe-bot) + 24px); width: 100%; max-width: 430px; border-top: 1px solid var(--border); max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch; animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; box-shadow: 0 -10px 40px rgba(0,0,0,0.5); }
 
@@ -166,6 +166,14 @@ const TOMATO_STAGES = [
   { days: 90, icon: "🍅", name: "完熟",   desc: "大収穫！節酒は完全にあなたの新しいライフスタイルです。" }
 ];
 
+// デフォルトの通知設定
+const DEFAULT_NOTIFICATIONS = [
+  { id: "n1", time: "18:00", title: "⚠️ 魔の時間帯スタート", body: "今日の帰宅ルート確認。財布は置いてから出発しましょう", active: true },
+  { id: "n2", time: "19:00", title: "🌊 誘惑ピーク時間", body: "飲みたくなったらアプリの「誘惑サーフィン」を開いてください", active: true },
+  { id: "n3", time: "19:15", title: "💪 もう少しで安全圏", body: "19:30を過ぎれば今日の魔の時間帯は終わりです", active: true },
+  { id: "n0", time: "08:00", title: "☀️ 昨夜の選択を振り返ろう", body: "飲んでしまった翌朝：頭痛・だるさ・後悔。今夜また同じにならないために、今日の帰宅ルートを決めておこう", active: true }
+];
+
 // ─── STATE ──────────────────────────────────────────────────
 let state = {
   startDate: null,
@@ -174,6 +182,8 @@ let state = {
   urges: [],    
   currentTab: "home",
   historyMonthOffset: 0, 
+  notifications: [],
+  notifMutedDate: "" // "YYYY-MM-DD"形式。この日付の時は通知を鳴らさない
 };
 
 function load() {
@@ -186,14 +196,24 @@ function load() {
     if (lg) state.log = JSON.parse(lg);
     const ur = localStorage.getItem("wb_urges");
     if (ur) state.urges = JSON.parse(ur);
+    
+    const nf = localStorage.getItem("wb_notif");
+    if (nf) state.notifications = JSON.parse(nf);
+    else state.notifications = JSON.parse(JSON.stringify(DEFAULT_NOTIFICATIONS));
+    
+    const nm = localStorage.getItem("wb_notif_muted");
+    if (nm) state.notifMutedDate = nm;
   } catch(e) {}
 }
+
 function save() {
   try {
     if (state.startDate) localStorage.setItem("wb_start", state.startDate.toISOString());
     localStorage.setItem("wb_cost", String(state.dailyCost));
     localStorage.setItem("wb_log", JSON.stringify(state.log));
     localStorage.setItem("wb_urges", JSON.stringify(state.urges));
+    localStorage.setItem("wb_notif", JSON.stringify(state.notifications));
+    localStorage.setItem("wb_notif_muted", state.notifMutedDate);
   } catch(e) {}
 }
 
@@ -232,7 +252,6 @@ function checkDangerZone() {
   if(banner) banner.classList.toggle("show", h>=18&&h<19.5);
 }
 
-// 画面復帰時の自動リフレッシュ
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
     renderContent();
@@ -277,7 +296,6 @@ function renderHome() {
   const todayIdx = (new Date().getDay()+6)%7;
   const dayNames = ["月","火","水","木","金","土","日"];
 
-  // Tomato Logic
   let currentStage = TOMATO_STAGES[0], nextStage = TOMATO_STAGES[1];
   for (let i = TOMATO_STAGES.length - 1; i >= 0; i--) {
     if (totalSober >= TOMATO_STAGES[i].days) {
@@ -335,6 +353,9 @@ function renderHome() {
         ${todayLogged==="drank"?`<p style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6">失敗ではありません。貴重なデータが「戦略タブ」に追加されました。<br>明日はまた新しいスタートです。</p>`:""}
       </div>`;
 
+  const isMutedToday = state.notifMutedDate === todayKey();
+  const activeCount = state.notifications.filter(n=>n.active).length;
+
   return `<div class="col">
     ${tomatoCard}
 
@@ -355,6 +376,27 @@ function renderHome() {
     </div>
 
     ${todayCard}
+
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:14px">
+          <span style="font-size:28px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2))">${isMutedToday ? "🔕" : "🔔"}</span>
+          <div>
+            <p style="font-weight:700;font-size:15px;color:var(--text)">防衛アラート（通知）</p>
+            <p style="font-size:12px;color:var(--cyan);margin-top:4px;font-weight:600">${isMutedToday ? "本日はお休み中" : `稼働中：${activeCount}件`}</p>
+          </div>
+        </div>
+        <button class="btn-sm" style="padding:8px 12px;background:var(--bg3);border-color:#334155;color:var(--text)" onclick="openModal('notif')">設定</button>
+      </div>
+      
+      ${Notification && Notification.permission==='granted' ? `
+        <button class="btn-gray" style="padding:12px;font-size:13px;width:100%;border-color:${isMutedToday ? 'var(--cyan)' : '#334155'};color:${isMutedToday ? 'var(--cyan)' : 'var(--text)'}" onclick="toggleMuteToday()">
+          ${isMutedToday ? "▶️ 今日の通知を再開する" : "⏸️ 今日だけ通知を止める"}
+        </button>
+      ` : `
+        <button class="btn-cyan" style="padding:12px;font-size:13px;width:100%" onclick="setupNotif()">通知を許可する</button>
+      `}
+    </div>
 
     <button onclick="openModal('urge')" class="card" style="display:flex;align-items:center;gap:16px;width:100%;text-align:left;border:1px solid rgba(34,211,238,0.2);background:linear-gradient(90deg, rgba(34,211,238,0.05), transparent);">
       <span style="font-size:32px;filter:drop-shadow(0 0 8px rgba(34,211,238,0.4))">🌊</span>
@@ -600,7 +642,6 @@ function logUrgeFromTactics(triggerId) {
 
 // ─── HISTORY TAB ────────────────────────────────────────────
 function changeMonth(delta) {
-  // 未来(0) から 過去(12ヶ月前) まで制限
   state.historyMonthOffset = Math.max(0, Math.min(12, (state.historyMonthOffset || 0) + delta));
   renderContent();
 }
@@ -696,13 +737,26 @@ function undoToday() {
   renderContent();
 }
 
+function toggleMuteToday() {
+  if (state.notifMutedDate === todayKey()) {
+    state.notifMutedDate = "";
+  } else {
+    state.notifMutedDate = todayKey();
+  }
+  save();
+  renderContent();
+  scheduleNotifications();
+}
+
 // ─── MODALS ─────────────────────────────────────────────────
 function openModal(type) {
   const mc = document.getElementById("modal-container");
   if (type==="setup") mc.innerHTML = renderSetupModal();
   if (type==="urge")  { urgeTimer=300; urgeRunning=false; urgeTrigger=""; mc.innerHTML = renderUrgeModal(); }
   if (type==="recovery") mc.innerHTML = renderRecoveryModal();
+  if (type==="notif") mc.innerHTML = renderNotifModal();
 }
+
 function closeModal() {
   const overlay = document.querySelector('.overlay');
   if(overlay) {
@@ -711,6 +765,83 @@ function closeModal() {
     if(sheet) sheet.style.animation = 'slideUp 0.25s ease-in reverse forwards';
     setTimeout(() => { document.getElementById("modal-container").innerHTML=""; }, 200);
   }
+}
+
+// Notification Settings Modal
+function renderNotifModal() {
+  const list = state.notifications.map((n, i) => `
+    <div class="card" style="padding:16px;margin-bottom:12px;border:1px solid ${n.active ? 'rgba(34,211,238,0.3)' : 'var(--border)'};background:${n.active ? 'linear-gradient(180deg, var(--bg2) 0%, rgba(34,211,238,0.03) 100%)' : 'var(--bg2)'};opacity:${n.active?1:0.6};transition:all 0.2s">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <input type="time" id="notif-time-${i}" class="inp" value="${n.time}" style="width:auto;padding:8px 12px;font-size:18px;font-weight:700;color:var(--cyan);background:rgba(255,255,255,0.05);border:none;">
+        <div style="display:flex;gap:8px">
+          <button onclick="toggleNotifActive(${i})" style="font-size:12px;padding:6px 14px;border-radius:10px;background:${n.active ? 'var(--cyan)' : 'var(--bg3)'};color:${n.active ? '#020b18' : 'var(--muted)'};font-weight:700;box-shadow:${n.active?'0 2px 10px rgba(34,211,238,0.3)':'none'}">${n.active ? '稼働中' : '停止中'}</button>
+          <button onclick="deleteNotif(${i})" style="font-size:18px;color:var(--dim);padding:4px 8px;">×</button>
+        </div>
+      </div>
+      <input type="text" id="notif-title-${i}" class="inp" value="${n.title}" placeholder="通知タイトル（例: ⚠️ 魔の時間帯）" style="margin-bottom:8px;font-weight:700;font-size:14px;padding:12px">
+      <input type="text" id="notif-body-${i}" class="inp" value="${n.body}" placeholder="通知メッセージ（脳に刺さる言葉）" style="font-size:13px;padding:12px;color:var(--muted)">
+    </div>
+  `).join("");
+
+  return `<div class="overlay" onclick="if(event.target===this)closeModal()">
+    <div class="sheet" style="max-height:92vh;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="font-size:18px;font-weight:700">🔔 アラート設定</h3>
+        <button onclick="closeModal()" style="font-size:24px;color:var(--muted);padding:4px">×</button>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.6">自分の一番弱い時間帯に合わせて、ハッとする言葉を設定しましょう。</p>
+      
+      <div id="notif-list" style="margin-bottom:20px;">${list}</div>
+      
+      <button class="btn-sm" style="width:100%;padding:16px;font-size:14px;border:1px dashed var(--cyan);background:transparent" onclick="addNotif()">＋ 新しいアラートを追加</button>
+      
+      <button class="btn-cyan" style="margin-top:24px;padding:16px" onclick="saveNotif()">変更を保存して再起動する</button>
+    </div>
+  </div>`;
+}
+
+function toggleNotifActive(i) {
+  syncNotifInputs();
+  state.notifications[i].active = !state.notifications[i].active;
+  document.getElementById("modal-container").innerHTML = renderNotifModal();
+}
+
+function deleteNotif(i) {
+  if(confirm("このアラートを削除しますか？")) {
+    syncNotifInputs();
+    state.notifications.splice(i, 1);
+    document.getElementById("modal-container").innerHTML = renderNotifModal();
+  }
+}
+
+function addNotif() {
+  syncNotifInputs();
+  state.notifications.push({ id: "n"+Date.now(), time: "19:00", title: "新しいアラート", body: "防衛プランを実行しましょう", active: true });
+  document.getElementById("modal-container").innerHTML = renderNotifModal();
+  setTimeout(() => {
+    const sheet = document.querySelector('.sheet');
+    if(sheet) sheet.scrollTop = sheet.scrollHeight;
+  }, 50);
+}
+
+function syncNotifInputs() {
+  state.notifications.forEach((n, i) => {
+    const t = document.getElementById("notif-time-"+i);
+    const ti = document.getElementById("notif-title-"+i);
+    const b = document.getElementById("notif-body-"+i);
+    if(t) n.time = t.value;
+    if(ti) n.title = ti.value;
+    if(b) n.body = b.value;
+  });
+}
+
+function saveNotif() {
+  syncNotifInputs();
+  save();
+  closeModal();
+  renderContent();
+  scheduleNotifications();
+  alert("アラート設定を保存し、タイマーを再セットしました。");
 }
 
 // Recovery Modal (Slip Analysis)
@@ -799,6 +930,7 @@ function exportDataToClipboard() {
     wb_saving_goals: localStorage.getItem("wb_saving_goals"),
     wb_custom_plans: localStorage.getItem("wb_custom_plans"),
     wb_hidden_triggers: localStorage.getItem("wb_hidden_triggers"),
+    wb_notif: localStorage.getItem("wb_notif"),
   };
   const jsonStr = JSON.stringify(data);
   const textArea = document.getElementById("backup-text");
@@ -948,14 +1080,15 @@ function stopUrge() {
   closeModal();
 }
 
+let notifTimeouts = [];
+
 async function setupNotif() {
   if(!("Notification" in window)) { alert("このブラウザは通知非対応です"); return; }
   const perm = await Notification.requestPermission();
   if(perm === "granted") {
     scheduleNotifications();
-    const btn = document.getElementById("notif-btn");
-    if(btn) { btn.textContent = "✓ ON"; btn.style.color = "var(--green)"; }
-    alert("通知をONにしました！\n毎日18:00・19:00・19:15にアラートが届きます");
+    renderContent();
+    alert("通知を許可しました！\n設定から好きな時間とメッセージをカスタマイズしてください。");
   } else {
     alert("通知が許可されませんでした。\niPhoneの場合：設定 > Safari > 通知 で許可してください");
   }
@@ -970,25 +1103,29 @@ function requestNotifPermission() {
 
 function scheduleNotifications() {
   if(!("Notification" in window) || Notification.permission !== "granted") return;
-  const now = new Date();
   
-  const t1 = new Date(now); t1.setHours(18,0,0,0);
-  const t2 = new Date(now); t2.setHours(19,0,0,0);
-  const t3 = new Date(now); t3.setHours(19,15,0,0);
-  const t0 = new Date(now); t0.setHours(8,0,0,0);
-  if(t0 <= now) t0.setDate(t0.getDate()+1);
+  notifTimeouts.forEach(clearTimeout);
+  notifTimeouts = [];
 
-  [
-    [t0, "☀️ 昨夜の選択を振り返ろう", "飲んでしまった翌朝：頭痛・だるさ・後悔。今夜また同じにならないために、今日の帰宅ルートを決めておこう"],
-    [t1, "⚠️ 魔の時間帯スタート", "今日の帰宅ルート確認。財布は置いてから出発しましょう"],
-    [t2, "🌊 誘惑ピーク時間", "飲みたくなったらアプリの「誘惑サーフィン」を開いてください"],
-    [t3, "💪 もう少しで安全圏", "19:30を過ぎれば今日の魔の時間帯は終わりです"],
-  ].forEach(([time, title, body]) => {
-    const delay = time - now;
+  if(state.notifMutedDate === todayKey()) return; 
+
+  const now = new Date();
+
+  state.notifications.forEach(n => {
+    if(!n.active) return;
+    const [h, m] = n.time.split(":").map(Number);
+    const t = new Date(now);
+    t.setHours(h, m, 0, 0);
+    
+    if (t <= now) t.setDate(t.getDate() + 1);
+
+    const delay = t - now;
     if(delay > 0 && delay < 86400000) {
-      setTimeout(() => {
-        new Notification(title, { body, icon: "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><text y="52" font-size="52">🎯</text></svg>') });
+      const tid = setTimeout(() => {
+        if(state.notifMutedDate === todayKey()) return; 
+        new Notification(n.title, { body: n.body, icon: "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><text y="52" font-size="52">🎯</text></svg>') });
       }, delay);
+      notifTimeouts.push(tid);
     }
   });
 }
@@ -1004,7 +1141,7 @@ setInterval(scheduleNotifications, 3600000);
 
 if('serviceWorker' in navigator){
   const sw=`
-    const CACHE='sober-v3';
+    const CACHE='sober-v4';
     const ASSETS=[self.location.href];
     self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));});
     self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));});
