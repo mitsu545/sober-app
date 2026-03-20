@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="節酒">
@@ -33,94 +33,86 @@ document.head.appendChild(link);
 </script>
 
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* Reset & Base */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 :root {
-  --bg: #020b18;
-  --bg2: #0d1b2e;
-  --bg3: #1e293b;
-  --border: #0e2740;
-  --cyan: #22d3ee;
-  --green: #34d399;
-  --amber: #f59e0b;
-  --red: #ef4444;
-  --purple: #7c3aed;
-  --text: #f1f5f9;
-  --muted: #64748b;
-  --dim: #475569;
+  --bg: #020b18; --bg2: #0d1b2e; --bg3: #1e293b; --border: #0e2740;
+  --cyan: #22d3ee; --green: #34d399; --amber: #f59e0b; --red: #ef4444; --purple: #7c3aed;
+  --text: #f1f5f9; --muted: #64748b; --dim: #475569;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bot: env(safe-area-inset-bottom, 0px);
 }
-html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overscroll-behavior: none; }
-#app { display: flex; flex-direction: column; height: 100%; max-width: 430px; margin: 0 auto; background: var(--bg); }
-button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
-input, textarea, select { font-family: inherit; outline: none; }
-::-webkit-scrollbar { width: 2px; }
-::-webkit-scrollbar-thumb { background: var(--border); }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', "Hiragino Kaku Gothic ProN", sans-serif; font-feature-settings: "palt"; overscroll-behavior: none; }
+#app { display: flex; flex-direction: column; height: 100%; max-width: 430px; margin: 0 auto; background: var(--bg); position: relative; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; transition: transform 0.1s ease, opacity 0.2s; }
+button:active { transform: scale(0.96); opacity: 0.8; }
+input, textarea, select { font-family: inherit; outline: none; appearance: none; }
+::-webkit-scrollbar { display: none; } /* Hide scrollbar for clean UI */
 
 /* Layout */
 #danger-banner { background: linear-gradient(90deg,#450a0a,#7f1d1d); padding: 10px 16px; display: none; align-items: center; gap: 8px; font-size: 12px; color: #fca5a5; font-weight: 600; flex-shrink: 0; }
-#danger-banner.show { display: flex; }
+#danger-banner.show { display: flex; animation: slideDown 0.3s ease; }
 #header { padding: calc(var(--safe-top) + 14px) 20px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #0a1a2e; flex-shrink: 0; }
-#header .title { font-size: 11px; letter-spacing: 3px; color: var(--cyan); text-transform: uppercase; }
+#header .title { font-size: 11px; letter-spacing: 3px; color: var(--cyan); text-transform: uppercase; font-weight: 600; }
 #header .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
 #content { flex: 1; overflow-y: auto; padding: 16px 20px 90px; -webkit-overflow-scrolling: touch; }
-#nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: rgba(2,11,24,0.96); backdrop-filter: blur(20px); border-top: 1px solid #0a1a2e; display: grid; grid-template-columns: repeat(4,1fr); padding: 8px 0 calc(var(--safe-bot) + 10px); z-index: 100; }
-.nav-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px; opacity: 0.3; transition: opacity 0.2s; }
+#nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: rgba(2,11,24,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid #0a1a2e; display: grid; grid-template-columns: repeat(4,1fr); padding: 8px 0 calc(var(--safe-bot) + 10px); z-index: 100; }
+.nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px; opacity: 0.4; }
 .nav-btn.active { opacity: 1; }
-.nav-btn .nav-icon { font-size: 22px; }
-.nav-btn .nav-label { font-size: 10px; color: var(--muted); }
-.nav-btn.active .nav-label { color: var(--cyan); font-weight: 700; }
+.nav-btn .nav-icon { font-size: 22px; transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.nav-btn.active .nav-icon { transform: translateY(-2px) scale(1.1); }
+.nav-btn .nav-label { font-size: 10px; color: var(--muted); font-weight: 600; }
+.nav-btn.active .nav-label { color: var(--cyan); }
 
-/* Cards */
-.card { background: var(--bg2); border-radius: 16px; padding: 16px; border: 1px solid var(--border); margin-bottom: 0; position: relative; }
-.col { display: flex; flex-direction: column; gap: 14px; }
+/* Components */
+.card { background: var(--bg2); border-radius: 18px; padding: 18px; border: 1px solid var(--border); margin-bottom: 0; position: relative; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+.col { display: flex; flex-direction: column; gap: 16px; }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-.label-sm { font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+.label-sm { font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; font-weight: 600; }
 
-/* Buttons */
-.btn-cyan { background: linear-gradient(135deg,#0891b2,#0e7490); border-radius: 12px; padding: 12px 24px; color: white; font-weight: 700; font-size: 14px; display: block; width: 100%; text-align: center; }
-.btn-sm { background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.3); border-radius: 8px; padding: 5px 12px; color: var(--cyan); font-size: 11px; }
-.btn-gray { background: var(--bg3); border: 1px solid #334155; border-radius: 12px; padding: 12px; color: var(--muted); font-size: 14px; }
-.btn-red { background: var(--bg3); border: 1px solid #334155; border-radius: 12px; padding: 13px; color: var(--red); font-size: 13px; font-weight: 600; }
+/* Buttons & Inputs */
+.btn-cyan { background: linear-gradient(135deg,#0891b2,#0e7490); border-radius: 14px; padding: 14px 24px; color: white; font-weight: 700; font-size: 15px; display: block; width: 100%; text-align: center; box-shadow: 0 4px 12px rgba(8,145,178,0.3); }
+.btn-sm { background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.3); border-radius: 10px; padding: 8px 14px; color: var(--cyan); font-size: 12px; font-weight: 600; }
+.btn-gray { background: var(--bg3); border: 1px solid #334155; border-radius: 14px; padding: 14px; color: var(--text); font-size: 14px; font-weight: 600; }
+.btn-red { background: var(--bg3); border: 1px solid #334155; border-radius: 14px; padding: 14px; color: var(--red); font-size: 14px; font-weight: 600; }
+.inp { width: 100%; background: var(--bg3); border: 1px solid #334155; border-radius: 12px; padding: 14px; color: var(--text); font-size: 15px; }
 
-/* Input */
-.inp { width: 100%; background: var(--bg3); border: 1px solid #334155; border-radius: 10px; padding: 11px 14px; color: var(--text); font-size: 14px; }
-
-/* Week grid */
-.week-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; margin-top: 20px; }
-.week-cell-label { font-size: 10px; color: var(--muted); text-align: center; margin-bottom: 4px; }
-.week-cell { width: 100%; aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; border: 2px solid transparent; }
-.week-cell.sober { background: var(--cyan); color: #020b18; font-weight: 700; }
+/* Week Grid */
+.week-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; margin-top: 16px; }
+.week-cell-label { font-size: 10px; color: var(--muted); text-align: center; margin-bottom: 6px; font-weight: 600; }
+.week-cell { width: 100%; aspect-ratio: 1; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 13px; border: 2px solid transparent; transition: all 0.2s; }
+.week-cell.sober { background: var(--cyan); color: #020b18; font-weight: 700; box-shadow: 0 0 10px rgba(34,211,238,0.2); }
 .week-cell.drank { background: var(--red); color: white; font-weight: 700; }
-.week-cell.today { border-color: var(--cyan); background: rgba(34,211,238,0.1); }
-.week-cell.empty { background: var(--bg3); }
+.week-cell.today { border-color: var(--cyan); background: rgba(34,211,238,0.05); }
+.week-cell.empty { background: rgba(30,41,59,0.5); }
 
-/* Modal */
-.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); display: flex; align-items: flex-end; justify-content: center; z-index: 200; }
-.sheet { background: #0a1628; border-radius: 20px 20px 0 0; padding: 24px 24px calc(var(--safe-bot) + 24px); width: 100%; max-width: 430px; border: 1px solid var(--border); max-height: 88vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+/* Modal & Animations */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: flex; align-items: flex-end; justify-content: center; z-index: 200; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); animation: fadeIn 0.2s ease-out; }
+.sheet { background: #0a1628; border-radius: 24px 24px 0 0; padding: 24px 24px calc(var(--safe-bot) + 24px); width: 100%; max-width: 430px; border-top: 1px solid var(--border); max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch; animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; box-shadow: 0 -10px 40px rgba(0,0,0,0.5); }
 
 /* Misc */
-.tab-title { font-family: 'Noto Serif JP', serif; font-size: 18px; font-weight: 700; }
-.section-desc { color: var(--muted); font-size: 13px; line-height: 1.7; }
-.hidden { display: none !important; }
-.chip { display: inline-flex; align-items: center; gap: 4px; background: var(--bg3); border: 1px solid #334155; border-radius: 20px; padding: 5px 10px; color: var(--muted); font-size: 12px; cursor: pointer; margin: 3px; }
-.chip.sel { background: rgba(34,211,238,0.1); border-color: var(--cyan); color: var(--cyan); }
+.tab-title { font-family: 'Noto Serif JP', serif; font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.section-desc { color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--bg3); border: 1px solid #334155; border-radius: 20px; padding: 8px 14px; color: var(--muted); font-size: 13px; cursor: pointer; margin: 0 6px 8px 0; font-weight: 600; }
+.chip.sel { background: rgba(34,211,238,0.15); border-color: var(--cyan); color: var(--cyan); }
 </style>
 </head>
 <body>
 <div id="app">
   <div id="danger-banner">
-    <span>⚠️</span>
-    <span>魔の時間帯 18:00–19:30 — 財布を置いてから出発しましょう</span>
+    <span style="font-size:16px;">⚠️</span>
+    <span>魔の時間帯 (18:00–19:30) — 財布を置いてから出発しましょう</span>
   </div>
 
   <div id="header">
     <div>
-      <div class="title">WATABE · 節酒記録</div>
+      <div class="title">WATABE · リカバリー記録</div>
       <div class="sub">目標 週3日以内の飲酒</div>
     </div>
-    <button onclick="openModal('setup')" style="background:#0a1628;border:1px solid #0e2a44;border-radius:8px;padding:6px 12px;color:var(--muted);font-size:14px;">⚙</button>
+    <button onclick="openModal('setup')" style="background:var(--bg3);border:1px solid #334155;border-radius:10px;padding:8px 12px;color:var(--text);font-size:16px;">⚙</button>
   </div>
 
   <div id="content"></div>
@@ -130,10 +122,10 @@ input, textarea, select { font-family: inherit; outline: none; }
       <span class="nav-icon">🏠</span><span class="nav-label">今日</span>
     </button>
     <button class="nav-btn" onclick="switchTab('savings')" id="nav-savings">
-      <span class="nav-icon">💰</span><span class="nav-label">貯金</span>
+      <span class="nav-icon">💰</span><span class="nav-label">資産</span>
     </button>
     <button class="nav-btn" onclick="switchTab('tactics')" id="nav-tactics">
-      <span class="nav-icon">🧠</span><span class="nav-label">対策</span>
+      <span class="nav-icon">🧠</span><span class="nav-label">戦略</span>
     </button>
     <button class="nav-btn" onclick="switchTab('history')" id="nav-history">
       <span class="nav-icon">📊</span><span class="nav-label">記録</span>
@@ -144,7 +136,7 @@ input, textarea, select { font-family: inherit; outline: none; }
 <div id="modal-container"></div>
 
 <script>
-// ─── DATA ───────────────────────────────────────────────────
+// ─── DATA & CONSTANTS ───────────────────────────────────────
 const WEEKLY_GOAL = 3;
 const TRIGGERS = [
   { id:"wife_line", icon:"📱", label:"妻のLINE（迎え）",   plan:"「今から行くね」とだけ返信し、財布を置いてから出発する" },
@@ -154,6 +146,7 @@ const TRIGGERS = [
   { id:"stress",    icon:"😤", label:"仕事のストレス",      plan:"帰宅前に5分ウォーキング。コルチゾールを消費する" },
   { id:"holiday",   icon:"🏠", label:"休日の昼〜夕方",     plan:"14時にノンアルドリンクを作る習慣を先に入れる" },
 ];
+
 const MILESTONES = [
   { weeks:1,  icon:"🌱", label:"1週間", desc:"節酒習慣のスタート" },
   { weeks:2,  icon:"💧", label:"2週間", desc:"睡眠の質が改善し始める" },
@@ -164,11 +157,11 @@ const MILESTONES = [
 ];
 
 const TOMATO_STAGES = [
-  { days: 0,  icon: "🫘", name: "種まき", desc: "まだ土の中。今日から節酒のスタートです。" },
-  { days: 3,  icon: "🌱", name: "発芽",   desc: "アルコールが抜け始め、最初の芽が出ました。" },
+  { days: 0,  icon: "🫘", name: "種まき", desc: "まだ土の中。ここから体の修復が始まります。" },
+  { days: 3,  icon: "🌱", name: "発芽",   desc: "アルコールが抜け、最初の回復の芽が出ました。" },
   { days: 7,  icon: "🌿", name: "双葉",   desc: "睡眠の質が改善し、根がしっかり張ってきました。" },
   { days: 14, icon: "🪴", name: "本葉",   desc: "肝臓の修復が進み、葉が青々と茂ってきました。" },
-  { days: 30, icon: "🌼", name: "開花",   desc: "習慣が定着してきました。花が咲き、もうすぐ実を結びます。" },
+  { days: 30, icon: "🌼", name: "開花",   desc: "良い習慣が定着。花が咲き、もうすぐ実を結びます。" },
   { days: 60, icon: "🍏", name: "緑の実", desc: "目に見える成果！体調の良さが完全に定着しています。" },
   { days: 90, icon: "🍅", name: "完熟",   desc: "大収穫！節酒は完全にあなたの新しいライフスタイルです。" }
 ];
@@ -177,8 +170,8 @@ const TOMATO_STAGES = [
 let state = {
   startDate: null,
   dailyCost: 600,
-  log: {},      // { "YYYY-MM-DD": "sober"|"drank" }
-  urges: [],    // [{ date, triggerId, resisted }]
+  log: {},      
+  urges: [],    
   currentTab: "home",
   historyMonthOffset: 0, 
 };
@@ -239,12 +232,21 @@ function checkDangerZone() {
   if(banner) banner.classList.toggle("show", h>=18&&h<19.5);
 }
 
-// ─── TABS ───────────────────────────────────────────────────
+// 画面復帰時の自動リフレッシュ
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    renderContent();
+    checkDangerZone();
+  }
+});
+
+// ─── ROUTING ────────────────────────────────────────────────
 function switchTab(tab) {
   state.currentTab = tab;
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
   document.getElementById("nav-"+tab).classList.add("active");
   renderContent();
+  window.scrollTo(0,0);
 }
 
 function renderContent() {
@@ -258,11 +260,11 @@ function renderContent() {
 // ─── HOME TAB ───────────────────────────────────────────────
 function renderHome() {
   if (!state.startDate) return `
-    <div style="text-align:center;padding:60px 20px">
-      <div style="font-size:72px;margin-bottom:16px">🎯</div>
-      <h2 style="font-family:Noto Serif JP,serif;font-size:22px;margin-bottom:12px;line-height:1.5">ワタベさん専用<br>節酒トラッカー</h2>
-      <p style="color:var(--muted);font-size:14px;line-height:1.8;margin-bottom:28px">開始日と1日あたりの酒代を設定して<br>行動科学に基づいた節酒を始めましょう</p>
-      <button class="btn-cyan" onclick="openModal('setup')">今すぐ始める →</button>
+    <div style="text-align:center;padding:80px 20px">
+      <div style="font-size:80px;margin-bottom:20px;filter:drop-shadow(0 0 20px rgba(34,211,238,0.3))">🎯</div>
+      <h2 style="font-family:Noto Serif JP,serif;font-size:24px;margin-bottom:16px;line-height:1.5">ワタベさん専用<br>リカバリー・トラッカー</h2>
+      <p style="color:var(--muted);font-size:14px;line-height:1.8;margin-bottom:40px">開始日と1日あたりの酒代を設定して<br>脳をハックする節酒を始めましょう</p>
+      <button class="btn-cyan" onclick="openModal('setup')">今すぐセットアップ →</button>
     </div>`;
 
   const thisWeek = getWeekDays(0);
@@ -275,75 +277,62 @@ function renderHome() {
   const todayIdx = (new Date().getDay()+6)%7;
   const dayNames = ["月","火","水","木","金","土","日"];
 
-  // Tomato Growth Logic
-  let currentStage = TOMATO_STAGES[0];
-  let nextStage = TOMATO_STAGES[1];
+  // Tomato Logic
+  let currentStage = TOMATO_STAGES[0], nextStage = TOMATO_STAGES[1];
   for (let i = TOMATO_STAGES.length - 1; i >= 0; i--) {
     if (totalSober >= TOMATO_STAGES[i].days) {
-      currentStage = TOMATO_STAGES[i];
-      nextStage = TOMATO_STAGES[i+1] || null;
-      break;
+      currentStage = TOMATO_STAGES[i]; nextStage = TOMATO_STAGES[i+1] || null; break;
     }
   }
-  const tomatoProgress = nextStage 
-    ? Math.min(100, ((totalSober - currentStage.days) / (nextStage.days - currentStage.days)) * 100)
-    : 100;
+  const tomatoProgress = nextStage ? Math.min(100, ((totalSober - currentStage.days) / (nextStage.days - currentStage.days)) * 100) : 100;
 
   const tomatoCard = `
-    <div class="card" style="border:1px solid rgba(52,211,153,0.3); background:linear-gradient(180deg, rgba(2,11,24,0) 0%, rgba(52,211,153,0.05) 100%);">
+    <div class="card" style="border:1px solid rgba(52,211,153,0.4); background:linear-gradient(180deg, rgba(2,11,24,0) 0%, rgba(52,211,153,0.08) 100%);">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <p class="label-sm" style="margin:0;color:var(--green)">🌿 体のリカバリー状況</p>
-        <span style="font-size:11px;color:var(--muted)">累計我慢: <strong style="color:var(--text)">${totalSober}日</strong></span>
+        <span style="font-size:12px;color:var(--muted);font-weight:600">累計休肝: <strong style="color:var(--text);font-size:14px;">${totalSober}日</strong></span>
       </div>
-      <div style="display:flex;gap:16px;align-items:center;">
-        <div style="font-size:48px;line-height:1;filter:drop-shadow(0 0 10px rgba(52,211,153,0.2))">${currentStage.icon}</div>
+      <div style="display:flex;gap:18px;align-items:center;">
+        <div style="font-size:52px;line-height:1;filter:drop-shadow(0 4px 12px rgba(52,211,153,0.3))">${currentStage.icon}</div>
         <div style="flex:1">
-          <p style="font-size:14px;font-weight:700;margin-bottom:4px">${currentStage.name}</p>
-          <p style="font-size:11px;color:var(--muted);line-height:1.5">${currentStage.desc}</p>
+          <p style="font-size:16px;font-weight:700;margin-bottom:4px;color:var(--text)">${currentStage.name}</p>
+          <p style="font-size:12px;color:var(--muted);line-height:1.5">${currentStage.desc}</p>
         </div>
       </div>
       ${nextStage ? `
-      <div style="margin-top:14px">
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-bottom:4px">
+      <div style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-bottom:6px;font-weight:600">
           <span>次の進化（${nextStage.name}）まで</span>
-          <span>あと ${nextStage.days - totalSober}日</span>
+          <span style="color:var(--green)">あと ${nextStage.days - totalSober}日</span>
         </div>
-        <div style="background:var(--bg3);border-radius:4px;height:4px;overflow:hidden;">
-          <div style="height:100%;width:${tomatoProgress}%;background:var(--green);border-radius:4px;transition:width 1s"></div>
+        <div style="background:rgba(30,41,59,0.8);border-radius:6px;height:6px;overflow:hidden;">
+          <div style="height:100%;width:${tomatoProgress}%;background:linear-gradient(90deg, #10b981, #34d399);border-radius:6px;transition:width 1.2s cubic-bezier(0.22, 1, 0.36, 1)"></div>
         </div>
       </div>` : ''}
     </div>
   `;
 
-  const R=52, circ=2*Math.PI*R;
-  const pct = Math.min((drank/WEEKLY_GOAL)*100, 100);
-  const offset = circ - (pct/100)*circ;
   const ringColor = overGoal ? "#ef4444" : atGoal ? "#f59e0b" : "#22d3ee";
-
   const weekCells = thisWeek.map((d,i)=>{
-    const s=state.log[d];
-    const isToday=i===todayIdx;
+    const s=state.log[d]; const isToday=i===todayIdx;
     let cls="week-cell";
-    if(s==="sober") cls+=" sober";
-    else if(s==="drank") cls+=" drank";
-    else if(isToday) cls+=" today";
-    else cls+=" empty";
-    return `<div><div class="week-cell-label" style="color:${isToday?"var(--cyan)":"var(--muted)"};font-weight:${isToday?700:400}">${dayNames[i]}</div><div class="${cls}">${s==="sober"?"○":s==="drank"?"×":""}</div></div>`;
+    if(s==="sober") cls+=" sober"; else if(s==="drank") cls+=" drank"; else if(isToday) cls+=" today"; else cls+=" empty";
+    return `<div><div class="week-cell-label" style="color:${isToday?"var(--cyan)":"var(--muted)"}">${dayNames[i]}</div><div class="${cls}">${s==="sober"?"○":s==="drank"?"×":""}</div></div>`;
   }).join("");
 
   const todayCard = !todayLogged
-    ? `<div class="card">
-        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;text-align:center">今日はどうでしたか？</p>
+    ? `<div class="card" style="border:1px solid rgba(34,211,238,0.3); background:linear-gradient(180deg, var(--bg2) 0%, rgba(34,211,238,0.03) 100%);">
+        <p style="font-size:14px;font-weight:700;color:var(--cyan);margin-bottom:16px;text-align:center">今日のミッションはクリアしましたか？</p>
         <div class="row2">
-          <button class="btn-cyan" onclick="logToday('sober')">✓ 飲まなかった</button>
-          <button class="btn-red" onclick="openModal('recovery')">飲んでしまった</button>
+          <button class="btn-cyan" style="padding:16px;font-size:16px;box-shadow:0 8px 20px rgba(8,145,178,0.4)" onclick="logToday('sober')">✓ 休肝達成</button>
+          <button class="btn-red" style="background:var(--bg3);padding:16px;font-size:14px" onclick="openModal('recovery')">飲んでしまった</button>
         </div>
       </div>`
-    : `<div class="card" style="text-align:center;background:${todayLogged==="sober"?"rgba(34,211,238,0.05)":"rgba(239,68,68,0.05)"};border:1px solid ${todayLogged==="sober"?"rgba(34,211,238,0.2)":"rgba(239,68,68,0.2)"}">
-        <button onclick="undoToday()" style="position:absolute;top:12px;right:12px;font-size:11px;color:var(--muted);background:rgba(255,255,255,0.05);padding:4px 8px;border-radius:6px;border:1px solid var(--border)">↩️ やり直す</button>
-        <p style="font-size:28px;margin-bottom:4px;margin-top:10px">${todayLogged==="sober"?"✅":"😔"}</p>
-        <p style="color:${todayLogged==="sober"?"var(--cyan)":"var(--red)"};font-weight:700">${todayLogged==="sober"?"今日は我慢できました！":"今日は飲んでしまいましたが、記録できています"}</p>
-        ${todayLogged==="drank"?`<p style="font-size:12px;color:var(--muted);margin-top:6px">データは「対策タブ」に追加されました。明日はまた新しいスタートです。</p>`:""}
+    : `<div class="card" style="text-align:center;background:${todayLogged==="sober"?"rgba(34,211,238,0.08)":"rgba(239,68,68,0.08)"};border:1px solid ${todayLogged==="sober"?"rgba(34,211,238,0.3)":"rgba(239,68,68,0.3)"}">
+        <button onclick="undoToday()" style="position:absolute;top:14px;right:14px;font-size:12px;font-weight:600;color:var(--muted);background:var(--bg3);padding:6px 12px;border-radius:8px;border:1px solid var(--border)">↩️ 取消</button>
+        <p style="font-size:32px;margin-bottom:8px;margin-top:12px">${todayLogged==="sober"?"✅":"📝"}</p>
+        <p style="color:${todayLogged==="sober"?"var(--cyan)":"var(--red)"};font-weight:700;font-size:16px">${todayLogged==="sober"?"休肝達成！素晴らしい選択です。":"データを記録しました。"}</p>
+        ${todayLogged==="drank"?`<p style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6">失敗ではありません。貴重なデータが「戦略タブ」に追加されました。<br>明日はまた新しいスタートです。</p>`:""}
       </div>`;
 
   return `<div class="col">
@@ -354,16 +343,12 @@ function renderHome() {
         <div>
           <p class="label-sm">今週の飲酒日数</p>
           <div style="display:flex;align-items:baseline;gap:6px">
-            <span style="font-family:Noto Serif JP,serif;font-size:52px;font-weight:700;color:${ringColor};line-height:1">${drank}</span>
-            <span style="color:var(--dim);font-size:18px">/ ${WEEKLY_GOAL}日</span>
+            <span style="font-family:Noto Serif JP,serif;font-size:56px;font-weight:700;color:${ringColor};line-height:1;letter-spacing:-2px">${drank}</span>
+            <span style="color:var(--dim);font-size:18px;font-weight:600">/ ${WEEKLY_GOAL}日</span>
           </div>
-          <p style="font-size:12px;color:${overGoal?"var(--red)":"var(--muted)"};margin-top:6px">
-            ${overGoal?`⚠ 目標を${drank-WEEKLY_GOAL}日超過`:remain===0?"🎯 今週の目標達成！":`残り ${remain}日まで飲める`}
+          <p style="font-size:12px;font-weight:600;color:${overGoal?"var(--red)":"var(--cyan)"};margin-top:8px">
+            ${overGoal?`⚠ 目標を${drank-WEEKLY_GOAL}日超過`:remain===0?"🎯 今週の目標達成！":`残り ${remain}日までOK`}
           </p>
-        </div>
-        <div style="text-align:right">
-          <p style="font-size:11px;color:var(--dim);margin-bottom:4px">節約累計</p>
-          <p style="font-size:24px;font-weight:700;color:var(--green)">¥${saved.toLocaleString()}</p>
         </div>
       </div>
       <div class="week-grid">${weekCells}</div>
@@ -371,26 +356,21 @@ function renderHome() {
 
     ${todayCard}
 
-    <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-      <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:24px">🔔</span>
-        <div>
-          <p style="font-weight:600;font-size:14px">魔の時間帯に通知</p>
-          <p style="font-size:11px;color:var(--muted);margin-top:2px">18:00 / 19:00 / 19:15 に予防アラート</p>
-        </div>
-      </div>
-      <button class="btn-sm" onclick="setupNotif()" id="notif-btn">
-        ${Notification && Notification.permission==='granted' ? '✓ ON' : '許可する'}
-      </button>
-    </div>
-
-    <button onclick="openModal('urge')" class="card" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1px solid rgba(34,211,238,0.15);cursor:pointer">
-      <span style="font-size:28px">🌊</span>
+    <button onclick="openModal('urge')" class="card" style="display:flex;align-items:center;gap:16px;width:100%;text-align:left;border:1px solid rgba(34,211,238,0.2);background:linear-gradient(90deg, rgba(34,211,238,0.05), transparent);">
+      <span style="font-size:32px;filter:drop-shadow(0 0 8px rgba(34,211,238,0.4))">🌊</span>
       <div>
-        <p style="font-weight:600;font-size:14px">飲みたくなったとき（今すぐ使う）</p>
-        <p style="font-size:12px;color:var(--muted);margin-top:2px">タップで5分タイマー → 衝動は必ず去る</p>
+        <p style="font-weight:700;font-size:15px;color:var(--text)">飲みたくなったとき（誘惑サーフィン）</p>
+        <p style="font-size:12px;color:var(--cyan);margin-top:4px;font-weight:600">タップして5分タイマーを起動</p>
       </div>
     </button>
+
+    <div class="card" style="background:#0f0a1e;border:1px solid #1e1040">
+      <p style="font-size:11px;letter-spacing:2px;color:#a855f7;text-transform:uppercase;margin-bottom:14px;font-weight:700">💭 翌朝の後悔コスト（脳へのリマインド）</p>
+      <div style="display:flex;gap:12px;margin-bottom:12px;align-items:flex-start"><span style="font-size:16px">🤢</span><p style="font-size:12px;color:#c084fc;line-height:1.6">頭痛・だるさで午前中のパフォーマンスが約40%低下</p></div>
+      <div style="display:flex;gap:12px;margin-bottom:12px;align-items:flex-start"><span style="font-size:16px">💸</span><p style="font-size:12px;color:#c084fc;line-height:1.6">1回の飲酒コストは酒代+翌日の生産性損失で実質2倍以上</p></div>
+      <div style="display:flex;gap:12px;margin-bottom:12px;align-items:flex-start"><span style="font-size:16px">😴</span><p style="font-size:12px;color:#c084fc;line-height:1.6">深い睡眠（ノンレム睡眠）が失われ、翌朝の集中力が顕著に低下</p></div>
+      <div style="display:flex;gap:12px;align-items:flex-start"><span style="font-size:16px">📈</span><p style="font-size:12px;color:#c084fc;line-height:1.6">週3日以上の飲酒は肝臓の脂肪蓄積を加速し、肝臓年齢が15歳老ける</p></div>
+    </div>
   </div>`;
 }
 
@@ -408,22 +388,22 @@ function renderSavings() {
     const pct = Math.min((saved / g.amount) * 100, 100);
     const daysLeft = Math.max(0, Math.ceil((g.amount - saved) / daily));
     return `<div class="card" style="border:1px solid rgba(34,211,238,0.2)">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:28px">${g.icon}</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-size:32px">${g.icon}</span>
           <div>
-            <p style="font-weight:700;font-size:14px">${g.name}</p>
-            <p style="font-size:11px;color:var(--muted)">目標 ¥${g.amount.toLocaleString()}</p>
+            <p style="font-weight:700;font-size:15px;color:var(--text)">${g.name}</p>
+            <p style="font-size:11px;color:var(--muted);margin-top:2px">目標 ¥${g.amount.toLocaleString()}</p>
           </div>
         </div>
-        <button onclick="removeGoal(${i})" style="font-size:18px;color:var(--muted);background:none;border:none">×</button>
+        <button onclick="removeGoal(${i})" style="font-size:20px;color:var(--dim);padding:4px">×</button>
       </div>
-      <div style="background:var(--bg3);border-radius:6px;height:8px;margin-bottom:8px">
-        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#22d3ee,#34d399);border-radius:6px;transition:width 0.5s"></div>
+      <div style="background:var(--bg3);border-radius:8px;height:10px;margin-bottom:10px;overflow:hidden;">
+        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#22d3ee,#34d399);border-radius:8px;transition:width 0.8s cubic-bezier(0.22, 1, 0.36, 1)"></div>
       </div>
       <div style="display:flex;justify-content:space-between">
-        <span style="font-size:12px;color:var(--cyan)">¥${saved.toLocaleString()} / ¥${g.amount.toLocaleString()}</span>
-        <span style="font-size:12px;color:var(--muted)">${pct>=100?"🎉 達成！":"あと"+daysLeft+"日我慢"}</span>
+        <span style="font-size:13px;font-weight:700;color:var(--cyan)">¥${saved.toLocaleString()} <span style="font-size:11px;color:var(--muted);font-weight:400">/ ¥${g.amount.toLocaleString()}</span></span>
+        <span style="font-size:12px;font-weight:600;color:var(--muted)">${pct>=100?"🎉 達成！":"あと"+daysLeft+"日クリア"}</span>
       </div>
     </div>`;
   }).join("");
@@ -434,42 +414,42 @@ function renderSavings() {
     const sel = addIconSel===ic;
     const bg  = sel ? "rgba(34,211,238,0.2)" : "transparent";
     const br  = sel ? "var(--cyan)" : "transparent";
-    return `<span onclick="selectIcon(this,event)" data-ic="${ic}" style="font-size:22px;cursor:pointer;padding:4px;border-radius:6px;background:${bg};border:1px solid ${br}">${ic}</span>`;
+    return `<span onclick="selectIcon(this,event)" data-ic="${ic}" style="font-size:24px;cursor:pointer;padding:6px;border-radius:10px;background:${bg};border:1px solid ${br};transition:all 0.2s">${ic}</span>`;
   }).join("");
 
   return `<div class="col">
-    <h3 class="tab-title">💰 節約貯金</h3>
+    <h3 class="tab-title">💰 資産（投資原資）</h3>
     
     <div class="card" style="background:linear-gradient(135deg,#0c1a2e,#091526);border:1px solid #0e3a5c;text-align:center">
-      <p class="label-sm">節酒で実際に貯まったお金</p>
-      <p style="font-family:Noto Serif JP,serif;font-size:48px;font-weight:700;color:var(--green);line-height:1;margin-top:4px;">¥${saved.toLocaleString()}</p>
-      <div style="display:inline-block;background:rgba(255,255,255,0.05);padding:6px 14px;border-radius:12px;margin-top:10px;">
-        <p style="font-size:12px;color:var(--muted);">我慢した日 <span style="color:var(--text);font-weight:700">${sober}</span> 日間 × <span style="color:var(--text);font-weight:700">¥${daily}</span> /日</p>
+      <p class="label-sm">節酒によって生み出した資金</p>
+      <p style="font-family:Noto Serif JP,serif;font-size:52px;font-weight:700;color:var(--green);line-height:1;margin-top:8px;">¥${saved.toLocaleString()}</p>
+      <div style="display:inline-block;background:rgba(255,255,255,0.05);padding:8px 16px;border-radius:14px;margin-top:14px;border:1px solid rgba(255,255,255,0.05)">
+        <p style="font-size:13px;color:var(--muted);font-weight:600">休肝 <span style="color:var(--text);font-weight:700">${sober}</span> 日間 × <span style="color:var(--text);font-weight:700">¥${daily}</span> /日</p>
       </div>
       
-      <div style="border-top:1px dashed #1e3a5f; margin-top:20px; padding-top:16px;">
-        <p style="font-size:11px;color:var(--muted);margin-bottom:10px">※目標（週${WEEKLY_GOAL}日以下の飲酒）を継続した場合の予測額</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-          <div style="background:var(--bg3);border-radius:10px;padding:12px">
-            <p style="font-size:10px;color:var(--muted);margin-bottom:4px">1ヶ月の節約予測</p>
-            <p style="font-size:18px;font-weight:700;color:var(--cyan)">¥${monthly.toLocaleString()}</p>
+      <div style="border-top:1px dashed #1e3a5f; margin-top:24px; padding-top:20px;">
+        <p style="font-size:11px;color:var(--muted);margin-bottom:12px;font-weight:600">※目標（週${WEEKLY_GOAL}日以下の飲酒）を継続した場合の投資原資予測</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div style="background:var(--bg3);border-radius:12px;padding:14px">
+            <p style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600">1ヶ月の予測</p>
+            <p style="font-size:20px;font-weight:700;color:var(--cyan)">¥${monthly.toLocaleString()}</p>
           </div>
-          <div style="background:var(--bg3);border-radius:10px;padding:12px">
-            <p style="font-size:10px;color:var(--muted);margin-bottom:4px">1年間の節約予測</p>
-            <p style="font-size:18px;font-weight:700;color:var(--amber)">¥${yearly.toLocaleString()}</p>
+          <div style="background:var(--bg3);border-radius:12px;padding:14px">
+            <p style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600">1年間の予測</p>
+            <p style="font-size:20px;font-weight:700;color:var(--amber)">¥${yearly.toLocaleString()}</p>
           </div>
         </div>
       </div>
     </div>
 
-    ${goals.length > 0 ? goalCards : '<p style="font-size:13px;color:var(--muted);text-align:center;margin:10px 0;">下から目標を追加しましょう</p>'}
+    ${goals.length > 0 ? goalCards : '<p style="font-size:13px;color:var(--muted);text-align:center;margin:16px 0;font-weight:600">下から目標を追加しましょう</p>'}
 
-    <div class="card" style="border:1px solid rgba(245,158,11,0.25)">
-      <p style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:12px">＋ 目標を追加</p>
-      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">${iconPicker}</div>
-      <input id="goal-name" class="inp" placeholder="目標名（例：NISA・スペアリブ食材）" style="margin-bottom:8px">
-      <input id="goal-amount" class="inp" type="number" placeholder="目標金額（円）">
-      <button class="btn-cyan" style="margin-top:10px;padding:10px" onclick="addGoal()">追加する</button>
+    <div class="card" style="border:1px solid rgba(245,158,11,0.3)">
+      <p style="font-size:14px;font-weight:700;color:var(--amber);margin-bottom:14px">＋ 投資・購入目標を追加</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">${iconPicker}</div>
+      <input id="goal-name" class="inp" placeholder="目標名（例：NISA成長枠・スペアリブ肉）" style="margin-bottom:10px">
+      <input id="goal-amount" class="inp" type="number" placeholder="目標金額（円）" style="margin-bottom:14px">
+      <button class="btn-cyan" onclick="addGoal()">目標を設定する</button>
     </div>
   </div>`;
 }
@@ -497,6 +477,316 @@ function removeGoal(idx) {
   try { goals = JSON.parse(localStorage.getItem("wb_saving_goals")||"[]"); } catch(e){}
   goals.splice(idx,1);
   localStorage.setItem("wb_saving_goals", JSON.stringify(goals));
+  renderContent();
+}
+
+// ─── TACTICS TAB ────────────────────────────────────────────
+function renderTactics() {
+  let hiddenTriggers = [];
+  try { hiddenTriggers = JSON.parse(localStorage.getItem("wb_hidden_triggers")||"[]"); } catch(e){}
+
+  const cards = TRIGGERS.filter(t=>!hiddenTriggers.includes(t.id)).map(t => {
+    const total = state.urges.filter(u=>u.triggerId===t.id).length;
+    const resisted = state.urges.filter(u=>u.triggerId===t.id&&u.resisted).length;
+    const bar = total > 0 ? `
+      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:12px;color:var(--dim);font-weight:600">勝率</span>
+          <span style="font-size:12px;color:${resisted/total>0.6?"var(--green)":"var(--amber)"};font-weight:700">${resisted}勝 / ${total}戦</span>
+        </div>
+        <div style="background:rgba(30,41,59,0.5);border-radius:4px;height:6px;overflow:hidden;"><div style="height:100%;width:${(resisted/total)*100}%;background:var(--green);border-radius:4px;transition:width 0.8s ease"></div></div>
+      </div>` : "";
+    return `<div class="card">
+      <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:10px">
+        <span style="font-size:28px;flex-shrink:0;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2))">${t.icon}</span>
+        <div style="flex:1">
+          <p style="font-weight:700;font-size:14px;color:var(--amber);margin-bottom:4px">もし「${t.label}」なら</p>
+          <p style="font-size:14px;color:var(--text);line-height:1.6;font-weight:600">${t.plan}</p>
+        </div>
+        <button onclick="hideTrigger('${t.id}')" style="font-size:20px;color:var(--dim);padding:0 0 8px 8px;flex-shrink:0">×</button>
+      </div>
+      ${bar}
+      <button class="btn-sm" style="margin-top:14px;width:100%;padding:10px;font-size:13px" onclick="logUrgeFromTactics('${t.id}')">このトリガーへの勝利を記録</button>
+    </div>`;
+  }).join("");
+
+  let customPlans = [];
+  try { customPlans = JSON.parse(localStorage.getItem("wb_custom_plans")||"[]"); } catch(e){}
+  const customCards = customPlans.map((p,i) => {
+    const cid = "custom_"+i;
+    const total = state.urges.filter(u=>u.triggerId===cid).length;
+    const resisted = state.urges.filter(u=>u.triggerId===cid&&u.resisted).length;
+    const bar = total > 0 ? `
+      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:12px;color:var(--dim);font-weight:600">勝率</span>
+          <span style="font-size:12px;color:${resisted/total>0.6?"var(--green)":"var(--amber)"};font-weight:700">${resisted}勝 / ${total}戦</span>
+        </div>
+        <div style="background:rgba(30,41,59,0.5);border-radius:4px;height:6px;overflow:hidden;"><div style="height:100%;width:${(resisted/total)*100}%;background:var(--green);border-radius:4px;transition:width 0.8s ease"></div></div>
+      </div>` : "";
+    return `<div class="card" style="border:1px solid rgba(245,158,11,0.3);background:linear-gradient(180deg, var(--bg2) 0%, rgba(245,158,11,0.03) 100%)">
+      <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:10px">
+        <span style="font-size:28px;flex-shrink:0;filter:drop-shadow(0 2px 4px rgba(245,158,11,0.3))">🛡️</span>
+        <div style="flex:1">
+          <p style="font-weight:700;font-size:14px;color:var(--amber);margin-bottom:4px">もし「${p.trigger}」なら</p>
+          <p style="font-size:14px;color:var(--text);line-height:1.6;font-weight:600">${p.plan}</p>
+        </div>
+        <button onclick="removeCustomPlan(${i})" style="font-size:20px;color:var(--dim);padding:0 0 8px 8px;flex-shrink:0">×</button>
+      </div>
+      ${bar}
+      <button class="btn-sm" style="margin-top:14px;width:100%;padding:10px;font-size:13px" onclick="logUrgeFromCustom(${i})">このトリガーへの勝利を記録</button>
+    </div>`;
+  }).join("");
+
+  const addCard = `<div class="card" style="border:1px solid rgba(34,211,238,0.3)">
+    <p style="font-size:14px;font-weight:700;color:var(--cyan);margin-bottom:14px">＋ 自分専用の防衛プランを作成</p>
+    <input id="custom-trigger" class="inp" placeholder="もし... （例: 飲み会に誘われたら）" style="margin-bottom:10px">
+    <input id="custom-plan" class="inp" placeholder="こうする... （例: 最初の1杯だけにして烏龍茶にする）" style="margin-bottom:14px">
+    <button class="btn-cyan" onclick="addCustomPlan()">プランを保存</button>
+  </div>`;
+
+  return `<div class="col">
+    <h3 class="tab-title">🎯 防衛戦略 (If-Then)</h3>
+    <p class="section-desc">「もし〇〇になったら△△する」とあらかじめ決めておくことで、意志力を使わずに自動的に脳が防衛行動をとれます。</p>
+    ${cards}
+    ${customCards}
+    ${addCard}
+  </div>`;
+}
+
+function hideTrigger(id) {
+  let hidden = [];
+  try { hidden = JSON.parse(localStorage.getItem("wb_hidden_triggers")||"[]"); } catch(e){}
+  hidden.push(id);
+  localStorage.setItem("wb_hidden_triggers", JSON.stringify(hidden));
+  renderContent();
+}
+
+function logUrgeFromCustom(idx) {
+  const plans = JSON.parse(localStorage.getItem("wb_custom_plans")||"[]");
+  const p = plans[idx];
+  if(!p) return;
+  const r = confirm(`「${p.trigger}」の誘惑を回避（クリア）しましたか？\nOK → クリア！　キャンセル → 飲んでしまった`);
+  state.urges = [{date:new Date().toISOString(),triggerId:"custom_"+idx,resisted:r},...state.urges].slice(0,200);
+  save();
+  renderContent();
+}
+
+function addCustomPlan() {
+  const trigger = document.getElementById("custom-trigger")?.value?.trim();
+  const plan    = document.getElementById("custom-plan")?.value?.trim();
+  if(!trigger || !plan) return;
+  let plans = [];
+  try { plans = JSON.parse(localStorage.getItem("wb_custom_plans")||"[]"); } catch(e){}
+  plans.push({trigger, plan});
+  localStorage.setItem("wb_custom_plans", JSON.stringify(plans));
+  renderContent();
+}
+
+function removeCustomPlan(idx) {
+  let plans = [];
+  try { plans = JSON.parse(localStorage.getItem("wb_custom_plans")||"[]"); } catch(e){}
+  plans.splice(idx, 1);
+  localStorage.setItem("wb_custom_plans", JSON.stringify(plans));
+  renderContent();
+}
+
+function logUrgeFromTactics(triggerId) {
+  const r = confirm(`「${TRIGGERS.find(t=>t.id===triggerId).label}」の誘惑を回避（クリア）しましたか？\nOK → クリア！　キャンセル → 飲んでしまった`);
+  state.urges = [{date:new Date().toISOString(),triggerId,resisted:r},...state.urges].slice(0,200);
+  save();
+  renderContent();
+}
+
+// ─── HISTORY TAB ────────────────────────────────────────────
+function changeMonth(delta) {
+  // 未来(0) から 過去(12ヶ月前) まで制限
+  state.historyMonthOffset = Math.max(0, Math.min(12, (state.historyMonthOffset || 0) + delta));
+  renderContent();
+}
+
+function toggleHistoryLog(dateStr) {
+  const current = state.log[dateStr];
+  if (!current) state.log[dateStr] = "sober"; // 空欄 -> クリア
+  else if (current === "sober") state.log[dateStr] = "drank"; // クリア -> 飲酒
+  else delete state.log[dateStr]; // 飲酒 -> 空欄(リセット)
+  save();
+  renderContent();
+}
+
+function renderHistory() {
+  const {sober,saved}=totalStats();
+  const gw=goalWeeks();
+  const dayNames=["月","火","水","木","金","土","日"];
+
+  const summaryCards = [
+    ["累計クリア", sober+"日", "var(--cyan)"],
+    ["確保した資金", "¥"+saved.toLocaleString(), "var(--green)"],
+    ["目標達成週", gw+"週", "var(--amber)"],
+  ].map(([l,v,c])=>`<div class="card" style="text-align:center;padding:16px"><p style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600">${l}</p><p style="font-size:22px;font-weight:700;color:${c}">${v}</p></div>`).join("");
+
+  const moOffset = state.historyMonthOffset || 0;
+  const now = new Date();
+  const targetDate = new Date(now.getFullYear(), now.getMonth() - moOffset, 1);
+  const yr = targetDate.getFullYear(), mn = targetDate.getMonth();
+  const label = `${yr}年${mn+1}月`;
+  const daysInMonth = new Date(yr, mn+1, 0).getDate();
+  const firstDow = (new Date(yr, mn, 1).getDay()+6)%7;
+  
+  let mSober=0, mDrank=0;
+  for(let d=1;d<=daysInMonth;d++){
+    const key = `${yr}-${String(mn+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    if(state.log[key]==="sober") mSober++;
+    else if(state.log[key]==="drank") mDrank++;
+  }
+  
+  let cells = "";
+  for(let i=0;i<firstDow;i++) cells+='<div></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const key = `${yr}-${String(mn+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const s = state.log[key];
+    const isToday = key === todayKey();
+    const bg = s==="sober" ? "var(--cyan)" : s==="drank" ? "var(--red)" : isToday ? "rgba(34,211,238,0.15)" : "rgba(30,41,59,0.5)";
+    const border = isToday ? "2px solid var(--cyan)" : "2px solid transparent";
+    cells += `<div onclick="toggleHistoryLog('${key}')" style="cursor:pointer;aspect-ratio:1;border-radius:10px;background:${bg};border:${border};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:${s?"white":"var(--text)"};transition:transform 0.1s;">${d}</div>`;
+  }
+  const dayHdr = dayNames.map(d=>`<div style="text-align:center;font-size:10px;color:var(--muted);padding-bottom:6px;font-weight:600">${d}</div>`).join("");
+  
+  const monthCard = `<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <button onclick="changeMonth(1)" style="padding:10px;background:var(--bg3);border-radius:10px;font-size:14px;color:${moOffset===12?'transparent':'var(--text)'};pointer-events:${moOffset===12?'none':'auto'}">◀</button>
+      <div style="text-align:center">
+        <p style="font-size:16px;font-weight:700">${label}</p>
+        <p style="font-size:11px;color:var(--muted);margin-top:4px;font-weight:600"><span style="color:var(--cyan)">✓ ${mSober}日</span> / <span style="color:var(--red)">× ${mDrank}日</span></p>
+      </div>
+      <button onclick="changeMonth(-1)" style="padding:10px;background:var(--bg3);border-radius:10px;font-size:14px;color:${moOffset===0?'transparent':'var(--text)'};pointer-events:${moOffset===0?'none':'auto'}">▶</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:12px;">${dayHdr}${cells}</div>
+    <p style="font-size:11px;color:var(--dim);text-align:center;margin-top:12px;font-weight:600">💡 日付をタップして記録を修正できます</p>
+  </div>`;
+
+  const milestoneCards = MILESTONES.map(m=>{
+    const done=gw>=m.weeks;
+    return `<div class="card" style="text-align:center;opacity:${done?1:0.5};border:1px solid ${done?"rgba(34,211,238,0.4)":"var(--border)"};background:${done?"linear-gradient(180deg, var(--bg2) 0%, rgba(34,211,238,0.05) 100%)":"var(--bg2)"}">
+      <div style="font-size:32px;filter:${done?"drop-shadow(0 0 10px rgba(34,211,238,0.4))":"grayscale(1)"};margin-bottom:8px">${m.icon}</div>
+      <p style="font-size:13px;font-weight:700;color:${done?"var(--cyan)":"var(--text)"}">${m.label}</p>
+      <p style="font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4">${m.desc}</p>
+    </div>`;
+  }).join("");
+
+  return `<div class="col">
+    <h3 class="tab-title">📊 データ・実績</h3>
+    <div class="row3">${summaryCards}</div>
+    <h3 class="tab-title" style="margin-top:8px">📅 カレンダー</h3>
+    ${monthCard}
+    <h3 class="tab-title" style="margin-top:8px">🏆 マイルストーン</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${milestoneCards}</div>
+  </div>`;
+}
+
+// ─── ACTIONS ────────────────────────────────────────────────
+function logToday(type) {
+  state.log[todayKey()] = type;
+  save();
+  renderContent();
+}
+function undoToday() {
+  delete state.log[todayKey()];
+  save();
+  renderContent();
+}
+
+// ─── MODALS ─────────────────────────────────────────────────
+function openModal(type) {
+  const mc = document.getElementById("modal-container");
+  if (type==="setup") mc.innerHTML = renderSetupModal();
+  if (type==="urge")  { urgeTimer=300; urgeRunning=false; urgeTrigger=""; mc.innerHTML = renderUrgeModal(); }
+  if (type==="recovery") mc.innerHTML = renderRecoveryModal();
+}
+function closeModal() {
+  const overlay = document.querySelector('.overlay');
+  if(overlay) {
+    overlay.style.animation = 'fadeIn 0.2s ease-out reverse forwards';
+    const sheet = overlay.querySelector('.sheet');
+    if(sheet) sheet.style.animation = 'slideUp 0.25s ease-in reverse forwards';
+    setTimeout(() => { document.getElementById("modal-container").innerHTML=""; }, 200);
+  }
+}
+
+// Recovery Modal (Slip Analysis)
+function renderRecoveryModal() {
+  return `<div class="overlay" onclick="if(event.target===this)closeModal()">
+    <div class="sheet">
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:10px;color:var(--text)">📝 リカバリー分析</h3>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:24px;">
+        目標を超えて飲んでしまった経験を<strong style="color:var(--cyan)">「次回防ぐためのデータ」</strong>に変えましょう。入力内容は「戦略タブ」に自動追加されます。
+      </p>
+      
+      <label style="font-size:13px;color:var(--cyan);display:block;margin-bottom:8px;font-weight:700">Q. 今回の引き金（トリガー）は何でしたか？</label>
+      <input type="text" id="rec-trigger" class="inp" placeholder="例：仕事で疲れて帰ってきた時" style="margin-bottom:20px;">
+      
+      <label style="font-size:13px;color:var(--cyan);display:block;margin-bottom:8px;font-weight:700">Q. 次回同じ状況になったらどうしますか？</label>
+      <input type="text" id="rec-plan" class="inp" placeholder="例：コンビニに寄らずまっすぐ帰る">
+      
+      <button class="btn-cyan" style="margin-top:32px;padding:16px" onclick="saveRecovery()">データを記録して戦略に追加する</button>
+      <button onclick="closeModal()" style="display:block;width:100%;text-align:center;font-size:14px;font-weight:600;color:var(--dim);margin-top:20px;padding:10px;">キャンセル</button>
+    </div>
+  </div>`;
+}
+
+function saveRecovery() {
+  const trigger = document.getElementById("rec-trigger")?.value?.trim();
+  const plan = document.getElementById("rec-plan")?.value?.trim();
+  
+  if (trigger && plan) {
+    let plans = [];
+    try { plans = JSON.parse(localStorage.getItem("wb_custom_plans")||"[]"); } catch(e){}
+    plans.push({trigger, plan});
+    localStorage.setItem("wb_custom_plans", JSON.stringify(plans));
+  }
+  
+  logToday('drank');
+  closeModal();
+}
+
+// Setup Modal
+function renderSetupModal() {
+  const cur = state.startDate ? state.startDate.toISOString().slice(0,10) : new Date().toISOString().slice(0,10);
+  return `<div class="overlay" onclick="if(event.target===this)closeModal()">
+    <div class="sheet" style="max-height:90vh;">
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:20px">⚙ 設定・データ管理</h3>
+      
+      <label style="font-size:13px;color:var(--muted);display:block;margin-bottom:8px;font-weight:600">開始日</label>
+      <input type="date" id="setup-date" class="inp" value="${cur}">
+      
+      <label style="font-size:13px;color:var(--muted);display:block;margin-top:20px;margin-bottom:8px;font-weight:600">1日あたりの酒代（円）</label>
+      <input type="number" id="setup-cost" class="inp" value="${state.dailyCost}">
+      
+      <div style="margin-top:32px; padding-top:24px; border-top:1px solid var(--border)">
+        <p style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--cyan)">💾 データバックアップ</p>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">ブラウザ履歴消去に備え、データをコピーしてメモ帳に保存してください。</p>
+        <div style="display:flex;gap:12px;margin-bottom:12px;">
+          <button class="btn-sm" style="flex:1;padding:12px;font-size:13px" onclick="exportDataToClipboard()">📋 コピー</button>
+          <button class="btn-sm" style="flex:1;padding:12px;font-size:13px" onclick="importDataFromClipboard()">📥 復元</button>
+        </div>
+        <textarea id="backup-text" class="inp" style="height:70px;font-size:11px;color:var(--dim);resize:none;" placeholder="復元する時はここにテキストを貼り付け"></textarea>
+      </div>
+
+      <div class="row2" style="margin-top:32px">
+        <button class="btn-gray" onclick="closeModal()">閉じる</button>
+        <button class="btn-cyan" onclick="saveSetup()">保存</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function saveSetup() {
+  const d = document.getElementById("setup-date").value;
+  const c = Number(document.getElementById("setup-cost").value);
+  state.startDate = new Date(d+"T00:00:00");
+  state.dailyCost = c;
+  save();
+  closeModal();
   renderContent();
 }
 
@@ -554,354 +844,53 @@ function importDataFromClipboard() {
   }
 }
 
-// ─── TACTICS TAB ────────────────────────────────────────────
-function renderTactics() {
-  let hiddenTriggers = [];
-  try { hiddenTriggers = JSON.parse(localStorage.getItem("wb_hidden_triggers")||"[]"); } catch(e){}
-
-  const cards = TRIGGERS.filter(t=>!hiddenTriggers.includes(t.id)).map(t => {
-    const total = state.urges.filter(u=>u.triggerId===t.id).length;
-    const resisted = state.urges.filter(u=>u.triggerId===t.id&&u.resisted).length;
-    const bar = total > 0 ? `
-      <div style="border-top:1px solid var(--bg3);padding-top:10px;margin-top:10px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-          <span style="font-size:12px;color:var(--dim)">勝率</span>
-          <span style="font-size:12px;color:${resisted/total>0.6?"var(--green)":"var(--amber)"};font-weight:700">${resisted}/${total}</span>
-        </div>
-        <div style="background:var(--bg3);border-radius:4px;height:5px"><div style="height:100%;width:${(resisted/total)*100}%;background:var(--green);border-radius:4px;transition:width 0.5s"></div></div>
-      </div>` : "";
-    return `<div class="card">
-      <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px">
-        <span style="font-size:24px;flex-shrink:0">${t.icon}</span>
-        <div style="flex:1"><p style="font-weight:700;font-size:14px;color:var(--amber);margin-bottom:2px">もし「${t.label}」なら</p><p style="font-size:13px;color:var(--muted);line-height:1.6">${t.plan}</p></div>
-        <button onclick="hideTrigger('${t.id}')" style="font-size:18px;color:var(--muted);background:none;border:none;padding-left:8px;flex-shrink:0">×</button>
-      </div>
-      ${bar}
-      <button class="btn-sm" style="margin-top:10px;width:100%;padding:8px" onclick="logUrgeFromTactics('${t.id}')">このトリガーを記録する</button>
-    </div>`;
-  }).join("");
-
-  let customPlans = [];
-  try { customPlans = JSON.parse(localStorage.getItem("wb_custom_plans")||"[]"); } catch(e){}
-  const customCards = customPlans.map((p,i) => {
-    const cid = "custom_"+i;
-    const total = state.urges.filter(u=>u.triggerId===cid).length;
-    const resisted = state.urges.filter(u=>u.triggerId===cid&&u.resisted).length;
-    const bar = total > 0 ? `
-      <div style="border-top:1px solid var(--bg3);padding-top:10px;margin-top:10px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-          <span style="font-size:12px;color:var(--dim)">勝率</span>
-          <span style="font-size:12px;color:${resisted/total>0.6?"var(--green)":"var(--amber)"};font-weight:700">${resisted}/${total}</span>
-        </div>
-        <div style="background:var(--bg3);border-radius:4px;height:5px"><div style="height:100%;width:${(resisted/total)*100}%;background:var(--green);border-radius:4px;transition:width 0.5s"></div></div>
-      </div>` : "";
-    return `<div class="card" style="border:1px solid rgba(245,158,11,0.2)">
-      <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px">
-        <span style="font-size:24px;flex-shrink:0">✏️</span>
-        <div style="flex:1">
-          <p style="font-weight:700;font-size:14px;color:var(--amber);margin-bottom:2px">もし「${p.trigger}」なら</p>
-          <p style="font-size:13px;color:var(--muted);line-height:1.6">${p.plan}</p>
-        </div>
-        <button onclick="removeCustomPlan(${i})" style="font-size:18px;color:var(--muted);background:none;border:none;padding-left:8px;flex-shrink:0">×</button>
-      </div>
-      ${bar}
-      <button class="btn-sm" style="margin-top:10px;width:100%;padding:8px" onclick="logUrgeFromCustom(${i})">このトリガーを記録する</button>
-    </div>`;
-  }).join("");
-
-  const addCard = `<div class="card" style="border:1px solid rgba(34,211,238,0.15)">
-    <p style="font-size:13px;font-weight:700;color:var(--cyan);margin-bottom:12px">＋ 自分のプランを追加</p>
-    <input id="custom-trigger" class="inp" placeholder="もし... （例: 飲み会に誘われたら）" style="margin-bottom:8px">
-    <input id="custom-plan" class="inp" placeholder="こうする... （例: 最初の1杯だけにして烏龍茶にする）">
-    <button class="btn-cyan" style="margin-top:10px;padding:10px" onclick="addCustomPlan()">追加する</button>
-  </div>`;
-
-  return `<div class="col">
-    <h3 class="tab-title">🎯 if-thenプラン</h3>
-    <p class="section-desc">「もし〇〇になったら△△する」と決めておくと意志力に頼らず行動できます。</p>
-    ${cards}
-    ${customCards}
-    ${addCard}
-  </div>`;
-}
-
-function hideTrigger(id) {
-  let hidden = [];
-  try { hidden = JSON.parse(localStorage.getItem("wb_hidden_triggers")||"[]"); } catch(e){}
-  hidden.push(id);
-  localStorage.setItem("wb_hidden_triggers", JSON.stringify(hidden));
-  renderContent();
-}
-
-function logUrgeFromCustom(idx) {
-  const plans = JSON.parse(localStorage.getItem("wb_custom_plans")||"[]");
-  const p = plans[idx];
-  if(!p) return;
-  const r = confirm(`「${p.trigger}」の誘惑に勝ちましたか？\nOK→勝った　キャンセル→負けた`);
-  state.urges = [{date:new Date().toISOString(),triggerId:"custom_"+idx,resisted:r},...state.urges].slice(0,200);
-  save();
-  renderContent();
-}
-
-function addCustomPlan() {
-  const trigger = document.getElementById("custom-trigger")?.value?.trim();
-  const plan    = document.getElementById("custom-plan")?.value?.trim();
-  if(!trigger || !plan) return;
-  let plans = [];
-  try { plans = JSON.parse(localStorage.getItem("wb_custom_plans")||"[]"); } catch(e){}
-  plans.push({trigger, plan});
-  localStorage.setItem("wb_custom_plans", JSON.stringify(plans));
-  renderContent();
-}
-
-function removeCustomPlan(idx) {
-  let plans = [];
-  try { plans = JSON.parse(localStorage.getItem("wb_custom_plans")||"[]"); } catch(e){}
-  plans.splice(idx, 1);
-  localStorage.setItem("wb_custom_plans", JSON.stringify(plans));
-  renderContent();
-}
-
-function logUrgeFromTactics(triggerId) {
-  const r = confirm(`「${TRIGGERS.find(t=>t.id===triggerId).label}」の誘惑に勝ちましたか？\nOK→勝った　キャンセル→負けた`);
-  state.urges = [{date:new Date().toISOString(),triggerId,resisted:r},...state.urges].slice(0,200);
-  save();
-  renderContent();
-}
-
-// ─── HISTORY TAB ────────────────────────────────────────────
-function changeMonth(delta) {
-  state.historyMonthOffset = Math.max(0, (state.historyMonthOffset || 0) + delta);
-  renderContent();
-}
-
-function toggleHistoryLog(dateStr) {
-  const current = state.log[dateStr];
-  if (!current) state.log[dateStr] = "sober"; // 空欄 -> 我慢
-  else if (current === "sober") state.log[dateStr] = "drank"; // 我慢 -> 飲酒
-  else delete state.log[dateStr]; // 飲酒 -> 空欄(リセット)
-  save();
-  renderContent();
-}
-
-function renderHistory() {
-  const {sober,saved}=totalStats();
-  const gw=goalWeeks();
-  const dayNames=["月","火","水","木","金","土","日"];
-
-  const summaryCards = [
-    ["我慢日数", sober+"日", "var(--cyan)"],
-    ["節約合計", "¥"+saved.toLocaleString(), "var(--green)"],
-    ["目標達成週", gw+"週", "var(--amber)"],
-  ].map(([l,v,c])=>`<div class="card" style="text-align:center;padding:12px"><p style="font-size:10px;color:var(--muted);margin-bottom:4px">${l}</p><p style="font-size:20px;font-weight:700;color:${c}">${v}</p></div>`).join("");
-
-  const moOffset = state.historyMonthOffset || 0;
-  const now = new Date();
-  const targetDate = new Date(now.getFullYear(), now.getMonth() - moOffset, 1);
-  const yr = targetDate.getFullYear(), mn = targetDate.getMonth();
-  const label = `${yr}年${mn+1}月`;
-  const daysInMonth = new Date(yr, mn+1, 0).getDate();
-  const firstDow = (new Date(yr, mn, 1).getDay()+6)%7;
-  
-  let mSober=0, mDrank=0;
-  for(let d=1;d<=daysInMonth;d++){
-    const key = `${yr}-${String(mn+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    if(state.log[key]==="sober") mSober++;
-    else if(state.log[key]==="drank") mDrank++;
-  }
-  
-  let cells = "";
-  for(let i=0;i<firstDow;i++) cells+='<div></div>';
-  for(let d=1;d<=daysInMonth;d++){
-    const key = `${yr}-${String(mn+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    const s = state.log[key];
-    const isToday = key === todayKey();
-    const bg = s==="sober" ? "var(--cyan)" : s==="drank" ? "var(--red)" : isToday ? "rgba(34,211,238,0.2)" : "var(--bg3)";
-    const border = isToday ? "2px solid var(--cyan)" : "2px solid transparent";
-    cells += `<div onclick="toggleHistoryLog('${key}')" style="cursor:pointer;aspect-ratio:1;border-radius:4px;background:${bg};border:${border};display:flex;align-items:center;justify-content:center;font-size:9px;color:${s?"white":"var(--muted)"}">${d}</div>`;
-  }
-  const dayHdr = dayNames.map(d=>`<div style="text-align:center;font-size:9px;color:var(--muted);padding-bottom:2px">${d}</div>`).join("");
-  
-  const monthCard = `<div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <button onclick="changeMonth(1)" style="padding:6px 10px;background:var(--bg3);border-radius:6px;font-size:12px;color:var(--text)">◀</button>
-      <div style="text-align:center">
-        <p style="font-size:14px;font-weight:700">${label}</p>
-        <p style="font-size:10px;color:var(--muted);margin-top:2px">✓ ${mSober}日 / × ${mDrank}日</p>
-      </div>
-      <button onclick="changeMonth(-1)" style="padding:6px 10px;background:var(--bg3);border-radius:6px;font-size:12px;color:${moOffset===0?'transparent':'var(--text)'};pointer-events:${moOffset===0?'none':'auto'}">▶</button>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:8px;">${dayHdr}${cells}</div>
-    <p style="font-size:10px;color:var(--dim);text-align:center;margin-top:8px;">💡 日付をタップして記録を修正できます</p>
-  </div>`;
-
-  const milestoneCards = MILESTONES.map(m=>{
-    const done=gw>=m.weeks;
-    return `<div class="card" style="text-align:center;opacity:${done?1:0.4};border:1px solid ${done?"rgba(34,211,238,0.25)":"var(--border)"}">
-      <div style="font-size:28px;filter:${done?"none":"grayscale(1)"};margin-bottom:4px">${m.icon}</div>
-      <p style="font-size:12px;font-weight:700;color:${done?"var(--cyan)":"var(--muted)"}">${m.label}</p>
-      <p style="font-size:10px;color:var(--muted);margin-top:2px">${m.desc}</p>
-    </div>`;
-  }).join("");
-
-  return `<div class="col">
-    <h3 class="tab-title">📊 記録・統計</h3>
-    <div class="row3">${summaryCards}</div>
-    <h3 class="tab-title" style="margin-top:4px">📅 カレンダー</h3>
-    ${monthCard}
-    <h3 class="tab-title" style="margin-top:4px">🏆 マイルストーン</h3>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${milestoneCards}</div>
-  </div>`;
-}
-
-// ─── ACTIONS ────────────────────────────────────────────────
-function logToday(type) {
-  state.log[todayKey()] = type;
-  save();
-  renderContent();
-}
-function undoToday() {
-  delete state.log[todayKey()];
-  save();
-  renderContent();
-}
-
-// ─── MODALS ─────────────────────────────────────────────────
-function openModal(type) {
-  const mc = document.getElementById("modal-container");
-  if (type==="setup") mc.innerHTML = renderSetupModal();
-  if (type==="urge")  { urgeTimer=300; urgeRunning=false; urgeTrigger=""; mc.innerHTML = renderUrgeModal(); }
-  if (type==="recovery") mc.innerHTML = renderRecoveryModal();
-}
-function closeModal() {
-  document.getElementById("modal-container").innerHTML="";
-}
-
-// Recovery Modal (Slip Analysis)
-function renderRecoveryModal() {
-  return `<div class="overlay" onclick="if(event.target===this)closeModal()">
-    <div class="sheet">
-      <h3 style="font-size:17px;font-weight:700;margin-bottom:8px;color:var(--red)">📝 飲酒のリカバリー分析</h3>
-      <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:20px;">
-        目標を超えて飲んでしまった経験を「データ」に変えましょう。<br>入力した内容は「対策タブ」に自動追加されます。
-      </p>
-      
-      <label style="font-size:12px;color:var(--cyan);display:block;margin-bottom:6px;font-weight:700">Q. 今回の引き金（トリガー）は何でしたか？</label>
-      <input type="text" id="rec-trigger" class="inp" placeholder="例：仕事で疲れて帰ってきた時" style="margin-bottom:16px;">
-      
-      <label style="font-size:12px;color:var(--cyan);display:block;margin-bottom:6px;font-weight:700">Q. 次回同じ状況になったらどうしますか？</label>
-      <input type="text" id="rec-plan" class="inp" placeholder="例：コンビニに寄らずまっすぐ帰る">
-      
-      <button class="btn-cyan" style="margin-top:24px;padding:14px" onclick="saveRecovery()">記録して対策に追加する</button>
-      <button onclick="closeModal()" style="display:block;width:100%;text-align:center;font-size:13px;color:var(--muted);margin-top:16px;">キャンセル</button>
-    </div>
-  </div>`;
-}
-
-function saveRecovery() {
-  const trigger = document.getElementById("rec-trigger")?.value?.trim();
-  const plan = document.getElementById("rec-plan")?.value?.trim();
-  
-  if (trigger && plan) {
-    let plans = [];
-    try { plans = JSON.parse(localStorage.getItem("wb_custom_plans")||"[]"); } catch(e){}
-    plans.push({trigger, plan});
-    localStorage.setItem("wb_custom_plans", JSON.stringify(plans));
-  }
-  
-  // 飲んでしまったことを記録
-  logToday('drank');
-  closeModal();
-}
-
-// Setup Modal
-function renderSetupModal() {
-  const cur = state.startDate ? state.startDate.toISOString().slice(0,10) : new Date().toISOString().slice(0,10);
-  return `<div class="overlay" onclick="if(event.target===this)closeModal()">
-    <div class="sheet" style="max-height:90vh;">
-      <h3 style="font-size:17px;font-weight:700;margin-bottom:18px">⚙ 設定・データ管理</h3>
-      
-      <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">開始日</label>
-      <input type="date" id="setup-date" class="inp" value="${cur}">
-      
-      <label style="font-size:12px;color:var(--muted);display:block;margin-top:14px;margin-bottom:6px">1日あたりの酒代（円）</label>
-      <input type="number" id="setup-cost" class="inp" value="${state.dailyCost}">
-      
-      <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--border)">
-        <p style="font-size:13px;font-weight:700;margin-bottom:8px">💾 データバックアップ</p>
-        <p style="font-size:11px;color:var(--muted);margin-bottom:10px">ブラウザ履歴消去に備え、データをコピーしてメモ帳に保存してください。</p>
-        <div style="display:flex;gap:8px;margin-bottom:8px;">
-          <button class="btn-sm" style="flex:1;padding:10px;font-size:12px" onclick="exportDataToClipboard()">📋 コピーする</button>
-          <button class="btn-sm" style="flex:1;padding:10px;font-size:12px" onclick="importDataFromClipboard()">📥 復元する</button>
-        </div>
-        <textarea id="backup-text" class="inp" style="height:60px;font-size:10px;color:var(--dim);resize:none;" placeholder="復元する時はここにテキストを貼り付け"></textarea>
-      </div>
-
-      <div class="row2" style="margin-top:20px">
-        <button class="btn-gray" onclick="closeModal()">閉じる</button>
-        <button class="btn-cyan" onclick="saveSetup()">保存</button>
-      </div>
-    </div>
-  </div>`;
-}
-
-function saveSetup() {
-  const d = document.getElementById("setup-date").value;
-  const c = Number(document.getElementById("setup-cost").value);
-  state.startDate = new Date(d+"T00:00:00");
-  state.dailyCost = c;
-  save();
-  closeModal();
-  renderContent();
-}
-
 // Urge Modal
 let urgeTimer=300, urgeRunning=false, urgeTrigger="", urgeInterval=null;
 function renderUrgeModal() {
   const R=54, circ=2*Math.PI*R;
   const pct=((300-urgeTimer)/300)*100;
   const offset=circ-(pct/100)*circ;
-  const phase = urgeTimer>225?["衝動の発生","これは生理反応。あなたの意志の問題ではありません。観察しましょう。"]:
-                urgeTimer>120?["ピークへ向かう","強くなっていますが、これが最大値です。波を眺めていてください。"]:
+  const phase = urgeTimer>225?["衝動の発生","これは生理的な波です。あなたの意志の弱さではありません。ただ観察しましょう。"]:
+                urgeTimer>120?["ピークへ向かう","波が高くなっていますが、これが最大値です。やり過ごせます。"]:
                 urgeTimer>30 ?["ピーク通過中","波は必ず引きます。もうほとんど過ぎています。"]:
-                              ["衝動が去っていく","よくやりました。あなたは波に乗り切りました。"];
+                              ["衝動が去っていく","よくやりました。あなたは波を乗りこなしました。"];
   const min=Math.floor(urgeTimer/60), sec=String(urgeTimer%60).padStart(2,"0");
 
   const triggerChips = TRIGGERS.map(t=>`<span class="chip${urgeTrigger===t.id?" sel":""}" onclick="setUrgeTrigger('${t.id}')">${t.icon} ${t.label}</span>`).join("");
   const planBox = urgeTrigger
-    ? `<div style="background:#0f1e3a;border-radius:10px;padding:12px;margin-bottom:16px;border-left:3px solid var(--amber)">
-        <p style="font-size:11px;color:var(--amber);margin-bottom:4px">今すぐやること</p>
-        <p style="font-size:13px;color:#cbd5e1;line-height:1.6">${TRIGGERS.find(t=>t.id===urgeTrigger)?.plan}</p>
+    ? `<div style="background:rgba(245,158,11,0.1);border-radius:12px;padding:16px;margin-bottom:20px;border:1px solid rgba(245,158,11,0.3)">
+        <p style="font-size:12px;color:var(--amber);margin-bottom:6px;font-weight:700">📌 今すぐ実行すること</p>
+        <p style="font-size:15px;color:var(--text);line-height:1.6;font-weight:700">${TRIGGERS.find(t=>t.id===urgeTrigger)?.plan}</p>
       </div>` : "";
   const actionBtns = (!urgeRunning && urgeTimer===300)
-    ? `<button class="btn-cyan" style="padding:14px;font-size:15px;margin-bottom:10px" onclick="startUrgeTimer()">タイマー開始</button>`
+    ? `<button class="btn-cyan" style="padding:16px;font-size:16px;box-shadow:0 8px 20px rgba(8,145,178,0.4)" onclick="startUrgeTimer()">タイマーを開始する</button>`
     : `<div class="row2">
         <button class="btn-red" onclick="closeModal(); openModal('recovery');">飲んでしまった</button>
-        <button class="btn-cyan" style="padding:13px" onclick="logUrge(true)">✓ 乗り越えた！</button>
+        <button class="btn-cyan" style="padding:16px" onclick="logUrge(true)">✓ 乗り越えた！</button>
       </div>`;
   return `<div class="overlay">
     <div class="sheet">
-      <div style="display:flex;justify-content:space-between;margin-bottom:16px">
-        <h3 style="font-size:17px;font-weight:700">🌊 誘惑サーフィン</h3>
-        <button onclick="stopUrge()" style="font-size:22px;color:var(--muted)">×</button>
+      <div style="display:flex;justify-content:space-between;margin-bottom:20px">
+        <h3 style="font-size:18px;font-weight:700">🌊 誘惑サーフィン</h3>
+        <button onclick="stopUrge()" style="font-size:24px;color:var(--muted);padding:4px">×</button>
       </div>
-      <div style="background:#0f1e3a;border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.7">
-        飲みたい衝動は<strong style="color:var(--cyan)">5〜10分で自然に消えます</strong>。抵抗せず、ただ観察してください。
+      <div style="background:rgba(30,41,59,0.5);border-radius:12px;padding:16px;margin-bottom:20px;font-size:13px;color:var(--text);line-height:1.7;font-weight:600">
+        飲みたい衝動は<span style="color:var(--cyan)">5〜10分で必ず自然に消えます</span>（ACT理論）。抵抗せず、ただ波を観察してください。
       </div>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:8px">トリガーは？</p>
-      <div style="margin-bottom:16px">${triggerChips}</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px;font-weight:600">今のトリガー（引き金）は？</p>
+      <div style="margin-bottom:20px">${triggerChips}</div>
       ${planBox}
-      <div style="text-align:center;margin-bottom:16px">
-        <svg id="urge-ring" width="130" height="130" viewBox="0 0 130 130" style="transform:rotate(-90deg)">
-          <circle cx="65" cy="65" r="${R}" fill="none" stroke="var(--bg3)" stroke-width="9"/>
-          <circle id="urge-arc" cx="65" cy="65" r="${R}" fill="none" stroke="var(--cyan)" stroke-width="9" stroke-linecap="round"
-            stroke-dasharray="${circ}" stroke-dashoffset="${offset}"/>
+      <div style="text-align:center;margin-bottom:24px">
+        <svg id="urge-ring" width="140" height="140" viewBox="0 0 130 130" style="transform:rotate(-90deg)">
+          <circle cx="65" cy="65" r="${R}" fill="none" stroke="var(--bg3)" stroke-width="10"/>
+          <circle id="urge-arc" cx="65" cy="65" r="${R}" fill="none" stroke="var(--cyan)" stroke-width="10" stroke-linecap="round"
+            stroke-dasharray="${circ}" stroke-dashoffset="${offset}" style="transition:stroke-dashoffset 1s linear"/>
         </svg>
-        <div style="margin-top:-98px;position:relative">
-          <p id="urge-time" style="font-family:Noto Serif JP,serif;font-size:42px;font-weight:700">${min}:${sec}</p>
+        <div style="margin-top:-104px;position:relative">
+          <p id="urge-time" style="font-family:Noto Serif JP,serif;font-size:46px;font-weight:700;letter-spacing:-2px">${min}:${sec}</p>
         </div>
-        <p id="urge-phase-title" style="color:var(--cyan);font-weight:700;margin-top:44px">${phase[0]}</p>
-        <p id="urge-phase-desc" style="color:var(--muted);font-size:12px;margin-top:4px;line-height:1.6">${phase[1]}</p>
+        <p id="urge-phase-title" style="color:var(--cyan);font-weight:700;margin-top:52px;font-size:16px">${phase[0]}</p>
+        <p id="urge-phase-desc" style="color:var(--muted);font-size:13px;margin-top:6px;line-height:1.6;font-weight:600">${phase[1]}</p>
       </div>
       <div id="urge-actions">${actionBtns}</div>
     </div>
@@ -927,10 +916,10 @@ function updateUrgeDisplay() {
   const pct=((300-urgeTimer)/300)*100;
   const offset=circ-(pct/100)*circ;
   const min=Math.floor(urgeTimer/60),sec=String(urgeTimer%60).padStart(2,"0");
-  const phase=urgeTimer>225?["衝動の発生","これは生理反応。あなたの意志の問題ではありません。観察しましょう。"]:
-              urgeTimer>120?["ピークへ向かう","強くなっていますが、これが最大値です。波を眺めていてください。"]:
+  const phase=urgeTimer>225?["衝動の発生","これは生理的な波です。あなたの意志の弱さではありません。ただ観察しましょう。"]:
+              urgeTimer>120?["ピークへ向かう","波が高くなっていますが、これが最大値です。やり過ごせます。"]:
               urgeTimer>30 ?["ピーク通過中","波は必ず引きます。もうほとんど過ぎています。"]:
-                            ["衝動が去っていく","よくやりました。あなたは波に乗り切りました。"];
+                            ["衝動が去っていく","よくやりました。あなたは波を乗りこなしました。"];
   const arc=document.getElementById("urge-arc");
   const time=document.getElementById("urge-time");
   const pt=document.getElementById("urge-phase-title");
@@ -940,10 +929,12 @@ function updateUrgeDisplay() {
   if(pt) pt.textContent=phase[0];
   if(pd) pd.textContent=phase[1];
   const actions=document.getElementById("urge-actions");
-  if(actions) actions.innerHTML=`<div class="row2">
-    <button class="btn-red" onclick="closeModal(); openModal('recovery');">飲んでしまった</button>
-    <button class="btn-cyan" style="padding:13px" onclick="logUrge(true)">✓ 乗り越えた！</button>
-  </div>`;
+  if(actions && !urgeRunning && urgeTimer<=0) {
+      actions.innerHTML=`<div class="row2">
+        <button class="btn-red" onclick="closeModal(); openModal('recovery');">飲んでしまった</button>
+        <button class="btn-cyan" style="padding:16px" onclick="logUrge(true)">✓ 乗り越えた！</button>
+      </div>`;
+  }
 }
 function logUrge(resisted) {
   clearInterval(urgeInterval);
@@ -980,8 +971,7 @@ function requestNotifPermission() {
 function scheduleNotifications() {
   if(!("Notification" in window) || Notification.permission !== "granted") return;
   const now = new Date();
-  const h = now.getHours(), m = now.getMinutes();
-
+  
   const t1 = new Date(now); t1.setHours(18,0,0,0);
   const t2 = new Date(now); t2.setHours(19,0,0,0);
   const t3 = new Date(now); t3.setHours(19,15,0,0);
@@ -1014,7 +1004,7 @@ setInterval(scheduleNotifications, 3600000);
 
 if('serviceWorker' in navigator){
   const sw=`
-    const CACHE='sober-v2';
+    const CACHE='sober-v3';
     const ASSETS=[self.location.href];
     self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));});
     self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));});
