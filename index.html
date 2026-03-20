@@ -236,7 +236,7 @@ function totalStats() {
 }
 function goalWeeks() {
   let count=0;
-  for(let i=0;i>=−52;i--){
+  for(let i=0;i>=-52;i--){
     const days=getWeekDays(i);
     const s=weekStats(days);
     if(s.drank<=WEEKLY_GOAL && (s.sober+s.drank)>=3) count++;
