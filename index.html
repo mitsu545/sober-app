@@ -13,17 +13,36 @@
 <script>
 // PWA Manifest（インライン生成）
 (function(){
-  const m={name:"ワタベ節酒",short_name:"節酒",start_url:".",display:"standalone",
-    background_color:"#020b18",theme_color:"#020b18",orientation:"portrait",
-    icons:[{src:"data:image/svg+xml,"+encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'>`+
-      `<rect width='192' height='192' rx='40' fill='%23020b18'/>`+
-      `<text x='96' y='130' font-size='110' text-anchor='middle'>🐕</text></svg>`
-    ),sizes:"192x192",type:"image/svg+xml"}]};
-  const l=document.createElement('link');
-  l.rel='manifest';
-  l.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/json'}));
-  document.head.appendChild(l);
+  const iconSvg = [
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'>",
+    "<defs>",
+    "<linearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'>",
+    "<stop offset='0%25' stop-color='%230d1b2e'/>",
+    "<stop offset='100%25' stop-color='%23020b18'/>",
+    "</linearGradient>",
+    "</defs>",
+    "<rect width='192' height='192' rx='44' fill='url(%23bg)'/>",
+    "<rect x='1' y='1' width='190' height='190' rx='43' fill='none' stroke='%2322d3ee' stroke-width='2.5' stroke-opacity='0.35'/>",
+    "<circle cx='96' cy='84' r='54' fill='%2322d3ee' fill-opacity='0.07'/>",
+    "<text x='96' y='112' font-size='80' text-anchor='middle'>&#x1F415;</text>",
+    "<rect x='36' y='142' width='120' height='2.5' rx='1.25' fill='%2322d3ee' fill-opacity='0.6'/>",
+    "<text x='96' y='167' font-size='15' text-anchor='middle' font-family='Arial,sans-serif' font-weight='700' fill='%2322d3ee' letter-spacing='4' opacity='0.9'>NAMO APP</text>",
+    "</svg>"
+  ].join("");
+  const m={
+    name:"ワタベ節酒トラッカー",
+    short_name:"節酒",
+    start_url:".",
+    display:"standalone",
+    background_color:"#020b18",
+    theme_color:"#020b18",
+    orientation:"portrait",
+    icons:[{src:"data:image/svg+xml,"+iconSvg, sizes:"192x192", type:"image/svg+xml"}]
+  };
+  const _ml=document.createElement('link');
+  _ml.rel='manifest';
+  _ml.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/json'}));
+  document.head.appendChild(_ml);
 })();
 </script>
 <style>
@@ -210,7 +229,7 @@ let state = {
   dailyCost: 600,
   log: {},           // { "YYYY-MM-DD": "sober"|"drank" }
   urges: [],         // { date, triggerId, resisted }
-  tactics: [],       // { date, situation, plan } - AI生成済み対策
+  tactics: [],       // { id, date, situation, plan, tried, triedDate }
   currentTab: "home",
   historyMonthOffset: 0,
   bestStreak: 0,     // 歴代最高連続クリア日数
@@ -613,38 +632,204 @@ function removeGoal(idx) {
 
 // ─── TACTICS TAB（AI生成対策一覧）────────────────────────────
 function renderTactics() {
-  const tactics = state.tactics || [];
+  const tactics = (state.tactics || []).slice().reverse(); // 新しい順
+  const total   = state.tactics.length;
 
-  const cards = tactics.length > 0 ? [...tactics].reverse().map((t, revIdx) => {
-    const origIdx = tactics.length - 1 - revIdx;
-    return `<div class="card" style="border:1px solid rgba(34,211,238,.2)">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
-        <p style="font-size:11px;color:var(--muted);font-weight:600">${new Date(t.date).toLocaleDateString("ja-JP")}</p>
-        <button onclick="removeTactic(${origIdx})" style="font-size:18px;color:var(--dim);padding:0 0 4px 10px">×</button>
+  // 繰り返しパターン検出（同じキーワードが2回以上）
+  function isRepeat(situation) {
+    if (!situation) return false;
+    const keywords = ["LINE","迎え","コンビニ","駅","疲れ","仕事","残業","家","ストック","休日","動画"];
+    for (const kw of keywords) {
+      const hits = (state.tactics || []).filter(t => t.situation && t.situation.includes(kw));
+      if (hits.length >= 2 && situation.includes(kw)) return true;
+    }
+    return false;
+  }
+
+  const cards = tactics.length > 0 ? tactics.map((t, revIdx) => {
+    const origIdx = total - 1 - revIdx;
+    const num     = String(total - revIdx).padStart(3, "0");
+    const repeat  = isRepeat(t.situation);
+    const tried   = t.tried || false;
+    return `<div class="card" style="border:1px solid ${tried ? "rgba(52,211,153,0.35)" : "rgba(34,211,238,0.15)"};position:relative">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-family:'Noto Serif JP',serif;font-size:13px;font-weight:700;color:var(--muted)">#${num}</span>
+          <span style="font-size:11px;color:var(--muted)">${new Date(t.date).toLocaleDateString("ja-JP")}</span>
+          ${repeat ? `<span style="font-size:10px;font-weight:700;color:var(--amber);background:rgba(245,158,11,0.12);padding:2px 8px;border-radius:10px">⚠ 繰り返しパターン</span>` : ""}
+          ${tried  ? `<span style="font-size:10px;font-weight:700;color:var(--green);background:rgba(52,211,153,0.1);padding:2px 8px;border-radius:10px">✓ 実践済み</span>` : ""}
+        </div>
+        <div style="display:flex;gap:6px">
+          <button onclick="editTactic(${origIdx})" style="font-size:12px;font-weight:600;color:var(--cyan);background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);border-radius:8px;padding:4px 10px">編集</button>
+          <button onclick="deleteTactic(${origIdx})" style="font-size:12px;font-weight:600;color:var(--red);background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:4px 10px">削除</button>
+        </div>
       </div>
-      <div style="background:rgba(239,68,68,.08);border-radius:10px;padding:10px;margin-bottom:10px;border:1px solid rgba(239,68,68,.2)">
-        <p style="font-size:11px;color:var(--red);font-weight:700;margin-bottom:4px">📌 状況・理由</p>
-        <p style="font-size:13px;color:var(--text);line-height:1.6">${t.situation || "（入力なし）"}</p>
+      <div style="background:rgba(239,68,68,0.06);border-radius:10px;padding:12px;margin-bottom:10px;border-left:3px solid var(--red)">
+        <p style="font-size:10px;color:var(--red);font-weight:700;letter-spacing:2px;margin-bottom:6px">CAUSE / 原因</p>
+        <p style="font-size:14px;color:var(--text);line-height:1.6">${t.situation || "（未記入）"}</p>
       </div>
-      <div style="background:rgba(34,211,238,.08);border-radius:10px;padding:10px;border:1px solid rgba(34,211,238,.2)">
-        <p style="font-size:11px;color:var(--cyan);font-weight:700;margin-bottom:4px">🛡️ AI生成対策</p>
+      <div style="background:rgba(34,211,238,0.06);border-radius:10px;padding:12px;margin-bottom:12px;border-left:3px solid var(--cyan)">
+        <p style="font-size:10px;color:var(--cyan);font-weight:700;letter-spacing:2px;margin-bottom:6px">STRATEGY / 対策</p>
         <p style="font-size:14px;color:var(--text);line-height:1.6;font-weight:600">${t.plan}</p>
       </div>
+      ${(()=>{
+        const attempts = t.attempts || (t.tried ? [{date:t.triedDate||t.date,effective:null}] : []);
+        const total = attempts.length;
+        const wins  = attempts.filter(a=>a.effective===true).length;
+        const losses= attempts.filter(a=>a.effective===false).length;
+        const rate  = total > 0 ? Math.round((wins/total)*100) : null;
+        const rateColor = rate===null?"var(--muted)":rate>=70?"var(--green)":rate>=40?"var(--amber)":"var(--red)";
+        const dots  = attempts.map(a=>`<span style="font-size:13px;line-height:1">${a.effective===true?"✅":a.effective===false?"❌":"⬜"}</span>`).join("");
+        return `<div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
+          ${total > 0 ? `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:13px;font-weight:700;color:var(--green)">${wins}勝</span>
+              <span style="font-size:13px;font-weight:700;color:var(--red)">${losses}敗</span>
+              <span style="font-size:11px;color:var(--muted)">(${total}回試行)</span>
+            </div>
+            <span style="font-size:13px;font-weight:700;color:${rateColor}">有効率 ${rate}%</span>
+          </div>
+          <div style="background:rgba(30,41,59,0.5);border-radius:4px;height:5px;margin-bottom:8px;overflow:hidden">
+            <div style="height:100%;width:${rate||0}%;background:${rateColor};border-radius:4px;transition:width .8s ease"></div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:10px">${dots}</div>` : ""}
+          <button onclick="toggleTried(${origIdx})" style="width:100%;padding:10px;border-radius:12px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.25);color:var(--cyan)">
+            + この対策を試した結果を記録する
+          </button>
+        </div>`;
+      })()}
     </div>`;
-  }).join("") : `<div class="card" style="text-align:center;padding:32px 20px;border:1px dashed var(--border)">
-    <p style="font-size:40px;margin-bottom:12px">🛡️</p>
-    <p style="font-weight:700;font-size:16px;margin-bottom:8px">まだ作戦がありません</p>
-    <p style="font-size:13px;color:var(--muted);line-height:1.7">「飲んでしまった」を押した後に状況を入力すると、<br>Claudeがあなた専用の防衛策を自動生成します。<br>失敗が作戦に変わります。</p>
+  }).join("") : `<div class="card" style="text-align:center;padding:40px 20px;border:1px dashed var(--border)">
+    <p style="font-size:36px;margin-bottom:14px">📖</p>
+    <p style="font-weight:700;font-size:16px;margin-bottom:8px">失敗辞書はまだ空です</p>
+    <p style="font-size:13px;color:var(--muted);line-height:1.8">「飲んでしまった」を押して状況を記録すると<br>ここに辞書が積み上がっていきます。<br>失敗するたびに辞書が分厚くなります。</p>
   </div>`;
 
+  const statsBar = total > 0 ? `
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border-radius:12px;padding:12px 16px;border:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:20px">📖</span>
+        <div>
+          <p style="font-size:13px;font-weight:700">失敗辞書</p>
+          <p style="font-size:11px;color:var(--muted)">${total}件の経験が蓄積されています</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:11px;color:var(--green);font-weight:700">${(state.tactics||[]).filter(t=>(t.attempts||[]).length>0||(t.tried)).length}件実践記録あり</span>
+        <button onclick="downloadCSV()" style="font-size:12px;font-weight:700;color:var(--amber);background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:inherit">📥 CSV</button>
+      </div>
+    </div>` : "";
+
   return `<div class="col">
-    <h3 class="tab-title">🎯 AI作戦 — 失敗から学ぶ</h3>
-    <p class="section-desc">飲んでしまった時の状況をAIが分析し、次回の具体的なif-then対策を自動生成します。失敗するたびに作戦が強くなります。</p>
+    <h3 class="tab-title">📖 失敗辞書</h3>
+    <p class="section-desc">飲んでしまった経験が対策として記録されます。辞書が厚くなるほど、あなたの防衛力が上がります。</p>
+    ${statsBar}
     ${cards}
   </div>`;
 }
-function removeTactic(idx) {
-  state.tactics.splice(idx, 1); saveState(); renderContent();
+
+function deleteTactic(idx) {
+  if (!confirm("この記録を削除しますか？")) return;
+  state.tactics.splice(idx, 1);
+  saveState(); renderContent();
+}
+
+function toggleTried(idx) {
+  // 旧データ互換：tried/triedDate → attempts配列に移行
+  const t = state.tactics[idx];
+  if (!t) return;
+  if (!t.attempts) {
+    t.attempts = t.tried ? [{date: t.triedDate||new Date().toISOString(), effective: null}] : [];
+    delete t.tried; delete t.triedDate;
+    saveState();
+  }
+  openTriedModal(idx);
+}
+
+function openTriedModal(idx) {
+  const t = state.tactics[idx];
+  if (!t) return;
+  const mc = document.getElementById("modal-container");
+  mc.innerHTML = `<div class="overlay" onclick="if(event.target===this)closeModal()">
+    <div class="sheet">
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:10px">📋 対策を試した記録</h3>
+      <div style="background:rgba(34,211,238,.06);border-radius:12px;padding:14px;margin-bottom:20px;border:1px solid rgba(34,211,238,.2)">
+        <p style="font-size:12px;color:var(--cyan);font-weight:700;margin-bottom:6px">STRATEGY / 対策</p>
+        <p style="font-size:14px;color:var(--text);line-height:1.6;font-weight:600">${t.plan}</p>
+      </div>
+      <p style="font-size:14px;font-weight:700;margin-bottom:16px;text-align:center">この対策を試した結果は？</p>
+      <div class="row2" style="margin-bottom:24px">
+        <button onclick="recordAttempt(${idx},true)" style="background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.4);border-radius:14px;padding:16px;color:var(--green);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">
+          ✅ 効果があった<br><span style="font-size:11px;font-weight:400;color:var(--muted)">飲まずに済んだ</span>
+        </button>
+        <button onclick="recordAttempt(${idx},false)" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:14px;padding:16px;color:var(--red);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">
+          ❌ 効果がなかった<br><span style="font-size:11px;font-weight:400;color:var(--muted)">それでも飲んだ</span>
+        </button>
+      </div>
+      <button onclick="closeModal()" style="display:block;width:100%;text-align:center;font-size:13px;color:var(--dim);padding:8px;cursor:pointer">キャンセル</button>
+    </div>
+  </div>`;
+}
+
+function recordAttempt(idx, effective) {
+  const t = state.tactics[idx];
+  if (!t) return;
+  if (!t.attempts) t.attempts = [];
+  t.attempts.push({ date: new Date().toISOString(), effective });
+  saveState(); closeModal(); renderContent();
+}
+
+function editTactic(idx) {
+  const t = state.tactics[idx];
+  if (!t) return;
+  openEditModal(idx, t);
+}
+
+function openEditModal(idx, t) {
+  const mc = document.getElementById("modal-container");
+  mc.innerHTML = `<div class="overlay" onclick="if(event.target===this)closeModal()">
+    <div class="sheet">
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:20px">✏️ 記録を編集</h3>
+      <label style="font-size:13px;color:var(--red);display:block;margin-bottom:8px;font-weight:700">CAUSE / 原因</label>
+      <textarea id="edit-situation" class="inp" style="height:80px;resize:none;margin-bottom:20px;line-height:1.6">${t.situation || ""}</textarea>
+      <label style="font-size:13px;color:var(--cyan);display:block;margin-bottom:8px;font-weight:700">STRATEGY / 対策</label>
+      <textarea id="edit-plan" class="inp" style="height:80px;resize:none;margin-bottom:28px;line-height:1.6">${t.plan}</textarea>
+      <div class="row2">
+        <button class="btn-gray" onclick="closeModal()">キャンセル</button>
+        <button class="btn-cyan" onclick="saveEdit(${idx})">保存する</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function saveEdit(idx) {
+  const situation = document.getElementById("edit-situation")?.value?.trim();
+  const plan      = document.getElementById("edit-plan")?.value?.trim();
+  if (!plan) return;
+  state.tactics[idx].situation = situation;
+  state.tactics[idx].plan      = plan;
+  saveState(); closeModal(); renderContent();
+}
+
+function downloadCSV() {
+  const header = "番号,日付,原因・状況,対策,実践済み,実践日";
+  const rows = (state.tactics || []).map((t, i) => {
+    const num      = String(i + 1).padStart(3, "0");
+    const date     = new Date(t.date).toLocaleDateString("ja-JP");
+    const sit      = (t.situation || "").replace(/\n/g, " ");
+    const plan     = (t.plan || "").replace(/\n/g, " ");
+    const tried    = t.tried ? "済み" : "未";
+    const triedDt  = t.tried ? new Date(t.triedDate).toLocaleDateString("ja-JP") : "";
+    return `${num},${date},${sit},${plan},${tried},${triedDt}`;
+  });
+  const csv  = "\uFEFF" + header + "\n" + rows.join("\n"); // BOM付きUTF-8（Excelで文字化けしない）
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href     = url;
+  a.download = "namo_tactics_" + new Date().toISOString().slice(0,10) + ".csv";
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ─── HISTORY TAB ──────────────────────────────────────────────
