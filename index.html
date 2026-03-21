@@ -838,6 +838,32 @@ function renderRecoveryModal() {
 }
 
 let _generatedPlan = "";
+
+// ローカル対策生成（APIが使えない環境用）
+// 入力した状況のキーワードを読んで関連する if-then 対策を返す
+function generateLocalTactic(situation) {
+  const s = situation || "";
+  // キーワードマッチングで状況に合った対策を返す
+  if (/LINE|迎え|妻|嫁/.test(s))
+    return "もし妻からLINEで迎えの依頼が来たら → 「今から行くね」とだけ返信し、財布をテーブルに置いてから出発する";
+  if (/コンビニ|帰り|駅|ついで/.test(s))
+    return "もし帰り道にコンビニや酒屋の前を通ったら → イヤホンをつけてポッドキャストを再生し、目的なく入店しない";
+  if (/疲れ|ストレス|仕事|残業/.test(s))
+    return "もし仕事で疲れて帰宅した時は → 帰宅前に5分だけ駅周辺を歩き、コルチゾールを消費してから帰宅する";
+  if (/家|ある|ストック|買って/.test(s))
+    return "もし家にお酒のストックがある時は → 今すぐ見えない場所（押し入れや高い棚）に移動させ、視界から消す";
+  if (/休日|昼|暇|時間/.test(s))
+    return "もし休日で時間を持て余した時は → 14時にノンアルドリンクを作り、飲む側ではなく「作る側」のモードに切り替える";
+  if (/誘われ|飲み会|付き合い|友人|同僚/.test(s))
+    return "もし飲み会に誘われた時は → 「今日は車で来てる」または「薬を飲んでいる」と事前に一言伝え、飲まない理由を準備しておく";
+  if (/動画|コンテンツ|YouTube|SNS/.test(s))
+    return "もし酒に関連する動画やコンテンツを見たくなったら → すぐにスペアリブや料理系の動画に切り替え、作る側のモードに入る";
+  // 状況が未入力またはマッチしない場合
+  if (!s || s.length < 5)
+    return "もし今夜飲みたくなったら → アプリの「誘惑サーフィン」を開き5分タイマーを起動する。衝動は5〜10分で必ず消える（ACT理論）";
+  // 状況テキストをそのままif節に使う
+  return `もし「${s.slice(0,20)}」という状況になったら → その場でアプリを開き誘惑サーフィンタイマーを5分起動する。衝動が去るまで別の行動（水を飲む・外に出る）で時間を稼ぐ`;
+}
 async function generateAITactic() {
   const situation = document.getElementById("rec-situation")?.value?.trim() || "";
   const loading   = document.getElementById("ai-loading");
@@ -871,13 +897,8 @@ async function generateAITactic() {
     _generatedPlan = data.content?.find(b => b.type === "text")?.text?.trim() || "";
     if (!_generatedPlan) throw new Error("empty response");
   } catch(e) {
-    // フォールバック（APIが使えない場合も実用的な対策を返す）
-    const fallbacks = [
-      "もし残業で疲れて帰宅する時は → 最寄り駅でイヤホンをつけてポッドキャストを再生し、コンビニに寄らず直帰する",
-      "もし妻のLINEで迎えに行く時は → 財布をテーブルに置いてから出発し、酒の提案をしないと宣言してから返信する",
-      "もし飲みたい衝動が来たら → アプリの誘惑サーフィンを開いて5分タイマーを起動し、衝動が去るのを待つ",
-    ];
-    _generatedPlan = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+    // API失敗時：入力した状況テキストを読んで関連する対策を返す
+    _generatedPlan = generateLocalTactic(situation);
   }
 
   loading.style.display = "none";
