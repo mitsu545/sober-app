@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -11,7 +12,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 <script>
-// PWA Manifest（インライン生成）
 (function(){
   const iconSvg = [
     "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'>",
@@ -30,14 +30,9 @@
     "</svg>"
   ].join("");
   const m={
-    name:"ワタベ節酒トラッカー",
-    short_name:"節酒",
-    start_url:".",
-    display:"standalone",
-    background_color:"#020b18",
-    theme_color:"#020b18",
-    orientation:"portrait",
-    icons:[{src:"data:image/svg+xml,"+iconSvg, sizes:"192x192", type:"image/svg+xml"}]
+    name:"ワタベ節酒トラッカー",short_name:"節酒",start_url:".",display:"standalone",
+    background_color:"#020b18",theme_color:"#020b18",orientation:"portrait",
+    icons:[{src:"data:image/svg+xml,"+iconSvg,sizes:"192x192",type:"image/svg+xml"}]
   };
   const _ml=document.createElement('link');
   _ml.rel='manifest';
@@ -46,80 +41,91 @@
 })();
 </script>
 <style>
-/* ── RESET & BASE ─────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{
-  --bg:#020b18; --bg2:#0d1b2e; --bg3:#1e293b; --border:#0e2740;
-  --cyan:#22d3ee; --green:#34d399; --amber:#f59e0b; --red:#ef4444;
-  --text:#f1f5f9; --muted:#64748b; --dim:#475569;
-  --dog-tan:#D4956A; --dog-dark:#7A4A2A; --dog-white:#F5DFC0; --dog-nose:#2A1A0A;
-  --safe-top:env(safe-area-inset-top,0px); --safe-bot:env(safe-area-inset-bottom,0px);
+  --bg:#020b18;--bg2:#0d1b2e;--bg3:#1e293b;--border:#0e2740;
+  --cyan:#22d3ee;--green:#34d399;--amber:#f59e0b;--red:#ef4444;
+  --text:#f1f5f9;--muted:#64748b;--dim:#475569;
+  --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
 }
 html,body{height:100%;background:var(--bg);color:var(--text);
   font-family:'DM Sans',"Hiragino Kaku Gothic ProN",sans-serif;
   -webkit-font-smoothing:antialiased;overscroll-behavior:none;}
 #app{display:flex;flex-direction:column;height:100%;max-width:430px;margin:0 auto;background:var(--bg);}
 
-/* ── INTERACTION ──────────────────────────────────────────── */
 button,.chip{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;
-  touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
-  transition:opacity .15s,transform .1s;}
+touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+transition:opacity .15s,transform .1s;}
 button:active,.chip:active{opacity:.7;transform:scale(.97);}
 input,textarea{font-family:inherit;outline:none;-webkit-appearance:none;}
 
-/* ── LAYOUT ───────────────────────────────────────────────── */
-#danger-banner{background:linear-gradient(90deg,#450a0a,#7f1d1d);padding:10px 16px;
-  display:none;align-items:center;gap:8px;font-size:12px;color:#fca5a5;font-weight:600;flex-shrink:0;}
+/* ── DANGER BANNER: safe-area対応 ── */
+#danger-banner{
+background:linear-gradient(90deg,#450a0a,#7f1d1d);
+padding-top:calc(var(–safe-top) + 10px);
+padding-bottom:10px;padding-left:16px;padding-right:16px;
+display:none;align-items:center;gap:8px;font-size:12px;color:#fca5a5;font-weight:600;flex-shrink:0;}
 #danger-banner.show{display:flex;animation:slideDown .3s ease;}
-#header{padding:calc(var(--safe-top) + 14px) 20px 10px;display:flex;justify-content:space-between;
-  align-items:center;border-bottom:1px solid #0a1a2e;flex-shrink:0;}
-#header .title{font-size:11px;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;font-weight:600;}
-#header .sub{font-size:12px;color:var(--muted);margin-top:2px;}
-#content{flex:1;overflow-y:auto;padding:16px 20px 90px;-webkit-overflow-scrolling:touch;}
-/* FIX: single combined transform prevents nav drift */
-#nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateZ(0);
-  width:100%;max-width:430px;background:rgba(2,11,24,.92);
-  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-  border-top:1px solid #0a1a2e;display:grid;grid-template-columns:repeat(4,1fr);
-  padding:8px 0 calc(var(--safe-bot)+10px);z-index:100;}
-.nav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;opacity:.4;transition:opacity .2s;}
-.nav-btn.active{opacity:1;}
-.nav-btn .nav-icon{font-size:22px;transition:transform .25s cubic-bezier(.34,1.56,.64,1);}
-.nav-btn.active .nav-icon{transform:translateY(-2px) scale(1.12);}
-.nav-btn .nav-label{font-size:10px;color:var(--muted);font-weight:600;}
-.nav-btn.active .nav-label{color:var(--cyan);}
 
-/* ── COMPONENTS ───────────────────────────────────────────── */
-.card{background:var(--bg2);border-radius:18px;padding:18px;border:1px solid var(--border);
-  box-shadow:0 4px 20px rgba(0,0,0,.2);}
+#header{padding:calc(var(–safe-top) + 14px) 20px 10px;display:flex;justify-content:space-between;
+align-items:center;border-bottom:1px solid #0a1a2e;flex-shrink:0;}
+/* danger-banner表示中はheaderのsafe-top分を引く */
+#danger-banner.show ~ #header,
+body:has(#danger-banner.show) #header{padding-top:14px;}
+
+#header .title{font-size:11px;letter-spacing:3px;color:var(–cyan);text-transform:uppercase;font-weight:600;}
+#header .sub{font-size:12px;color:var(–muted);margin-top:2px;}
+#content{flex:1;overflow-y:auto;padding:16px 20px 90px;-webkit-overflow-scrolling:touch;}
+#nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateZ(0);
+width:100%;max-width:430px;background:rgba(2,11,24,.92);
+backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+border-top:1px solid #0a1a2e;display:grid;grid-template-columns:repeat(5,1fr);
+padding:8px 0 calc(var(–safe-bot)+10px);z-index:100;}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 2px;opacity:.4;transition:opacity .2s;}
+.nav-btn.active{opacity:1;}
+.nav-btn .nav-icon{font-size:20px;transition:transform .25s cubic-bezier(.34,1.56,.64,1);}
+.nav-btn.active .nav-icon{transform:translateY(-2px) scale(1.12);}
+/* 波タブは強調色 */
+#nav-urge .nav-icon{filter:drop-shadow(0 0 4px rgba(34,211,238,.0));}
+#nav-urge.active .nav-icon{filter:drop-shadow(0 0 6px rgba(34,211,238,.7));}
+.nav-btn .nav-label{font-size:9px;color:var(–muted);font-weight:600;}
+.nav-btn.active .nav-label{color:var(–cyan);}
+
+/* 誘惑サーフィンタブ専用スタイル */
+#urge-warning-banner{
+background:linear-gradient(135deg,#450a0a,#7f1d1d);
+border-radius:14px;padding:16px 18px;
+border:1px solid rgba(239,68,68,.5);
+animation:urgePulse 2s ease-in-out infinite;
+}
+@keyframes urgePulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}50%{box-shadow:0 0 0 8px rgba(239,68,68,0)}}
+
+.card{background:var(–bg2);border-radius:18px;padding:18px;border:1px solid var(–border);box-shadow:0 4px 20px rgba(0,0,0,.2);}
 .col{display:flex;flex-direction:column;gap:16px;}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
-.label-sm{font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;font-weight:600;}
+.label-sm{font-size:11px;letter-spacing:2px;color:var(–muted);text-transform:uppercase;margin-bottom:6px;font-weight:600;}
 .btn-cyan{background:linear-gradient(135deg,#0891b2,#0e7490);border-radius:14px;padding:14px 24px;
-  color:white;font-weight:700;font-size:15px;display:block;width:100%;text-align:center;
-  box-shadow:0 4px 12px rgba(8,145,178,.3);}
-.btn-sm{background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.3);border-radius:10px;
-  padding:8px 14px;color:var(--cyan);font-size:12px;font-weight:600;}
-.btn-gray{background:var(--bg3);border:1px solid #334155;border-radius:14px;padding:14px;color:var(--text);font-size:14px;font-weight:600;}
-.btn-red{background:var(--bg3);border:1px solid #334155;border-radius:14px;padding:14px;color:var(--red);font-size:14px;font-weight:600;}
-.inp{width:100%;background:var(--bg3);border:1px solid #334155;border-radius:12px;padding:14px;color:var(--text);font-size:15px;}
-.tab-title{font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;margin-bottom:4px;}
-.section-desc{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:12px;}
-.chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid #334155;
-  border-radius:20px;padding:8px 14px;color:var(--muted);font-size:13px;cursor:pointer;
-  margin:0 6px 8px 0;font-weight:600;}
-.chip.sel{background:rgba(34,211,238,.15);border-color:var(--cyan);color:var(--cyan);}
+color:white;font-weight:700;font-size:15px;display:block;width:100%;text-align:center;box-shadow:0 4px 12px rgba(8,145,178,.3);}
+.btn-sm{background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.3);border-radius:10px;padding:8px 14px;color:var(–cyan);font-size:12px;font-weight:600;}
+.btn-gray{background:var(–bg3);border:1px solid #334155;border-radius:14px;padding:14px;color:var(–text);font-size:14px;font-weight:600;}
+.btn-red{background:var(–bg3);border:1px solid #334155;border-radius:14px;padding:14px;color:var(–red);font-size:14px;font-weight:600;}
+.inp{width:100%;background:var(–bg3);border:1px solid #334155;border-radius:12px;padding:14px;color:var(–text);font-size:15px;}
+.tab-title{font-family:‘Noto Serif JP’,serif;font-size:18px;font-weight:700;margin-bottom:4px;}
+.section-desc{color:var(–muted);font-size:13px;line-height:1.6;margin-bottom:12px;}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(–bg3);border:1px solid #334155;
+border-radius:20px;padding:8px 14px;color:var(–muted);font-size:13px;cursor:pointer;
+margin:0 6px 8px 0;font-weight:600;}
+.chip.sel{background:rgba(34,211,238,.15);border-color:var(–cyan);color:var(–cyan);}
 .week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:16px;}
-.week-cell-label{font-size:10px;color:var(--muted);text-align:center;margin-bottom:6px;font-weight:600;}
+.week-cell-label{font-size:10px;color:var(–muted);text-align:center;margin-bottom:6px;font-weight:600;}
 .week-cell{width:100%;aspect-ratio:1;border-radius:10px;display:flex;align-items:center;
-  justify-content:center;font-size:13px;border:2px solid transparent;}
-.week-cell.sober{background:var(--cyan);color:#020b18;font-weight:700;}
-.week-cell.drank{background:var(--red);color:white;font-weight:700;}
-.week-cell.today{border-color:var(--cyan);background:rgba(34,211,238,.05);}
+justify-content:center;font-size:13px;border:2px solid transparent;}
+.week-cell.sober{background:var(–cyan);color:#020b18;font-weight:700;}
+.week-cell.drank{background:var(–red);color:white;font-weight:700;}
+.week-cell.today{border-color:var(–cyan);background:rgba(34,211,238,.05);}
 .week-cell.empty{background:rgba(30,41,59,.5);}
 
-/* ── MODALS ───────────────────────────────────────────────── */
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 @keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
@@ -127,30 +133,29 @@ input,textarea{font-family:inherit;outline:none;-webkit-appearance:none;}
 @keyframes fadeOut{from{opacity:1}to{opacity:0}}
 @keyframes dogDeath{0%{transform:rotate(0deg) scale(1)}50%{transform:rotate(-15deg) scale(1.05)}100%{transform:rotate(-90deg) scale(.9) translateY(10px)}}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:flex-end;
-  justify-content:center;z-index:200;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-  animation:fadeIn .2s ease-out;}
-.sheet{background:#0a1628;border-radius:24px 24px 0 0;padding:24px 24px calc(var(--safe-bot)+24px);
-  width:100%;max-width:430px;border-top:1px solid var(--border);max-height:92vh;
-  overflow-y:auto;-webkit-overflow-scrolling:touch;animation:slideUp .35s cubic-bezier(.16,1,.3,1);}
+justify-content:center;z-index:200;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+animation:fadeIn .2s ease-out;}
+.sheet{background:#0a1628;border-radius:24px 24px 0 0;padding:24px 24px calc(var(–safe-bot)+24px);
+width:100%;max-width:430px;border-top:1px solid var(–border);max-height:92vh;
+overflow-y:auto;-webkit-overflow-scrolling:touch;animation:slideUp .35s cubic-bezier(.16,1,.3,1);}
 ::-webkit-scrollbar{display:none;}
 
-/* ── DOG CARD ─────────────────────────────────────────────── */
 .dog-card{border-radius:20px;padding:20px;text-align:center;position:relative;overflow:hidden;transition:all .4s;}
 .dog-svg-wrap{display:flex;justify-content:center;align-items:center;margin:8px 0 12px;}
 .dog-svg-wrap svg{filter:drop-shadow(0 8px 20px rgba(0,0,0,.4));}
 .dog-dead .dog-svg-wrap svg{animation:dogDeath .8s cubic-bezier(.68,-.55,.27,1.55) forwards;}
 .dog-meter{display:flex;gap:5px;justify-content:center;margin-top:8px;}
 .dog-pip{width:28px;height:6px;border-radius:3px;transition:background .4s;}
-.dog-pip.alive{background:var(--green);}
-.dog-pip.warned{background:var(--amber);}
+.dog-pip.alive{background:var(–green);}
+.dog-pip.warned{background:var(–amber);}
 .dog-pip.dead{background:#374151;}
 
-/* ── DEATH OVERLAY ────────────────────────────────────────── */
 #death-screen{position:fixed;inset:0;background:#000;z-index:500;
-  display:none;align-items:center;justify-content:center;flex-direction:column;
-  animation:fadeIn .5s ease;}
+display:none;align-items:center;justify-content:center;flex-direction:column;
+animation:fadeIn .5s ease;}
 #death-screen.show{display:flex;}
 </style>
+
 </head>
 <body>
 <div id="app">
@@ -170,25 +175,23 @@ input,textarea{font-family:inherit;outline:none;-webkit-appearance:none;}
   <nav id="nav">
     <button class="nav-btn active" onclick="switchTab('home')"    id="nav-home">   <span class="nav-icon">🏠</span><span class="nav-label">今日</span></button>
     <button class="nav-btn"        onclick="switchTab('savings')" id="nav-savings"> <span class="nav-icon">💰</span><span class="nav-label">資産</span></button>
+    <button class="nav-btn"        onclick="switchTab('urge')"    id="nav-urge">    <span class="nav-icon">🌊</span><span class="nav-label">波乗り</span></button>
     <button class="nav-btn"        onclick="switchTab('tactics')" id="nav-tactics"> <span class="nav-icon">🎯</span><span class="nav-label">作戦</span></button>
     <button class="nav-btn"        onclick="switchTab('history')" id="nav-history"> <span class="nav-icon">📊</span><span class="nav-label">記録</span></button>
   </nav>
 </div>
 <div id="modal-container"></div>
 
-<!-- 死亡演出スクリーン -->
 <div id="death-screen">
   <div id="death-content" style="text-align:center;padding:40px 20px;max-width:320px;"></div>
 </div>
 
 <script>
 "use strict";
-// ─── CONSTANTS ────────────────────────────────────────────────
-const WEEKLY_LIMIT = 5;   // これを超えると死亡
-const WEEKLY_GOAL  = 3;   // 目標（ここまでに抑えたい）
-const RECOVER_DAYS = 2;   // 連続でこの日数飲まないと1段階回復
+const WEEKLY_LIMIT = 5;
+const WEEKLY_GOAL  = 3;
+const RECOVER_DAYS = 2;
 
-// 後悔コスト（毎日3つをローテーション）
 const REGRET_COSTS = [
   ["🤢","頭痛・だるさで午前中のパフォーマンスが約40%低下（Harvard調査）"],
   ["💸","1回の飲酒コストは酒代+翌日の生産性損失で実質2倍以上"],
@@ -211,9 +214,6 @@ const MILESTONES = [
   {weeks:26,icon:"👑",label:"半年", desc:"人生の質が根本から変わる"},
 ];
 
-// ─── SVG 柴犬（6ステージ）────────────────────────────────────
-// stage 0: 元気いっぱい  stage 1: 普通  stage 2: 疲れ気味
-// stage 3: ぐったり  stage 4: 瀕死  stage 5: 死亡
 function getDogSVG(stage) {
   const ext   = stage === 5 ? 'jpg' : 'png';
   const w     = stage >= 4 ? 160 : 130;
@@ -222,21 +222,12 @@ function getDogSVG(stage) {
   return `<img src="dog${stage}.${ext}" width="${w}" height="${h}" style="${style}" alt="柴犬 stage ${stage}">`;
 }
 
-// ─── STATE ────────────────────────────────────────────────────
 const STATE_KEY = "wb_state_v3";
 let state = {
-  startDate: null,
-  dailyCost: 600,
-  log: {},           // { "YYYY-MM-DD": "sober"|"drank" }
-  urges: [],         // { date, triggerId, resisted }
-  tactics: [],       // { id, date, situation, plan, tried, triedDate }
-  currentTab: "home",
-  historyMonthOffset: 0,
-  bestStreak: 0,     // 歴代最高連続クリア日数
-  bestWeeks: 0,      // 歴代最高クリア週数
+  startDate:null, dailyCost:600, log:{}, urges:[], tactics:[],
+  currentTab:"home", historyMonthOffset:0, bestStreak:0, bestWeeks:0,
 };
 
-// ─── PERF: メモ化 ─────────────────────────────────────────────
 let _gwCache = {v:0, h:""};
 function goalWeeks() {
   const h = JSON.stringify(state.log);
@@ -250,25 +241,18 @@ function goalWeeks() {
   return c;
 }
 
-// ─── PERSISTENCE（セキュアなlocalStorage操作）─────────────────
 function saveState() {
   try {
-    // 保存前に最高記録を更新
     const streak = calcStreak();
     if (streak > (state.bestStreak || 0)) state.bestStreak = streak;
     const gw = goalWeeks();
     if (gw > (state.bestWeeks || 0)) state.bestWeeks = gw;
-
     localStorage.setItem(STATE_KEY, JSON.stringify({
-      startDate:   state.startDate ? state.startDate.toISOString() : null,
-      dailyCost:   state.dailyCost,
-      log:         state.log,
-      urges:       state.urges,
-      tactics:     state.tactics,
-      bestStreak:  state.bestStreak,
-      bestWeeks:   state.bestWeeks,
+      startDate:  state.startDate ? state.startDate.toISOString() : null,
+      dailyCost:  state.dailyCost, log:state.log, urges:state.urges,
+      tactics:    state.tactics, bestStreak:state.bestStreak, bestWeeks:state.bestWeeks,
     }));
-    _gwCache.h = ""; // キャッシュ無効化
+    _gwCache.h = "";
   } catch(e) { console.warn("Save failed:", e); }
 }
 
@@ -303,19 +287,16 @@ function exportData() {
 function importData() {
   const ta = document.getElementById("backup-text");
   const raw = ta?.value?.trim();
-  if (!raw) { alert("テキストが空です。保存しておいたデータを貼り付けてください。"); return; }
+  if (!raw) { alert("テキストが空です。"); return; }
   if (!confirm("現在のデータを上書きします。よろしいですか？")) return;
   try {
-    JSON.parse(raw); // バリデーション
+    JSON.parse(raw);
     localStorage.setItem(STATE_KEY, raw);
-    loadState();
-    closeModal();
-    renderContent();
+    loadState(); closeModal(); renderContent();
     alert("復元しました！");
-  } catch(e) { alert("データが壊れています。完全にコピーできているか確認してください。"); }
+  } catch(e) { alert("データが壊れています。"); }
 }
 
-// ─── HELPERS ──────────────────────────────────────────────────
 const todayKey = () => new Date().toISOString().slice(0, 10);
 
 function getWeekDays(offset = 0) {
@@ -340,7 +321,6 @@ function totalStats() {
   return { sober, saved: sober * state.dailyCost };
 }
 
-// 連続クリア日数を計算
 function calcStreak() {
   let streak = 0, d = new Date();
   const ts = state.log[todayKey()];
@@ -354,36 +334,30 @@ function calcStreak() {
   return streak;
 }
 
-// 柴犬ステージを計算（今週の飲酒数 + 回復ボーナス）
 function getDogStage() {
   const thisWeekDays = getWeekDays(0);
   const drankCount   = thisWeekDays.filter(d => state.log[d] === "drank").length;
-  if (drankCount >= WEEKLY_LIMIT) return 5; // 死亡
-
-  // 回復チェック：直近2日が両方sober → 1段階回復
+  if (drankCount >= WEEKLY_LIMIT) return 5;
   const d1 = new Date(); d1.setDate(d1.getDate() - 1);
   const d2 = new Date(); d2.setDate(d2.getDate() - 2);
   const k1 = d1.toISOString().slice(0, 10);
   const k2 = d2.toISOString().slice(0, 10);
   const recovered = (state.log[k1] === "sober" && state.log[k2] === "sober");
-
   const base = Math.min(4, drankCount);
   return recovered ? Math.max(0, base - 1) : base;
 }
 
-// 今週の飲酒数
 function getWeekDrinks() {
   return getWeekDays(0).filter(d => state.log[d] === "drank").length;
 }
 
-// 回復まで何日か
 function getDaysUntilRecovery() {
   const today = todayKey();
   const d1 = new Date(); d1.setDate(d1.getDate() - 1);
   const k1 = d1.toISOString().slice(0, 10);
-  if (state.log[today] === "sober" && state.log[k1] === "sober") return 0; // 既に回復中
-  if (state.log[today] === "sober") return 1; // あと1日
-  return 2; // あと2日
+  if (state.log[today] === "sober" && state.log[k1] === "sober") return 0;
+  if (state.log[today] === "sober") return 1;
+  return 2;
 }
 
 function checkDangerZone() {
@@ -391,7 +365,6 @@ function checkDangerZone() {
   document.getElementById("danger-banner")?.classList.toggle("show", h >= 18 && h < 19.5);
 }
 
-// ─── ROUTING ──────────────────────────────────────────────────
 function switchTab(tab) {
   state.currentTab = tab;
   document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
@@ -402,11 +375,11 @@ function switchTab(tab) {
 
 function renderContent() {
   const el = document.getElementById("content");
-  const map = { home: renderHome, savings: renderSavings, tactics: renderTactics, history: renderHistory };
+  const map = { home: renderHome, savings: renderSavings, tactics: renderTactics, history: renderHistory, urge: renderUrgeTab };
   el.innerHTML = (map[state.currentTab] || renderHome)();
 }
 
-// ─── HOME TAB ─────────────────────────────────────────────────
+// ─── HOME TAB ────────────────────────────────────────────────
 function renderHome() {
   if (!state.startDate) {
     return `<div style="text-align:center;padding:80px 20px">
@@ -419,13 +392,11 @@ function renderHome() {
 
   const weekDrinks  = getWeekDrinks();
   const dogStage    = getDogStage();
-  const remaining   = WEEKLY_LIMIT - weekDrinks;  // あと何回飲めるか
-  const goalRemain  = WEEKLY_GOAL - weekDrinks;    // 目標まであと何回
+  const remaining   = WEEKLY_LIMIT - weekDrinks;
   const isDead      = dogStage === 5;
-  const isWarning   = weekDrinks >= WEEKLY_GOAL;
   const todayLogged = state.log[todayKey()];
   const streak      = calcStreak();
-  const {saved, sober: totalSober} = totalStats();
+  const {saved}     = totalStats();
   const thisWeek    = getWeekDays(0);
   const todayIdx    = (new Date().getDay() + 6) % 7;
   const dayNames    = ["月","火","水","木","金","土","日"];
@@ -435,26 +406,19 @@ function renderHome() {
   const dayIdx      = Math.floor(Date.now() / 86400000);
   const daysToRecover = getDaysUntilRecovery();
 
-  // 柴犬カードの色設定
   const dogBg = isDead
     ? "linear-gradient(135deg,#1a0a0a,#0d0505)"
-    : dogStage >= 3
-      ? "linear-gradient(135deg,#1a0d0a,#120800)"
-      : dogStage >= 1
-        ? "linear-gradient(135deg,#1a1a0a,#120d00)"
-        : "linear-gradient(135deg,#0a1a0a,#061206)";
+    : dogStage >= 3 ? "linear-gradient(135deg,#1a0d0a,#120800)"
+    : dogStage >= 1 ? "linear-gradient(135deg,#1a1a0a,#120d00)"
+    : "linear-gradient(135deg,#0a1a0a,#061206)";
   const dogBorder = isDead ? "#3D1515" : dogStage >= 3 ? "#3D2010" : dogStage >= 1 ? "#3D3010" : "#1A3D1A";
 
-  // ライフゲージ（5個のドット）
   const dots = Array.from({length: WEEKLY_LIMIT}, (_, i) => {
     const filled = i < (WEEKLY_LIMIT - weekDrinks);
-    const cls = filled
-      ? (i < WEEKLY_LIMIT - WEEKLY_GOAL ? "alive" : "warned")
-      : "dead";
+    const cls = filled ? (i < WEEKLY_LIMIT - WEEKLY_GOAL ? "alive" : "warned") : "dead";
     return `<div class="dog-pip ${cls}"></div>`;
   }).join("");
 
-  // ステージ名
   const stageNames = ["元気いっぱい","普通","疲れ気味","ぐったり","瀕死","💀 今週終了"];
   const stageColors= ["var(--green)","#86d368","var(--amber)","#f97316","var(--red)","#6B7280"];
 
@@ -475,7 +439,7 @@ function renderHome() {
         </div>
         <div style="background:rgba(0,0,0,.3);border-radius:10px;padding:10px;text-align:center">
           <p style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:4px">回復まで</p>
-          <p style="font-size:22px;font-weight:700;color:${daysToRecover===0?"var(--green)":"var(--amber)"}">
+          <p style="font-size:${daysToRecover===0?"16px":"18px"};font-weight:700;color:${daysToRecover===0?"var(--green)":"var(--amber)"}">
             ${daysToRecover===0 ? "回復中" : daysToRecover+"日飲まない"}
           </p>
         </div>
@@ -488,7 +452,6 @@ function renderHome() {
       </div>` : ""}
     </div>`;
 
-  // 週間カレンダー
   const weekCells = thisWeek.map((d, i) => {
     const s = state.log[d], isToday = i === todayIdx;
     let cls = "week-cell";
@@ -496,7 +459,6 @@ function renderHome() {
     return `<div><div class="week-cell-label" style="color:${isToday?"var(--cyan)":"var(--muted)"}">${dayNames[i]}</div><div class="${cls}">${s==="sober"?"○":s==="drank"?"×":""}</div></div>`;
   }).join("");
 
-  // ストリーク
   const streakCard = streak > 0 ? `
     <div class="card" style="display:flex;align-items:center;gap:16px;border:1px solid rgba(245,158,11,${streak>=7?.6:.3});background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(245,158,11,.02))">
       <div style="font-size:44px;line-height:1;filter:drop-shadow(0 0 12px rgba(245,158,11,${streak>=7?.5:.2}))">🔥</div>
@@ -510,7 +472,6 @@ function renderHome() {
       </div>
     </div>` : "";
 
-  // 今日カード
   const morningCard = (!todayLogged && isMorning && !committed) ? `
     <div class="card" style="border:1px solid rgba(34,211,238,.45);background:linear-gradient(135deg,rgba(34,211,238,.1),rgba(34,211,238,.02))">
       <p style="font-size:11px;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;font-weight:700;margin-bottom:10px">☀️ 朝のコミットメント</p>
@@ -521,9 +482,8 @@ function renderHome() {
 
   const todayCard = !todayLogged
     ? `<div class="card" style="border:1px solid ${committed?"rgba(245,158,11,.4)":"rgba(34,211,238,.3)"};background:linear-gradient(180deg,var(--bg2),${committed?"rgba(245,158,11,.03)":"rgba(34,211,238,.03)"})">${committed?`<p style="font-size:11px;color:var(--amber);font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">✊ 今朝宣言済み — ミッション実行中</p>`:""}<p style="font-size:14px;font-weight:700;color:${committed?"var(--amber)":"var(--cyan)"};margin-bottom:16px;text-align:center">今日のミッションはクリアしましたか？</p><div class="row2"><button class="btn-cyan" style="padding:16px;font-size:16px" onclick="logToday('sober')">✓ 休肝達成</button><button class="btn-red" style="padding:16px;font-size:14px" onclick="openModal('recovery')">飲んでしまった</button></div></div>`
-    : `<div class="card" style="text-align:center;position:relative;background:${todayLogged==="sober"?"rgba(34,211,238,.06)":"rgba(239,68,68,.06)"};border:1px solid ${todayLogged==="sober"?"rgba(34,211,238,.3)":"rgba(239,68,68,.3)"}"><button onclick="undoToday()" style="position:absolute;top:14px;right:14px;font-size:12px;font-weight:600;color:var(--muted);background:var(--bg3);padding:6px 12px;border-radius:8px;border:1px solid var(--border)">↩ 取消</button><p style="font-size:32px;margin-bottom:8px;margin-top:8px">${todayLogged==="sober"?"✅":"📝"}</p><p style="color:${todayLogged==="sober"?"var(--cyan)":"var(--red)"};font-weight:700;font-size:16px">${todayLogged==="sober"?"休肝達成！素晴らしい選択です。":"データを記録しました。"}</p>${todayLogged==="drank"?`<p style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6">失敗ではありません。原因が「作戦タブ」に記録されました。<br>明日はまた新しいスタートです。</p>`:""}</div>`;
+    : `<div class="card" style="text-align:center;position:relative;background:${todayLogged==="sober"?"rgba(34,211,238,.06)":"rgba(239,68,68,.06)"};border:1px solid ${todayLogged==="sober"?"rgba(34,211,238,.3)":"rgba(239,68,68,.3)"}"><button onclick="undoToday()" style="position:absolute;top:14px;right:14px;font-size:12px;font-weight:600;color:var(--muted);background:var(--bg3);padding:6px 12px;border-radius:8px;border:1px solid var(--border)">↩ 取消</button><p style="font-size:32px;margin-bottom:8px;margin-top:8px">${todayLogged==="sober"?"✅":"📝"}</p><p style="color:${todayLogged==="sober"?"var(--cyan)":"var(--red)"};font-weight:700;font-size:16px">${todayLogged==="sober"?"休肝達成！素晴らしい選択です。":"データを記録しました。"}</p>${todayLogged==="drank"?`<p style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6">原因と対策が「作戦タブ」に記録されました。<br>明日はまた新しいスタートです。</p>`:""}</div>`;
 
-  // 後悔コスト（毎日3件ローテーション）
   const regretItems = [0,1,2].map(i => REGRET_COSTS[(dayIdx + i) % REGRET_COSTS.length])
     .map(([e,t]) => `<div style="display:flex;gap:12px;margin-bottom:10px;align-items:flex-start"><span style="font-size:16px">${e}</span><p style="font-size:12px;color:#c084fc;line-height:1.6">${t}</p></div>`).join("");
 
@@ -539,9 +499,9 @@ function renderHome() {
     ${streakCard}
     ${morningCard}
     ${todayCard}
-    <button onclick="openModal('urge')" class="card" style="display:flex;align-items:center;gap:16px;width:100%;text-align:left;border:1px solid rgba(34,211,238,.2);background:linear-gradient(90deg,rgba(34,211,238,.04),transparent)">
+    <button onclick="switchTab('urge')" class="card" style="display:flex;align-items:center;gap:16px;width:100%;text-align:left;border:1px solid rgba(34,211,238,.2);background:linear-gradient(90deg,rgba(34,211,238,.04),transparent)">
       <span style="font-size:32px;filter:drop-shadow(0 0 8px rgba(34,211,238,.4))">🌊</span>
-      <div><p style="font-weight:700;font-size:15px">飲みたくなったとき（誘惑サーフィン）</p><p style="font-size:12px;color:var(--cyan);margin-top:4px;font-weight:600">5分タイマーで衝動をやり過ごす</p></div>
+      <div><p style="font-weight:700;font-size:15px">飲みたくなったとき（誘惑サーフィン）</p><p style="font-size:12px;color:var(--cyan);margin-top:4px;font-weight:600">→ 波乗りタブを開く</p></div>
     </button>
     <div class="card" style="background:#0f0a1e;border:1px solid #1e1040">
       <p style="font-size:11px;letter-spacing:2px;color:#a855f7;text-transform:uppercase;margin-bottom:14px;font-weight:700">💭 翌朝の後悔コスト（毎日入れ替わります）</p>
@@ -550,7 +510,7 @@ function renderHome() {
   </div>`;
 }
 
-// ─── SAVINGS TAB ──────────────────────────────────────────────
+// ─── SAVINGS TAB ─────────────────────────────────────────────
 function renderSavings() {
   const {sober, saved} = totalStats();
   const daily   = state.dailyCost;
@@ -630,12 +590,11 @@ function removeGoal(idx) {
   goals.splice(idx, 1); localStorage.setItem("wb_saving_goals", JSON.stringify(goals)); renderContent();
 }
 
-// ─── TACTICS TAB（AI生成対策一覧）────────────────────────────
+// ─── TACTICS TAB ─────────────────────────────────────────────
 function renderTactics() {
-  const tactics = (state.tactics || []).slice().reverse(); // 新しい順
+  const tactics = (state.tactics || []).slice().reverse();
   const total   = state.tactics.length;
 
-  // 繰り返しパターン検出（同じキーワードが2回以上）
   function isRepeat(situation) {
     if (!situation) return false;
     const keywords = ["LINE","迎え","コンビニ","駅","疲れ","仕事","残業","家","ストック","休日","動画"];
@@ -653,13 +612,13 @@ function renderTactics() {
     const tried   = t.tried || false;
     return `<div class="card" style="border:1px solid ${tried ? "rgba(52,211,153,0.35)" : "rgba(34,211,238,0.15)"};position:relative">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div style="display:flex;align-items:center;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <span style="font-family:'Noto Serif JP',serif;font-size:13px;font-weight:700;color:var(--muted)">#${num}</span>
           <span style="font-size:11px;color:var(--muted)">${new Date(t.date).toLocaleDateString("ja-JP")}</span>
           ${repeat ? `<span style="font-size:10px;font-weight:700;color:var(--amber);background:rgba(245,158,11,0.12);padding:2px 8px;border-radius:10px">⚠ 繰り返しパターン</span>` : ""}
           ${tried  ? `<span style="font-size:10px;font-weight:700;color:var(--green);background:rgba(52,211,153,0.1);padding:2px 8px;border-radius:10px">✓ 実践済み</span>` : ""}
         </div>
-        <div style="display:flex;gap:6px">
+        <div style="display:flex;gap:6px;flex-shrink:0">
           <button onclick="editTactic(${origIdx})" style="font-size:12px;font-weight:600;color:var(--cyan);background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);border-radius:8px;padding:4px 10px">編集</button>
           <button onclick="deleteTactic(${origIdx})" style="font-size:12px;font-weight:600;color:var(--red);background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:4px 10px">削除</button>
         </div>
@@ -670,7 +629,7 @@ function renderTactics() {
       </div>
       <div style="background:rgba(34,211,238,0.06);border-radius:10px;padding:12px;margin-bottom:12px;border-left:3px solid var(--cyan)">
         <p style="font-size:10px;color:var(--cyan);font-weight:700;letter-spacing:2px;margin-bottom:6px">STRATEGY / 対策</p>
-        <p style="font-size:14px;color:var(--text);line-height:1.6;font-weight:600">${t.plan}</p>
+        <p style="font-size:14px;color:var(--text);line-height:1.6;font-weight:600">${t.plan || "（未記入）"}</p>
       </div>
       ${(()=>{
         const attempts = t.attempts || (t.tried ? [{date:t.triedDate||t.date,effective:null}] : []);
@@ -702,7 +661,7 @@ function renderTactics() {
   }).join("") : `<div class="card" style="text-align:center;padding:40px 20px;border:1px dashed var(--border)">
     <p style="font-size:36px;margin-bottom:14px">📖</p>
     <p style="font-weight:700;font-size:16px;margin-bottom:8px">失敗辞書はまだ空です</p>
-    <p style="font-size:13px;color:var(--muted);line-height:1.8">「飲んでしまった」を押して状況を記録すると<br>ここに辞書が積み上がっていきます。<br>失敗するたびに辞書が分厚くなります。</p>
+    <p style="font-size:13px;color:var(--muted);line-height:1.8">「飲んでしまった」を押して状況と対策を記録すると<br>ここに辞書が積み上がっていきます。</p>
   </div>`;
 
   const statsBar = total > 0 ? `
@@ -714,15 +673,12 @@ function renderTactics() {
           <p style="font-size:11px;color:var(--muted)">${total}件の経験が蓄積されています</p>
         </div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <span style="font-size:11px;color:var(--green);font-weight:700">${(state.tactics||[]).filter(t=>(t.attempts||[]).length>0||(t.tried)).length}件実践記録あり</span>
-        <button onclick="downloadCSV()" style="font-size:12px;font-weight:700;color:var(--amber);background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:inherit">📥 CSV</button>
-      </div>
+      <button onclick="downloadCSV()" style="font-size:12px;font-weight:700;color:var(--amber);background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:inherit">📥 CSV</button>
     </div>` : "";
 
   return `<div class="col">
     <h3 class="tab-title">📖 失敗辞書</h3>
-    <p class="section-desc">飲んでしまった経験が対策として記録されます。辞書が厚くなるほど、あなたの防衛力が上がります。</p>
+    <p class="section-desc">飲んだ時の原因と自分なりの対策を記録します。辞書が厚くなるほど防衛力が上がります。</p>
     ${statsBar}
     ${cards}
   </div>`;
@@ -735,7 +691,6 @@ function deleteTactic(idx) {
 }
 
 function toggleTried(idx) {
-  // 旧データ互換：tried/triedDate → attempts配列に移行
   const t = state.tactics[idx];
   if (!t) return;
   if (!t.attempts) {
@@ -755,7 +710,7 @@ function openTriedModal(idx) {
       <h3 style="font-size:18px;font-weight:700;margin-bottom:10px">📋 対策を試した記録</h3>
       <div style="background:rgba(34,211,238,.06);border-radius:12px;padding:14px;margin-bottom:20px;border:1px solid rgba(34,211,238,.2)">
         <p style="font-size:12px;color:var(--cyan);font-weight:700;margin-bottom:6px">STRATEGY / 対策</p>
-        <p style="font-size:14px;color:var(--text);line-height:1.6;font-weight:600">${t.plan}</p>
+        <p style="font-size:14px;color:var(--text);line-height:1.6;font-weight:600">${t.plan || "（未記入）"}</p>
       </div>
       <p style="font-size:14px;font-weight:700;margin-bottom:16px;text-align:center">この対策を試した結果は？</p>
       <div class="row2" style="margin-bottom:24px">
@@ -782,212 +737,187 @@ function recordAttempt(idx, effective) {
 function editTactic(idx) {
   const t = state.tactics[idx];
   if (!t) return;
-  openEditModal(idx, t);
-}
-
-function openEditModal(idx, t) {
   const mc = document.getElementById("modal-container");
   mc.innerHTML = `<div class="overlay" onclick="if(event.target===this)closeModal()">
     <div class="sheet">
       <h3 style="font-size:18px;font-weight:700;margin-bottom:20px">✏️ 記録を編集</h3>
       <label style="font-size:13px;color:var(--red);display:block;margin-bottom:8px;font-weight:700">CAUSE / 原因</label>
       <textarea id="edit-situation" class="inp" style="height:80px;resize:none;margin-bottom:20px;line-height:1.6">${t.situation || ""}</textarea>
-      <label style="font-size:13px;color:var(--cyan);display:block;margin-bottom:8px;font-weight:700">STRATEGY / 対策</label>
-      <textarea id="edit-plan" class="inp" style="height:80px;resize:none;margin-bottom:28px;line-height:1.6">${t.plan}</textarea>
-      <div class="row2">
-        <button class="btn-gray" onclick="closeModal()">キャンセル</button>
-        <button class="btn-cyan" onclick="saveEdit(${idx})">保存する</button>
-      </div>
-    </div>
+
+```
+  <label style="font-size:13px;color:var(--cyan);display:block;margin-bottom:8px;font-weight:700">STRATEGY / 対策</label>
+  <textarea id="edit-plan" class="inp" style="height:80px;resize:none;margin-bottom:28px;line-height:1.6">${t.plan || ""}</textarea>
+  <div class="row2">
+    <button class="btn-gray" onclick="closeModal()">キャンセル</button>
+    <button class="btn-cyan" onclick="saveEdit(${idx})">保存する</button>
+  </div>
+</div>
+```
+
   </div>`;
 }
 
 function saveEdit(idx) {
-  const situation = document.getElementById("edit-situation")?.value?.trim();
-  const plan      = document.getElementById("edit-plan")?.value?.trim();
-  if (!plan) return;
-  state.tactics[idx].situation = situation;
-  state.tactics[idx].plan      = plan;
-  saveState(); closeModal(); renderContent();
+const situation = document.getElementById(“edit-situation”)?.value?.trim();
+const plan      = document.getElementById(“edit-plan”)?.value?.trim();
+state.tactics[idx].situation = situation;
+state.tactics[idx].plan      = plan || “”;
+saveState(); closeModal(); renderContent();
 }
 
 function downloadCSV() {
-  const header = "番号,日付,原因・状況,対策,実践済み,実践日";
-  const rows = (state.tactics || []).map((t, i) => {
-    const num      = String(i + 1).padStart(3, "0");
-    const date     = new Date(t.date).toLocaleDateString("ja-JP");
-    const sit      = (t.situation || "").replace(/\n/g, " ");
-    const plan     = (t.plan || "").replace(/\n/g, " ");
-    const tried    = t.tried ? "済み" : "未";
-    const triedDt  = t.tried ? new Date(t.triedDate).toLocaleDateString("ja-JP") : "";
-    return `${num},${date},${sit},${plan},${tried},${triedDt}`;
-  });
-  const csv  = "\uFEFF" + header + "\n" + rows.join("\n"); // BOM付きUTF-8（Excelで文字化けしない）
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement("a");
-  a.href     = url;
-  a.download = "namo_tactics_" + new Date().toISOString().slice(0,10) + ".csv";
-  a.click();
-  URL.revokeObjectURL(url);
+const header = “番号,日付,原因・状況,対策,実践済み,実践日”;
+const rows = (state.tactics || []).map((t, i) => {
+const num     = String(i + 1).padStart(3, “0”);
+const date    = new Date(t.date).toLocaleDateString(“ja-JP”);
+const sit     = (t.situation || “”).replace(/\n/g, “ “);
+const plan    = (t.plan || “”).replace(/\n/g, “ “);
+const tried   = t.tried ? “済み” : “未”;
+const triedDt = t.tried ? new Date(t.triedDate).toLocaleDateString(“ja-JP”) : “”;
+return `${num},${date},${sit},${plan},${tried},${triedDt}`;
+});
+const csv  = “\uFEFF” + header + “\n” + rows.join(”\n”);
+const blob = new Blob([csv], { type: “text/csv;charset=utf-8;” });
+const url  = URL.createObjectURL(blob);
+const a    = document.createElement(“a”);
+a.href = url; a.download = “namo_tactics_” + new Date().toISOString().slice(0,10) + “.csv”;
+a.click(); URL.revokeObjectURL(url);
 }
 
-// ─── HISTORY TAB ──────────────────────────────────────────────
+// ─── HISTORY TAB ─────────────────────────────────────────────
 function changeMonth(delta) {
-  state.historyMonthOffset = Math.max(0, Math.min(24, (state.historyMonthOffset || 0) + delta));
-  renderContent();
+state.historyMonthOffset = Math.max(0, Math.min(24, (state.historyMonthOffset || 0) + delta));
+renderContent();
 }
 function toggleHistoryLog(dateStr) {
-  const cur = state.log[dateStr];
-  if (!cur) state.log[dateStr] = "sober";
-  else if (cur === "sober") state.log[dateStr] = "drank";
-  else delete state.log[dateStr];
-  saveState(); renderContent();
+const cur = state.log[dateStr];
+if (!cur) state.log[dateStr] = “sober”;
+else if (cur === “sober”) state.log[dateStr] = “drank”;
+else delete state.log[dateStr];
+saveState(); renderContent();
 }
 
 function renderHistory() {
-  const {sober, saved} = totalStats();
-  const gw = goalWeeks();
-  const dayNames = ["月","火","水","木","金","土","日"];
-  const summaryCards = [
-    ["累計クリア", sober+"日",              "var(--cyan)"],
-    ["確保した資金","¥"+saved.toLocaleString(),"var(--green)"],
-    ["最高連続記録",(state.bestStreak||0)+"日","var(--amber)"],
-  ].map(([l,v,c]) => `<div class="card" style="text-align:center;padding:16px"><p style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600">${l}</p><p style="font-size:22px;font-weight:700;color:${c}">${v}</p></div>`).join("");
+const {sober, saved} = totalStats();
+const gw = goalWeeks();
+const dayNames = [“月”,“火”,“水”,“木”,“金”,“土”,“日”];
+const summaryCards = [
+[“累計クリア”, sober+“日”,               “var(–cyan)”],
+[“確保した資金”,“¥”+saved.toLocaleString(),“var(–green)”],
+[“最高連続記録”,(state.bestStreak||0)+“日”,“var(–amber)”],
+].map(([l,v,c]) => `<div class="card" style="text-align:center;padding:16px"><p style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600">${l}</p><p style="font-size:22px;font-weight:700;color:${c}">${v}</p></div>`).join(””);
 
-  const mo = state.historyMonthOffset || 0;
-  const now = new Date();
-  const target = new Date(now.getFullYear(), now.getMonth() - mo, 1);
-  const yr = target.getFullYear(), mn = target.getMonth();
-  const label = yr + "年" + (mn+1) + "月";
-  const dim = new Date(yr, mn+1, 0).getDate();
-  const fdow = (new Date(yr, mn, 1).getDay() + 6) % 7;
-  let mS = 0, mD = 0;
-  for (let d = 1; d <= dim; d++) {
-    const k = yr+"-"+String(mn+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
-    if (state.log[k]==="sober") mS++; else if (state.log[k]==="drank") mD++;
-  }
-  let cells = "";
-  for (let i = 0; i < fdow; i++) cells += "<div></div>";
-  for (let d = 1; d <= dim; d++) {
-    const k = yr+"-"+String(mn+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
-    const s = state.log[k], isToday = k === todayKey();
-    const bg = s==="sober"?"var(--cyan)":s==="drank"?"var(--red)":isToday?"rgba(34,211,238,.15)":"rgba(30,41,59,.5)";
-    cells += `<div onclick="toggleHistoryLog('${k}')" class="week-cell" style="cursor:pointer;background:${bg};border:${isToday?"2px solid var(--cyan)":"2px solid transparent"};color:${s?"white":"var(--text)"};">${d}</div>`;
-  }
-  const dayHdr = dayNames.map(d => `<div style="text-align:center;font-size:10px;color:var(--muted);padding-bottom:6px;font-weight:600">${d}</div>`).join("");
+const mo = state.historyMonthOffset || 0;
+const now = new Date();
+const target = new Date(now.getFullYear(), now.getMonth() - mo, 1);
+const yr = target.getFullYear(), mn = target.getMonth();
+const label = yr + “年” + (mn+1) + “月”;
+const dim = new Date(yr, mn+1, 0).getDate();
+const fdow = (new Date(yr, mn, 1).getDay() + 6) % 7;
+let mS = 0, mD = 0;
+for (let d = 1; d <= dim; d++) {
+const k = yr+”-”+String(mn+1).padStart(2,“0”)+”-”+String(d).padStart(2,“0”);
+if (state.log[k]===“sober”) mS++; else if (state.log[k]===“drank”) mD++;
+}
+let cells = “”;
+for (let i = 0; i < fdow; i++) cells += “<div></div>”;
+for (let d = 1; d <= dim; d++) {
+const k = yr+”-”+String(mn+1).padStart(2,“0”)+”-”+String(d).padStart(2,“0”);
+const s = state.log[k], isToday = k === todayKey();
+const bg = s===“sober”?“var(–cyan)”:s===“drank”?“var(–red)”:isToday?“rgba(34,211,238,.15)”:“rgba(30,41,59,.5)”;
+cells += `<div onclick="toggleHistoryLog('${k}')" class="week-cell" style="cursor:pointer;background:${bg};border:${isToday?"2px solid var(--cyan)":"2px solid transparent"};color:${s?"white":"var(--text)"};">${d}</div>`;
+}
+const dayHdr = dayNames.map(d => `<div style="text-align:center;font-size:10px;color:var(--muted);padding-bottom:6px;font-weight:600">${d}</div>`).join(””);
 
-  const milestoneCards = MILESTONES.map(m => {
-    const done = gw >= m.weeks;
-    return `<div class="card" style="text-align:center;opacity:${done?1:.5};border:1px solid ${done?"rgba(34,211,238,.4)":"var(--border)"};background:${done?"linear-gradient(180deg,var(--bg2),rgba(34,211,238,.05))":"var(--bg2)"}">
-      <div style="font-size:32px;filter:${done?"drop-shadow(0 0 10px rgba(34,211,238,.4))":"grayscale(1)"};margin-bottom:8px">${m.icon}</div>
-      <p style="font-size:13px;font-weight:700;color:${done?"var(--cyan)":"var(--text)"}">${m.label}</p>
-      <p style="font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4">${m.desc}</p>
-    </div>`;
-  }).join("");
+const milestoneCards = MILESTONES.map(m => {
+const done = gw >= m.weeks;
+return `<div class="card" style="text-align:center;opacity:${done?1:.5};border:1px solid ${done?"rgba(34,211,238,.4)":"var(--border)"};background:${done?"linear-gradient(180deg,var(--bg2),rgba(34,211,238,.05))":"var(--bg2)"}"> <div style="font-size:32px;filter:${done?"drop-shadow(0 0 10px rgba(34,211,238,.4))":"grayscale(1)"};margin-bottom:8px">${m.icon}</div> <p style="font-size:13px;font-weight:700;color:${done?"var(--cyan)":"var(--text)"}">${m.label}</p> <p style="font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4">${m.desc}</p> </div>`;
+}).join(””);
 
-  return `<div class="col">
-    <h3 class="tab-title">📊 データ・実績</h3>
-    <div class="row3">${summaryCards}</div>
-    <h3 class="tab-title" style="margin-top:4px">📅 カレンダー</h3>
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <button onclick="changeMonth(1)" style="padding:10px;background:var(--bg3);border-radius:10px;font-size:16px;color:${mo>=24?"transparent":"var(--text)"};pointer-events:${mo>=24?"none":"auto"}">◀</button>
-        <div style="text-align:center"><p style="font-size:16px;font-weight:700">${label}</p><p style="font-size:11px;color:var(--muted);margin-top:4px;font-weight:600"><span style="color:var(--cyan)">✓ ${mS}日</span> / <span style="color:var(--red)">× ${mD}日</span></p></div>
-        <button onclick="changeMonth(-1)" style="padding:10px;background:var(--bg3);border-radius:10px;font-size:16px;color:${mo<=0?"transparent":"var(--text)"};pointer-events:${mo<=0?"none":"auto"}">▶</button>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">${dayHdr}${cells}</div>
-      <p style="font-size:11px;color:var(--dim);text-align:center;margin-top:14px;font-weight:600">💡 日付をタップして記録を修正 / スワイプで月移動</p>
-    </div>
-    <h3 class="tab-title" style="margin-top:4px">🏆 マイルストーン</h3>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${milestoneCards}</div>
+return `<div class="col">
+<h3 class="tab-title">📊 データ・実績</h3>
+<div class="row3">${summaryCards}</div>
+<h3 class="tab-title" style="margin-top:4px">📅 カレンダー</h3>
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<button onclick=“changeMonth(1)” style=“padding:10px;background:var(–bg3);border-radius:10px;font-size:16px;color:${mo>=24?“transparent”:“var(–text)”};pointer-events:${mo>=24?“none”:“auto”}”>◀</button>
+<div style="text-align:center"><p style="font-size:16px;font-weight:700">${label}</p><p style="font-size:11px;color:var(--muted);margin-top:4px;font-weight:600"><span style="color:var(--cyan)">✓ ${mS}日</span> / <span style="color:var(--red)">× ${mD}日</span></p></div>
+<button onclick=“changeMonth(-1)” style=“padding:10px;background:var(–bg3);border-radius:10px;font-size:16px;color:${mo<=0?“transparent”:“var(–text)”};pointer-events:${mo<=0?“none”:“auto”}”>▶</button>
+</div>
+<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">${dayHdr}${cells}</div>
+<p style="font-size:11px;color:var(--dim);text-align:center;margin-top:14px;font-weight:600">💡 日付をタップして記録を修正</p>
+</div>
+<h3 class="tab-title" style="margin-top:4px">🏆 マイルストーン</h3>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${milestoneCards}</div>
+
   </div>`;
 }
 
-// ─── ACTIONS ──────────────────────────────────────────────────
+// ─── ACTIONS ─────────────────────────────────────────────────
 function logToday(type) {
-  state.log[todayKey()] = type;
-  saveState();
-
-  // 飲んだ場合：柴犬ステージを確認して死亡チェック
-  if (type === "drank") {
-    const weekDrinks = getWeekDrinks();
-    if (weekDrinks >= WEEKLY_LIMIT) {
-      setTimeout(() => showDeathScreen(), 300);
-    }
-  }
-  renderContent();
+state.log[todayKey()] = type;
+saveState();
+if (type === “drank”) {
+const weekDrinks = getWeekDrinks();
+if (weekDrinks >= WEEKLY_LIMIT) setTimeout(() => showDeathScreen(), 300);
+}
+renderContent();
 }
 
-function undoToday() {
-  delete state.log[todayKey()];
-  saveState(); renderContent();
-}
+function undoToday() { delete state.log[todayKey()]; saveState(); renderContent(); }
+function morningCommit() { localStorage.setItem(“wb_commit_” + todayKey(), “1”); renderContent(); }
 
-function morningCommit() {
-  localStorage.setItem("wb_commit_" + todayKey(), "1");
-  renderContent();
-}
-
-// 死亡演出
 function showDeathScreen() {
-  const ds = document.getElementById("death-screen");
-  const dc = document.getElementById("death-content");
-  dc.innerHTML = `
-    <div style="font-size:80px;margin-bottom:20px;animation:dogDeath .8s cubic-bezier(.68,-.55,.27,1.55) forwards">${getDogSVG(5)}</div>
-    <h2 style="font-family:'Noto Serif JP',serif;font-size:24px;color:#ef4444;margin-bottom:16px;line-height:1.4">今週の柴犬が<br>倒れてしまいました</h2>
-    <p style="color:#94a3b8;font-size:14px;line-height:1.8;margin-bottom:8px">今週は${WEEKLY_LIMIT}回の飲酒上限に達しました。</p>
-    <p style="color:#64748b;font-size:13px;line-height:1.8;margin-bottom:32px">月曜日になると子犬に戻ります。<br>歴代記録と累計休肝日数は消えません。</p>
-    <button onclick="closeDeathScreen()" class="btn-cyan" style="padding:16px;font-size:15px">記録を確認する</button>
-  `;
-  ds.classList.add("show");
+const ds = document.getElementById(“death-screen”);
+const dc = document.getElementById(“death-content”);
+dc.innerHTML = `<div style="font-size:80px;margin-bottom:20px;animation:dogDeath .8s cubic-bezier(.68,-.55,.27,1.55) forwards">${getDogSVG(5)}</div> <h2 style="font-family:'Noto Serif JP',serif;font-size:24px;color:#ef4444;margin-bottom:16px;line-height:1.4">今週の柴犬が<br>倒れてしまいました</h2> <p style="color:#94a3b8;font-size:14px;line-height:1.8;margin-bottom:8px">今週は${WEEKLY_LIMIT}回の飲酒上限に達しました。</p> <p style="color:#64748b;font-size:13px;line-height:1.8;margin-bottom:32px">月曜日になると子犬に戻ります。<br>歴代記録と累計休肝日数は消えません。</p> <button onclick="closeDeathScreen()" class="btn-cyan" style="padding:16px;font-size:15px">記録を確認する</button>`;
+ds.classList.add(“show”);
 }
 function closeDeathScreen() {
-  const ds = document.getElementById("death-screen");
-  ds.style.animation = "fadeOut .5s ease forwards";
-  setTimeout(() => { ds.classList.remove("show"); ds.style.animation = ""; }, 500);
+const ds = document.getElementById(“death-screen”);
+ds.style.animation = “fadeOut .5s ease forwards”;
+setTimeout(() => { ds.classList.remove(“show”); ds.style.animation = “”; }, 500);
 }
 
-// ─── MODALS ───────────────────────────────────────────────────
+// ─── MODALS ──────────────────────────────────────────────────
 function openModal(type) {
-  const mc = document.getElementById("modal-container");
-  if (type === "setup")    mc.innerHTML = renderSetupModal();
-  if (type === "urge")     { urgeTimer=300; urgeRunning=false; urgeTrigger=""; mc.innerHTML = renderUrgeModal(); }
-  if (type === "recovery") mc.innerHTML = renderRecoveryModal();
+const mc = document.getElementById(“modal-container”);
+if (type === “setup”)    mc.innerHTML = renderSetupModal();
+if (type === “recovery”) mc.innerHTML = renderRecoveryModal();
 }
 function closeModal() {
-  const o = document.querySelector(".overlay");
-  if (!o) return;
-  o.style.animation = "fadeIn .15s ease-out reverse forwards";
-  const s = o.querySelector(".sheet");
-  if (s) s.style.animation = "slideUp .2s ease-in reverse forwards";
-  setTimeout(() => { document.getElementById("modal-container").innerHTML = ""; }, 180);
+const o = document.querySelector(”.overlay”);
+if (!o) return;
+o.style.animation = “fadeIn .15s ease-out reverse forwards”;
+const s = o.querySelector(”.sheet”);
+if (s) s.style.animation = “slideUp .2s ease-in reverse forwards”;
+setTimeout(() => { document.getElementById(“modal-container”).innerHTML = “”; }, 180);
 }
 
-// Setup Modal
 function renderSetupModal() {
-  const cur = state.startDate ? state.startDate.toISOString().slice(0,10) : new Date().toISOString().slice(0,10);
-  return `<div class="overlay" onclick="if(event.target===this)closeModal()">
-    <div class="sheet">
-      <h3 style="font-size:18px;font-weight:700;margin-bottom:20px">⚙ 設定・データ管理</h3>
-      <label style="font-size:13px;color:var(--muted);display:block;margin-bottom:8px;font-weight:600">開始日</label>
-      <input type="date" id="setup-date" class="inp" value="${cur}">
-      <label style="font-size:13px;color:var(--muted);display:block;margin-top:20px;margin-bottom:8px;font-weight:600">1日あたりの酒代（円）</label>
-      <input type="number" id="setup-cost" class="inp" value="${state.dailyCost}">
-      <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border)">
-        <p style="font-size:14px;font-weight:700;margin-bottom:8px;color:var(--cyan)">💾 データバックアップ</p>
-        <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">キャッシュ消去に備え、定期的にコピーしてiPhoneの「メモ」に保存してください。</p>
-        <div class="row2" style="margin-bottom:12px">
-          <button class="btn-sm" style="padding:12px;font-size:13px" onclick="exportData()">📋 コピー</button>
-          <button class="btn-sm" style="padding:12px;font-size:13px" onclick="importData()">📥 復元</button>
-        </div>
-        <textarea id="backup-text" class="inp" style="height:80px;font-size:11px;color:var(--dim);resize:none;line-height:1.4" placeholder="復元する時はここにコピーしたテキストを貼り付けて「復元」を押す"></textarea>
-      </div>
-      <div class="row2" style="margin-top:32px">
-        <button class="btn-gray" onclick="closeModal()">閉じる</button>
-        <button class="btn-cyan" onclick="saveSetup()">保存</button>
-      </div>
-    </div>
+const cur = state.startDate ? state.startDate.toISOString().slice(0,10) : new Date().toISOString().slice(0,10);
+return `<div class="overlay" onclick="if(event.target===this)closeModal()">
+<div class="sheet">
+<h3 style="font-size:18px;font-weight:700;margin-bottom:20px">⚙ 設定・データ管理</h3>
+<label style="font-size:13px;color:var(--muted);display:block;margin-bottom:8px;font-weight:600">開始日</label>
+<input type="date" id="setup-date" class="inp" value="${cur}">
+<label style="font-size:13px;color:var(--muted);display:block;margin-top:20px;margin-bottom:8px;font-weight:600">1日あたりの酒代（円）</label>
+<input type="number" id="setup-cost" class="inp" value="${state.dailyCost}">
+<div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border)">
+<p style="font-size:14px;font-weight:700;margin-bottom:8px;color:var(--cyan)">💾 データバックアップ</p>
+<p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">キャッシュ消去に備え、定期的にコピーしてiPhoneの「メモ」に保存してください。</p>
+<div class="row2" style="margin-bottom:12px">
+<button class="btn-sm" style="padding:12px;font-size:13px" onclick="exportData()">📋 コピー</button>
+<button class="btn-sm" style="padding:12px;font-size:13px" onclick="importData()">📥 復元</button>
+</div>
+<textarea id="backup-text" class="inp" style="height:80px;font-size:11px;color:var(--dim);resize:none;line-height:1.4" placeholder="復元する時はここにコピーしたテキストを貼り付けて「復元」を押す"></textarea>
+</div>
+<div class="row2" style="margin-top:32px">
+<button class="btn-gray" onclick="closeModal()">閉じる</button>
+<button class="btn-cyan" onclick="saveSetup()">保存</button>
+</div>
+</div>
+
   </div>`;
 }
 function saveSetup() {
@@ -999,236 +929,296 @@ function saveSetup() {
   saveState(); closeModal(); renderContent();
 }
 
-// Recovery Modal（飲んだ理由 → AI対策生成）
+// ── Recovery Modal（自由記述版）─────────────────────────────
 function renderRecoveryModal() {
-  return `<div class="overlay" onclick="if(event.target===this)closeModal()">
-    <div class="sheet">
-      <h3 style="font-size:18px;font-weight:700;margin-bottom:10px">📝 リカバリー分析</h3>
-      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:24px">状況を入力すると<strong style="color:var(--cyan)">Claudeが個別対策を生成</strong>します。<br>「作戦タブ」に自動保存されます（入力は任意です）。</p>
-      <label style="font-size:13px;color:var(--cyan);display:block;margin-bottom:8px;font-weight:700">今回の状況・理由（任意）</label>
-      <textarea id="rec-situation" class="inp" placeholder="例：残業で疲れて帰り道にコンビニに寄ってしまった。妻のLINEで迎えに行きついでに買った。" style="height:90px;resize:none;line-height:1.6;margin-bottom:20px"></textarea>
-      <div id="ai-result" style="display:none;background:rgba(34,211,238,.06);border-radius:14px;padding:16px;margin-bottom:20px;border:1px solid rgba(34,211,238,.2)">
-        <p style="font-size:11px;color:var(--cyan);font-weight:700;letter-spacing:2px;margin-bottom:8px">🛡️ AI生成対策</p>
-        <p id="ai-plan-text" style="font-size:14px;color:var(--text);line-height:1.7;font-weight:600"></p>
-      </div>
-      <div id="ai-loading" style="display:none;text-align:center;padding:16px;color:var(--muted);font-size:13px">
-        <div style="display:inline-block;width:20px;height:20px;border:2px solid var(--cyan);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;margin-right:8px;vertical-align:middle"></div>
-        Claudeが対策を生成中...
-      </div>
-      <button id="ai-gen-btn" class="btn-cyan" style="padding:14px;margin-bottom:12px" onclick="generateAITactic()">🤖 AIに対策を考えてもらう</button>
-      <button id="save-recovery-btn" class="btn-cyan" style="padding:16px;display:none" onclick="saveRecovery()">✓ データを記録して保存する</button>
-      <button onclick="skipRecovery()" style="display:block;width:100%;text-align:center;font-size:14px;font-weight:600;color:var(--dim);margin-top:16px;padding:10px">スキップして記録だけする</button>
-    </div>
+return `<div class="overlay" onclick="if(event.target===this)closeModal()">
+<div class="sheet">
+<h3 style="font-size:18px;font-weight:700;margin-bottom:10px">📝 リカバリー記録</h3>
+<p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:24px">
+今回の原因と次回への対策を自分の言葉で記録しましょう。<br>
+<span style="color:var(--cyan);font-weight:600">「作戦タブ」に保存されます（入力は任意です）。</span>
+</p>
+
+```
+  <label style="font-size:13px;color:var(--red);display:block;margin-bottom:8px;font-weight:700">CAUSE / 原因・状況（任意）</label>
+  <textarea id="rec-situation" class="inp"
+    placeholder="例：残業後に疲れてコンビニで買ってしまった&#10;例：妻のLINEで迎えに行きついでに買った"
+    style="height:90px;resize:none;line-height:1.7;margin-bottom:20px"></textarea>
+
+  <label style="font-size:13px;color:var(--cyan);display:block;margin-bottom:8px;font-weight:700">STRATEGY / 次回の対策（任意）</label>
+  <textarea id="rec-plan" class="inp"
+    placeholder="例：帰り道はイヤホンをして別ルートで帰る&#10;例：迎えに行く前に財布をカバンから出す"
+    style="height:90px;resize:none;line-height:1.7;margin-bottom:28px"></textarea>
+
+  <button class="btn-cyan" style="padding:16px;margin-bottom:12px" onclick="saveRecovery()">✓ 記録して保存する</button>
+  <button onclick="skipRecovery()" style="display:block;width:100%;text-align:center;font-size:14px;font-weight:600;color:var(--dim);padding:10px">スキップして記録だけする</button>
+</div>
+```
+
   </div>`;
-}
-
-let _generatedPlan = "";
-
-// ローカル対策生成（APIが使えない環境用）
-// 入力した状況のキーワードを読んで関連する if-then 対策を返す
-function generateLocalTactic(situation) {
-  const s = situation || "";
-  // キーワードマッチングで状況に合った対策を返す
-  if (/LINE|迎え|妻|嫁/.test(s))
-    return "もし妻からLINEで迎えの依頼が来たら → 「今から行くね」とだけ返信し、財布をテーブルに置いてから出発する";
-  if (/コンビニ|帰り|駅|ついで/.test(s))
-    return "もし帰り道にコンビニや酒屋の前を通ったら → イヤホンをつけてポッドキャストを再生し、目的なく入店しない";
-  if (/疲れ|ストレス|仕事|残業/.test(s))
-    return "もし仕事で疲れて帰宅した時は → 帰宅前に5分だけ駅周辺を歩き、コルチゾールを消費してから帰宅する";
-  if (/家|ある|ストック|買って/.test(s))
-    return "もし家にお酒のストックがある時は → 今すぐ見えない場所（押し入れや高い棚）に移動させ、視界から消す";
-  if (/休日|昼|暇|時間/.test(s))
-    return "もし休日で時間を持て余した時は → 14時にノンアルドリンクを作り、飲む側ではなく「作る側」のモードに切り替える";
-  if (/誘われ|飲み会|付き合い|友人|同僚/.test(s))
-    return "もし飲み会に誘われた時は → 「今日は車で来てる」または「薬を飲んでいる」と事前に一言伝え、飲まない理由を準備しておく";
-  if (/動画|コンテンツ|YouTube|SNS/.test(s))
-    return "もし酒に関連する動画やコンテンツを見たくなったら → すぐにスペアリブや料理系の動画に切り替え、作る側のモードに入る";
-  // 状況が未入力またはマッチしない場合
-  if (!s || s.length < 5)
-    return "もし今夜飲みたくなったら → アプリの「誘惑サーフィン」を開き5分タイマーを起動する。衝動は5〜10分で必ず消える（ACT理論）";
-  // 状況テキストをそのままif節に使う
-  return `もし「${s.slice(0,20)}」という状況になったら → その場でアプリを開き誘惑サーフィンタイマーを5分起動する。衝動が去るまで別の行動（水を飲む・外に出る）で時間を稼ぐ`;
-}
-async function generateAITactic() {
-  const situation = document.getElementById("rec-situation")?.value?.trim() || "";
-  const loading   = document.getElementById("ai-loading");
-  const result    = document.getElementById("ai-result");
-  const planText  = document.getElementById("ai-plan-text");
-  const genBtn    = document.getElementById("ai-gen-btn");
-  const saveBtn   = document.getElementById("save-recovery-btn");
-
-  loading.style.display = "block";
-  genBtn.style.display  = "none";
-  result.style.display  = "none";
-
-  const prompt = "断酒・節酒中のユーザー（32歳男性、東京世田谷区在住、データアナリスト）が今日飲んでしまいました。"
-    + "状況：" + (situation || "不明")
-    + "。主なトリガー傾向：妻のLINE迎え依頼・最寄り駅でのついで買い・仕事のストレス・休日の酒コンテンツ閲覧。"
-    + "行動科学の観点から、「もし【状況】なら→【具体的な行動】」の形式で、"
-    + "この人に最も刺さる具体的な対策を1つだけ生成してください。"
-    + "40〜60文字、日本語、実行可能な行動レベルで。余計な説明は不要。";
-
-  try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 200,
-        messages: [{role: "user", content: prompt}]
-      })
-    });
-    const data = await res.json();
-    _generatedPlan = data.content?.find(b => b.type === "text")?.text?.trim() || "";
-    if (!_generatedPlan) throw new Error("empty response");
-  } catch(e) {
-    // API失敗時：入力した状況テキストを読んで関連する対策を返す
-    _generatedPlan = generateLocalTactic(situation);
-  }
-
-  loading.style.display = "none";
-  planText.textContent   = _generatedPlan;
-  result.style.display   = "block";
-  saveBtn.style.display  = "block";
 }
 
 function saveRecovery() {
-  const situation = document.getElementById("rec-situation")?.value?.trim() || "";
-  if (_generatedPlan) {
-    state.tactics = state.tactics || [];
-    state.tactics.push({ date: new Date().toISOString(), situation, plan: _generatedPlan });
-  }
-  logToday("drank");
-  _generatedPlan = "";
-  closeModal();
+const situation = document.getElementById(“rec-situation”)?.value?.trim() || “”;
+const plan      = document.getElementById(“rec-plan”)?.value?.trim() || “”;
+if (situation || plan) {
+state.tactics = state.tactics || [];
+state.tactics.push({ date: new Date().toISOString(), situation, plan });
+}
+logToday(“drank”);
+closeModal();
 }
 
-function skipRecovery() {
-  logToday("drank");
-  closeModal();
-}
+function skipRecovery() { logToday(“drank”); closeModal(); }
 
-// Urge Surfing Modal
-let urgeTimer=300, urgeRunning=false, urgeTrigger="", urgeInterval=null;
+// ─── URGE SURFING TAB ────────────────────────────────────────
+let urgeTimer=300, urgeRunning=false, urgeTrigger=””, urgeInterval=null;
+let urgeRisk = null; // ランダムリスク（タイマー開始時に固定）
+
 const URGE_TRIGGERS = [
-  {id:"wife_line",icon:"📱",label:"妻のLINE（迎え）",  plan:"「今から行くね」とだけ返信し、財布を置いてから出発する"},
-  {id:"station",  icon:"🚃",label:"最寄り駅に着いた",  plan:"イヤホン装着→ポッドキャスト再生。食材はネットスーパーで帰宅後注文"},
-  {id:"konbini",  icon:"🏪",label:"コンビニの前",       plan:"目的がなければ入らない。代わりに自販機で炭酸水"},
-  {id:"content",  icon:"📺",label:"酒コンテンツを見た", plan:"すぐ料理動画（スペアリブ）に切り替え。作る側のモードへ"},
-  {id:"stress",   icon:"😤",label:"仕事のストレス",     plan:"帰宅前に5分ウォーキング。コルチゾールを消費する"},
-  {id:"holiday",  icon:"🏠",label:"休日の昼〜夕方",    plan:"14時にノンアルドリンクを作る習慣を先に入れる"},
+{id:“wife_line”,icon:“📱”,label:“妻のLINE（迎え）”,  plan:”「今から行くね」とだけ返信し、財布を置いてから出発する”},
+{id:“station”,  icon:“🚃”,label:“最寄り駅に着いた”,  plan:“イヤホン装着→ポッドキャスト再生。食材はネットスーパーで帰宅後注文”},
+{id:“konbini”,  icon:“🏪”,label:“コンビニの前”,       plan:“目的がなければ入らない。代わりに自販機で炭酸水”},
+{id:“content”,  icon:“📺”,label:“酒コンテンツを見た”, plan:“すぐ料理動画（スペアリブ）に切り替え。作る側のモードへ”},
+{id:“stress”,   icon:“😤”,label:“仕事のストレス”,     plan:“帰宅前に5分ウォーキング。コルチゾールを消費する”},
+{id:“holiday”,  icon:“🏠”,label:“休日の昼〜夕方”,    plan:“14時にノンアルドリンクを作る習慣を先に入れる”},
 ];
 
-function renderUrgeModal() {
-  const R=54, circ=2*Math.PI*R, offset=circ-(((300-urgeTimer)/300)*circ);
-  const phase = urgeTimer>225 ? ["衝動の発生","これは生理的な波です。意志の弱さではありません。ただ観察しましょう。"] :
-                urgeTimer>120 ? ["ピークへ向かう","波が高くなっていますが、これが最大値です。やり過ごせます。"] :
-                urgeTimer>30  ? ["ピーク通過中","波は必ず引きます。もうほとんど過ぎています。"] :
-                                ["衝動が去っていく","よくやりました。あなたは波を乗りこなしました。"];
-  const min=Math.floor(urgeTimer/60), sec=String(urgeTimer%60).padStart(2,"0");
-  const chips = URGE_TRIGGERS.map(t =>
-    `<span class="chip${urgeTrigger===t.id?" sel":""}" onclick="setUrgeTrigger('${t.id}')">${t.icon} ${t.label}</span>`
-  ).join("");
-  const planBox = urgeTrigger
-    ? `<div style="background:rgba(245,158,11,.1);border-radius:12px;padding:16px;margin-bottom:20px;border:1px solid rgba(245,158,11,.3)"><p style="font-size:12px;color:var(--amber);margin-bottom:6px;font-weight:700">📌 今すぐ実行すること</p><p style="font-size:15px;color:var(--text);line-height:1.6;font-weight:700">${URGE_TRIGGERS.find(t=>t.id===urgeTrigger)?.plan}</p></div>` : "";
-  const actions = (!urgeRunning && urgeTimer===300)
-    ? `<button class="btn-cyan" style="padding:16px;font-size:16px" onclick="startUrgeTimer()">タイマーを開始する</button>`
-    : `<div class="row2"><button class="btn-red" onclick="closeModal();openModal('recovery')">飲んでしまった</button><button class="btn-cyan" style="padding:16px" onclick="logUrgeWin()">✓ 乗り越えた！</button></div>`;
+function renderUrgeTab() {
+const R = 58, circ = 2 * Math.PI * R;
+const elapsed = 300 - urgeTimer;
+const offset  = circ - ((elapsed / 300) * circ);
+const min = Math.floor(urgeTimer / 60), sec = String(urgeTimer % 60).padStart(2, “0”);
+const isIdle    = !urgeRunning && urgeTimer === 300;
+const isRunning = urgeRunning;
+const isDone    = !urgeRunning && urgeTimer <= 0;
 
-  return `<div class="overlay">
-    <div class="sheet">
-      <div style="display:flex;justify-content:space-between;margin-bottom:20px">
-        <h3 style="font-size:18px;font-weight:700">🌊 誘惑サーフィン</h3>
-        <button onclick="stopUrge()" style="font-size:24px;color:var(--muted);padding:4px">×</button>
-      </div>
-      <div style="background:rgba(30,41,59,.5);border-radius:12px;padding:16px;margin-bottom:20px;font-size:13px;color:var(--text);line-height:1.7;font-weight:600">
-        飲みたい衝動は<span style="color:var(--cyan)">5〜10分で必ず自然に消えます</span>（ACT理論）。抵抗せず、ただ波を観察してください。
-      </div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:10px;font-weight:600">今のトリガーは？</p>
-      <div style="margin-bottom:20px">${chips}</div>
-      ${planBox}
-      <div style="text-align:center;margin-bottom:24px">
-        <svg width="140" height="140" viewBox="0 0 130 130" style="transform:rotate(-90deg)">
-          <circle cx="65" cy="65" r="${R}" fill="none" stroke="var(--bg3)" stroke-width="10"/>
-          <circle id="urge-arc" cx="65" cy="65" r="${R}" fill="none" stroke="var(--cyan)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" style="transition:stroke-dashoffset 1s linear"/>
-        </svg>
-        <div style="margin-top:-104px;position:relative">
-          <p id="urge-time" style="font-family:'Noto Serif JP',serif;font-size:46px;font-weight:700;letter-spacing:-2px">${min}:${sec}</p>
-        </div>
-        <p id="urge-phase-title" style="color:var(--cyan);font-weight:700;margin-top:52px;font-size:16px">${phase[0]}</p>
-        <p id="urge-phase-desc" style="color:var(--muted);font-size:13px;margin-top:6px;line-height:1.6;font-weight:600">${phase[1]}</p>
-      </div>
-      <div id="urge-actions">${actions}</div>
+// フェーズメッセージ（タイマー稼働中のみ）
+const [phaseTitle, phaseDesc] = urgeTimer > 225
+? [“衝動の発生”,    “これは生理的な波。意志の弱さじゃない。”]
+: urgeTimer > 120
+? [“ピークへ向かう”,“これが最大値。あと少しで引き始める。”]
+: urgeTimer > 30
+? [“ピーク通過中”,  “波は引いている。もうほとんど過ぎた。”]
+: [“衝動が去っていく”,“よくやった。波を乗りこなした。”];
+
+// ── 待機画面 ────────────────────────────────────────
+if (isIdle) {
+// 待機中は毎回ランダムなリスクをプレビュー表示
+const previewRisk = REGRET_COSTS[Math.floor(Date.now() / 3600000) % REGRET_COSTS.length];
+return `<div class="col" style="padding-bottom:8px">
+
+```
+  <!-- ヘッダー -->
+  <div style="text-align:center;padding:8px 0 4px">
+    <div style="font-size:52px;margin-bottom:8px;filter:drop-shadow(0 0 20px rgba(34,211,238,.5))">🌊</div>
+    <h2 style="font-family:'Noto Serif JP',serif;font-size:22px;font-weight:700;margin-bottom:8px">飲みたくなったら<br>まずここを押せ</h2>
+    <p style="font-size:13px;color:var(--muted);line-height:1.8">衝動は<span style="color:var(--cyan);font-weight:700">5〜10分で必ず消える</span>（ACT理論）。<br>タイマーが終わるまでその場にとどまれ。</p>
+  </div>
+
+  <!-- 今飲んだら -->
+  <div style="background:rgba(168,85,247,.08);border-radius:16px;padding:16px 18px;border:1px solid rgba(168,85,247,.3)">
+    <p style="font-size:10px;letter-spacing:2px;color:#a855f7;font-weight:700;text-transform:uppercase;margin-bottom:10px">💭 今飲んだら翌朝こうなる</p>
+    <div style="display:flex;gap:14px;align-items:flex-start">
+      <span style="font-size:28px;line-height:1;flex-shrink:0">${previewRisk[0]}</span>
+      <p style="font-size:14px;color:#c084fc;line-height:1.7;font-weight:600">${previewRisk[1]}</p>
     </div>
+  </div>
+
+  <!-- メインCTA -->
+  <button onclick="startUrgeTimerTab()"
+    style="background:linear-gradient(135deg,#0891b2,#0e7490);border-radius:20px;padding:22px;
+      color:white;font-weight:900;font-size:18px;width:100%;border:none;cursor:pointer;
+      box-shadow:0 8px 30px rgba(8,145,178,.5);letter-spacing:.5px;
+      font-family:inherit;touch-action:manipulation;">
+    🌊 波に乗る（5分タイマー開始）
+  </button>
+
+</div>`;
+```
+
+}
+
+// ── 実行中 / 終了後 ─────────────────────────────────
+const timerColor  = isDone ? “var(–green)” : “var(–cyan)”;
+const arcStroke   = isDone ? “var(–green)” : “var(–cyan)”;
+const arcOffset   = isDone ? 0 : offset;
+
+const resultBtns = ` <div class="row2" style="margin-top:4px"> <button onclick="switchTab('home');openModal('recovery')" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);border-radius:16px; padding:16px 8px;color:var(--red);font-size:14px;font-weight:700; font-family:inherit;cursor:pointer;line-height:1.4"> 飲んでしまった<br><span style="font-size:11px;font-weight:400;color:var(--muted)">記録する</span> </button> <button onclick="logUrgeWinTab()" style="background:linear-gradient(135deg,rgba(52,211,153,.2),rgba(52,211,153,.1)); border:1px solid rgba(52,211,153,.5);border-radius:16px; padding:16px 8px;color:var(--green);font-size:14px;font-weight:700; font-family:inherit;cursor:pointer;line-height:1.4"> ✓ 乗り越えた！<br><span style="font-size:11px;font-weight:400;color:var(--muted)">よくやった</span> </button> </div>`;
+
+return `<div class="col" style="padding-bottom:8px">
+
+```
+<!-- 絶対禁止バナー（実行中のみ） -->
+${isRunning ? `
+<div style="background:linear-gradient(135deg,#450a0a,#7f1d1d);border-radius:16px;
+  padding:16px 18px;border:1px solid rgba(239,68,68,.5);
+  animation:urgePulse 2s ease-in-out infinite;">
+  <p style="font-size:10px;letter-spacing:3px;color:#fca5a5;font-weight:700;text-transform:uppercase;margin-bottom:8px">🚨 絶対禁止</p>
+  <p style="font-size:17px;font-weight:900;color:white;line-height:1.6">
+    この時間は絶対に<br>酒を<span style="color:#fca5a5">買ったり・飲んだりする行動</span>をするな！
+  </p>
+  <p style="font-size:12px;color:rgba(252,165,165,.8);margin-top:10px;line-height:1.6;font-weight:600">
+    タイマーが終わるまで<strong style="color:#fca5a5">その場から動くな</strong>。衝動は必ず消える。
+  </p>
+</div>` : `
+<div style="background:rgba(52,211,153,.08);border-radius:16px;padding:16px 18px;border:1px solid rgba(52,211,153,.3);text-align:center">
+  <p style="font-size:22px;margin-bottom:6px">🎉</p>
+  <p style="font-size:16px;font-weight:700;color:var(--green)">衝動を乗り越えた！</p>
+  <p style="font-size:13px;color:var(--muted);margin-top:4px">どうしますか？</p>
+</div>`}
+
+<!-- タイマーサークル（position:absoluteで重ねて文字被りを完全解消） -->
+<div style="background:var(--bg2);border-radius:20px;padding:24px 20px 20px;border:1px solid var(--border);text-align:center">
+  <!-- SVGと数字を同一コンテナ内でabsolute中央寄せ -->
+  <div style="position:relative;width:200px;height:200px;margin:0 auto 16px">
+    <svg width="200" height="200" viewBox="0 0 130 130"
+      style="position:absolute;inset:0;transform:rotate(-90deg)">
+      <circle cx="65" cy="65" r="${R}" fill="none" stroke="rgba(30,41,59,.8)" stroke-width="9"/>
+      <circle id="urge-arc" cx="65" cy="65" r="${R}" fill="none"
+        stroke="${arcStroke}" stroke-width="9" stroke-linecap="round"
+        stroke-dasharray="${circ.toFixed(2)}" stroke-dashoffset="${arcOffset.toFixed(2)}"
+        style="transition:stroke-dashoffset 1s linear;
+          filter:drop-shadow(0 0 6px ${arcStroke})"/>
+    </svg>
+    <!-- 中央テキスト：absoluteで正確に中央配置 -->
+    <div style="position:absolute;inset:0;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;gap:2px">
+      <p id="urge-time"
+        style="font-family:'Noto Serif JP',serif;font-size:54px;font-weight:700;
+          letter-spacing:-2px;line-height:1;color:${timerColor}">${min}:${sec}</p>
+    </div>
+  </div>
+  <!-- フェーズ説明（サークル外・通常フロー） -->
+  <p id="urge-phase-title"
+    style="color:${timerColor};font-weight:700;font-size:15px;margin-bottom:6px">
+    ${isRunning ? phaseTitle : isDone ? "ミッションコンプリート" : ""}
+  </p>
+  <p id="urge-phase-desc"
+    style="color:var(--muted);font-size:13px;line-height:1.6;font-weight:600;min-height:20px">
+    ${isRunning ? phaseDesc : isDone ? "波を完全に乗りこなした。" : ""}
+  </p>
+</div>
+
+<!-- ランダムリスク（起動後は固定表示） -->
+${urgeRisk ? `
+<div style="background:rgba(168,85,247,.08);border-radius:14px;padding:14px 16px;border:1px solid rgba(168,85,247,.25)">
+  <p style="font-size:10px;letter-spacing:2px;color:#a855f7;font-weight:700;text-transform:uppercase;margin-bottom:8px">💭 今飲んだら翌朝こうなる</p>
+  <div style="display:flex;gap:12px;align-items:flex-start">
+    <span style="font-size:24px;flex-shrink:0;line-height:1.2">${urgeRisk[0]}</span>
+    <p style="font-size:13px;color:#c084fc;line-height:1.7;font-weight:600">${urgeRisk[1]}</p>
+  </div>
+</div>` : ""}
+
+<!-- アクションボタン -->
+<div id="urge-actions">${resultBtns}</div>
+<button onclick="resetUrgeTab()"
+  style="display:block;width:100%;text-align:center;font-size:12px;
+    color:var(--dim);padding:8px;cursor:pointer;background:none;border:none;font-family:inherit">
+  ↺ リセット
+</button>
+```
+
   </div>`;
 }
-function setUrgeTrigger(id) { urgeTrigger=id; document.getElementById("modal-container").innerHTML=renderUrgeModal(); if(urgeRunning) startUrgeTimer(); }
-function startUrgeTimer() {
-  urgeRunning=true; clearInterval(urgeInterval);
-  urgeInterval = setInterval(() => {
-    if (urgeTimer<=0){clearInterval(urgeInterval); urgeRunning=false;}
-    else urgeTimer--;
-    _updateUrgeDisplay();
-  }, 1000);
-  _updateUrgeDisplay();
-}
-function _updateUrgeDisplay() {
-  const R=54, circ=2*Math.PI*R, offset=circ-(((300-urgeTimer)/300)*circ);
-  const min=Math.floor(urgeTimer/60), sec=String(urgeTimer%60).padStart(2,"0");
-  const phase = urgeTimer>225?["衝動の発生","これは生理的な波です。意志の弱さではありません。ただ観察しましょう。"]:urgeTimer>120?["ピークへ向かう","波が高くなっていますが、これが最大値です。やり過ごせます。"]:urgeTimer>30?["ピーク通過中","波は必ず引きます。もうほとんど過ぎています。"]:["衝動が去っていく","よくやりました。あなたは波を乗りこなしました。"];
-  const g = id => document.getElementById(id);
-  const arc = g("urge-arc"); if(arc) arc.setAttribute("stroke-dashoffset", offset);
-  if(g("urge-time")) g("urge-time").textContent = `${min}:${sec}`;
-  if(g("urge-phase-title")) g("urge-phase-title").textContent = phase[0];
-  if(g("urge-phase-desc"))  g("urge-phase-desc").textContent  = phase[1];
-  if (!urgeRunning && urgeTimer<=0) {
-    const a = g("urge-actions");
-    if(a) a.innerHTML = `<div class="row2"><button class="btn-red" onclick="closeModal();openModal('recovery')">飲んでしまった</button><button class="btn-cyan" style="padding:16px" onclick="logUrgeWin()">✓ 乗り越えた！</button></div>`;
-  }
-}
-function logUrgeWin() { clearInterval(urgeInterval); closeModal(); }
-function stopUrge()    { clearInterval(urgeInterval); closeModal(); }
 
-// ─── SWIPE: カレンダー月移動 ──────────────────────────────────
+function setUrgeTriggerTab(id) {
+urgeTrigger = id;
+renderContent(); // タブを再描画してトリガープランを表示
+}
+
+function startUrgeTimerTab() {
+// ランダムリスクを固定（タイマー起動時に1つ選ぶ）
+urgeRisk = REGRET_COSTS[Math.floor(Math.random() * REGRET_COSTS.length)];
+urgeRunning = true;
+clearInterval(urgeInterval);
+urgeInterval = setInterval(() => {
+if (urgeTimer <= 0) { clearInterval(urgeInterval); urgeRunning = false; }
+else urgeTimer–;
+_updateUrgeTabDisplay();
+}, 1000);
+renderContent(); // 初回描画（バナー表示のため）
+}
+
+function _updateUrgeTabDisplay() {
+if (state.currentTab !== “urge”) return;
+
+const R = 58, circ = 2 * Math.PI * R;
+const elapsed = 300 - urgeTimer;
+const offset  = circ - ((elapsed / 300) * circ);
+const min = Math.floor(urgeTimer / 60), sec = String(urgeTimer % 60).padStart(2, “0”);
+
+const [phaseTitle, phaseDesc] = urgeTimer > 225
+? [“衝動の発生”,    “これは生理的な波。意志の弱さじゃない。”]
+: urgeTimer > 120 ? [“ピークへ向かう”,“これが最大値。あと少しで引き始める。”]
+: urgeTimer > 30  ? [“ピーク通過中”,  “波は引いている。もうほとんど過ぎた。”]
+: [“衝動が去っていく”,“よくやった。波を乗りこなした。”];
+
+const g = id => document.getElementById(id);
+const col = urgeTimer <= 0 ? “var(–green)” : “var(–cyan)”;
+const arc = g(“urge-arc”);
+if (arc) {
+arc.setAttribute(“stroke-dashoffset”, offset.toFixed(2));
+arc.setAttribute(“stroke”, col);
+arc.style.filter = `drop-shadow(0 0 6px ${col})`;
+}
+if (g(“urge-time”)) { g(“urge-time”).textContent = `${min}:${sec}`; g(“urge-time”).style.color = col; }
+if (g(“urge-phase-title”)) g(“urge-phase-title”).textContent = urgeTimer > 0 ? phaseTitle : “ミッションコンプリート”;
+if (g(“urge-phase-desc”))  g(“urge-phase-desc”).textContent  = urgeTimer > 0 ? phaseDesc  : “波を完全に乗りこなした。”;
+
+if (!urgeRunning && urgeTimer <= 0) renderContent();
+}
+
+function logUrgeWinTab() {
+clearInterval(urgeInterval);
+urgeRunning = false; urgeTimer = 300; urgeRisk = null; urgeTrigger = “”;
+// ホームタブへ戻して記録
+switchTab(‘home’);
+}
+
+function resetUrgeTab() {
+clearInterval(urgeInterval);
+urgeRunning = false; urgeTimer = 300; urgeRisk = null;
+renderContent();
+}
+
+// ─── SWIPE ───────────────────────────────────────────────────
 let _swipeX = null;
-document.addEventListener("touchstart", e => { if(state.currentTab==="history") _swipeX=e.touches[0].clientX; }, {passive:true});
-document.addEventListener("touchend",   e => {
-  if(state.currentTab!=="history"||_swipeX===null) return;
-  const dx = e.changedTouches[0].clientX - _swipeX; _swipeX=null;
-  if(Math.abs(dx)>60) changeMonth(dx<0?-1:1);
+document.addEventListener(“touchstart”, e => { if(state.currentTab===“history”) _swipeX=e.touches[0].clientX; }, {passive:true});
+document.addEventListener(“touchend”,   e => {
+if(state.currentTab!==“history”||_swipeX===null) return;
+const dx = e.changedTouches[0].clientX - _swipeX; _swipeX=null;
+if(Math.abs(dx)>60) changeMonth(dx<0?-1:1);
 }, {passive:true});
 
-// ─── VISIBILITY REFRESH（節電：1分以上離席した場合のみ）────────
 let _lastVis = Date.now();
-document.addEventListener("visibilitychange", () => {
-  if(document.visibilityState==="visible") {
-    const now=Date.now();
-    if(now-_lastVis>60000){ renderContent(); checkDangerZone(); }
-    _lastVis=now;
-  }
+document.addEventListener(“visibilitychange”, () => {
+if(document.visibilityState===“visible”) {
+const now=Date.now();
+if(now-_lastVis>60000){ renderContent(); checkDangerZone(); }
+_lastVis=now;
+}
 });
 
-// ─── CSS SPINNER ──────────────────────────────────────────────
-const _style = document.createElement("style");
-_style.textContent = "@keyframes spin{to{transform:rotate(360deg)}}";
+const _style = document.createElement(“style”);
+_style.textContent = “@keyframes spin{to{transform:rotate(360deg)}}”;
 document.head.appendChild(_style);
 
-// ─── INIT ─────────────────────────────────────────────────────
 loadState();
 renderContent();
 checkDangerZone();
 setInterval(checkDangerZone, 60000);
 
-// Service Worker（オフライン対応）
-if ("serviceWorker" in navigator) {
-  const sw = `const C='sober-v8',A=[self.location.href];`
-    + `self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)))});`
-    + `self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))))});`
-    + `self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))});`;
-  navigator.serviceWorker
-    .register(URL.createObjectURL(new Blob([sw], {type:"text/javascript"})))
-    .catch(() => {});
+if (“serviceWorker” in navigator) {
+const sw = `const C='sober-v9',A=[self.location.href];`
++ `self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)))});`
++ `self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))))});`
++ `self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))});`;
+navigator.serviceWorker
+.register(URL.createObjectURL(new Blob([sw], {type:“text/javascript”})))
+.catch(() => {});
 }
 </script>
+
 </body>
 </html>
