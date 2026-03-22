@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -54,33 +53,33 @@ html,body{height:100%;background:var(--bg);color:var(--text);
 #app{display:flex;flex-direction:column;height:100%;max-width:430px;margin:0 auto;background:var(--bg);}
 
 button,.chip{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;
-touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
-transition:opacity .15s,transform .1s;}
+  touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  transition:opacity .15s,transform .1s;}
 button:active,.chip:active{opacity:.7;transform:scale(.97);}
 input,textarea{font-family:inherit;outline:none;-webkit-appearance:none;}
 
 /* ── DANGER BANNER: safe-area対応 ── */
 #danger-banner{
-background:linear-gradient(90deg,#450a0a,#7f1d1d);
-padding-top:calc(var(–safe-top) + 10px);
-padding-bottom:10px;padding-left:16px;padding-right:16px;
-display:none;align-items:center;gap:8px;font-size:12px;color:#fca5a5;font-weight:600;flex-shrink:0;}
+  background:linear-gradient(90deg,#450a0a,#7f1d1d);
+  padding-top:calc(var(--safe-top) + 10px);
+  padding-bottom:10px;padding-left:16px;padding-right:16px;
+  display:none;align-items:center;gap:8px;font-size:12px;color:#fca5a5;font-weight:600;flex-shrink:0;}
 #danger-banner.show{display:flex;animation:slideDown .3s ease;}
 
-#header{padding:calc(var(–safe-top) + 14px) 20px 10px;display:flex;justify-content:space-between;
-align-items:center;border-bottom:1px solid #0a1a2e;flex-shrink:0;}
+#header{padding:calc(var(--safe-top) + 14px) 20px 10px;display:flex;justify-content:space-between;
+  align-items:center;border-bottom:1px solid #0a1a2e;flex-shrink:0;}
 /* danger-banner表示中はheaderのsafe-top分を引く */
 #danger-banner.show ~ #header,
 body:has(#danger-banner.show) #header{padding-top:14px;}
 
-#header .title{font-size:11px;letter-spacing:3px;color:var(–cyan);text-transform:uppercase;font-weight:600;}
-#header .sub{font-size:12px;color:var(–muted);margin-top:2px;}
+#header .title{font-size:11px;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;font-weight:600;}
+#header .sub{font-size:12px;color:var(--muted);margin-top:2px;}
 #content{flex:1;overflow-y:auto;padding:16px 20px 90px;-webkit-overflow-scrolling:touch;}
 #nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateZ(0);
-width:100%;max-width:430px;background:rgba(2,11,24,.92);
-backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-border-top:1px solid #0a1a2e;display:grid;grid-template-columns:repeat(5,1fr);
-padding:8px 0 calc(var(–safe-bot)+10px);z-index:100;}
+  width:100%;max-width:430px;background:rgba(2,11,24,.92);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-top:1px solid #0a1a2e;display:grid;grid-template-columns:repeat(5,1fr);
+  padding:8px 0 calc(var(--safe-bot)+10px);z-index:100;}
 .nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 2px;opacity:.4;transition:opacity .2s;}
 .nav-btn.active{opacity:1;}
 .nav-btn .nav-icon{font-size:20px;transition:transform .25s cubic-bezier(.34,1.56,.64,1);}
@@ -88,42 +87,42 @@ padding:8px 0 calc(var(–safe-bot)+10px);z-index:100;}
 /* 波タブは強調色 */
 #nav-urge .nav-icon{filter:drop-shadow(0 0 4px rgba(34,211,238,.0));}
 #nav-urge.active .nav-icon{filter:drop-shadow(0 0 6px rgba(34,211,238,.7));}
-.nav-btn .nav-label{font-size:9px;color:var(–muted);font-weight:600;}
-.nav-btn.active .nav-label{color:var(–cyan);}
+.nav-btn .nav-label{font-size:9px;color:var(--muted);font-weight:600;}
+.nav-btn.active .nav-label{color:var(--cyan);}
 
 /* 誘惑サーフィンタブ専用スタイル */
 #urge-warning-banner{
-background:linear-gradient(135deg,#450a0a,#7f1d1d);
-border-radius:14px;padding:16px 18px;
-border:1px solid rgba(239,68,68,.5);
-animation:urgePulse 2s ease-in-out infinite;
+  background:linear-gradient(135deg,#450a0a,#7f1d1d);
+  border-radius:14px;padding:16px 18px;
+  border:1px solid rgba(239,68,68,.5);
+  animation:urgePulse 2s ease-in-out infinite;
 }
 @keyframes urgePulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}50%{box-shadow:0 0 0 8px rgba(239,68,68,0)}}
 
-.card{background:var(–bg2);border-radius:18px;padding:18px;border:1px solid var(–border);box-shadow:0 4px 20px rgba(0,0,0,.2);}
+.card{background:var(--bg2);border-radius:18px;padding:18px;border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,.2);}
 .col{display:flex;flex-direction:column;gap:16px;}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
-.label-sm{font-size:11px;letter-spacing:2px;color:var(–muted);text-transform:uppercase;margin-bottom:6px;font-weight:600;}
+.label-sm{font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;font-weight:600;}
 .btn-cyan{background:linear-gradient(135deg,#0891b2,#0e7490);border-radius:14px;padding:14px 24px;
-color:white;font-weight:700;font-size:15px;display:block;width:100%;text-align:center;box-shadow:0 4px 12px rgba(8,145,178,.3);}
-.btn-sm{background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.3);border-radius:10px;padding:8px 14px;color:var(–cyan);font-size:12px;font-weight:600;}
-.btn-gray{background:var(–bg3);border:1px solid #334155;border-radius:14px;padding:14px;color:var(–text);font-size:14px;font-weight:600;}
-.btn-red{background:var(–bg3);border:1px solid #334155;border-radius:14px;padding:14px;color:var(–red);font-size:14px;font-weight:600;}
-.inp{width:100%;background:var(–bg3);border:1px solid #334155;border-radius:12px;padding:14px;color:var(–text);font-size:15px;}
-.tab-title{font-family:‘Noto Serif JP’,serif;font-size:18px;font-weight:700;margin-bottom:4px;}
-.section-desc{color:var(–muted);font-size:13px;line-height:1.6;margin-bottom:12px;}
-.chip{display:inline-flex;align-items:center;gap:6px;background:var(–bg3);border:1px solid #334155;
-border-radius:20px;padding:8px 14px;color:var(–muted);font-size:13px;cursor:pointer;
-margin:0 6px 8px 0;font-weight:600;}
-.chip.sel{background:rgba(34,211,238,.15);border-color:var(–cyan);color:var(–cyan);}
+  color:white;font-weight:700;font-size:15px;display:block;width:100%;text-align:center;box-shadow:0 4px 12px rgba(8,145,178,.3);}
+.btn-sm{background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.3);border-radius:10px;padding:8px 14px;color:var(--cyan);font-size:12px;font-weight:600;}
+.btn-gray{background:var(--bg3);border:1px solid #334155;border-radius:14px;padding:14px;color:var(--text);font-size:14px;font-weight:600;}
+.btn-red{background:var(--bg3);border:1px solid #334155;border-radius:14px;padding:14px;color:var(--red);font-size:14px;font-weight:600;}
+.inp{width:100%;background:var(--bg3);border:1px solid #334155;border-radius:12px;padding:14px;color:var(--text);font-size:15px;}
+.tab-title{font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;margin-bottom:4px;}
+.section-desc{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:12px;}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid #334155;
+  border-radius:20px;padding:8px 14px;color:var(--muted);font-size:13px;cursor:pointer;
+  margin:0 6px 8px 0;font-weight:600;}
+.chip.sel{background:rgba(34,211,238,.15);border-color:var(--cyan);color:var(--cyan);}
 .week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:16px;}
-.week-cell-label{font-size:10px;color:var(–muted);text-align:center;margin-bottom:6px;font-weight:600;}
+.week-cell-label{font-size:10px;color:var(--muted);text-align:center;margin-bottom:6px;font-weight:600;}
 .week-cell{width:100%;aspect-ratio:1;border-radius:10px;display:flex;align-items:center;
-justify-content:center;font-size:13px;border:2px solid transparent;}
-.week-cell.sober{background:var(–cyan);color:#020b18;font-weight:700;}
-.week-cell.drank{background:var(–red);color:white;font-weight:700;}
-.week-cell.today{border-color:var(–cyan);background:rgba(34,211,238,.05);}
+  justify-content:center;font-size:13px;border:2px solid transparent;}
+.week-cell.sober{background:var(--cyan);color:#020b18;font-weight:700;}
+.week-cell.drank{background:var(--red);color:white;font-weight:700;}
+.week-cell.today{border-color:var(--cyan);background:rgba(34,211,238,.05);}
 .week-cell.empty{background:rgba(30,41,59,.5);}
 
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -133,11 +132,11 @@ justify-content:center;font-size:13px;border:2px solid transparent;}
 @keyframes fadeOut{from{opacity:1}to{opacity:0}}
 @keyframes dogDeath{0%{transform:rotate(0deg) scale(1)}50%{transform:rotate(-15deg) scale(1.05)}100%{transform:rotate(-90deg) scale(.9) translateY(10px)}}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:flex-end;
-justify-content:center;z-index:200;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-animation:fadeIn .2s ease-out;}
-.sheet{background:#0a1628;border-radius:24px 24px 0 0;padding:24px 24px calc(var(–safe-bot)+24px);
-width:100%;max-width:430px;border-top:1px solid var(–border);max-height:92vh;
-overflow-y:auto;-webkit-overflow-scrolling:touch;animation:slideUp .35s cubic-bezier(.16,1,.3,1);}
+  justify-content:center;z-index:200;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  animation:fadeIn .2s ease-out;}
+.sheet{background:#0a1628;border-radius:24px 24px 0 0;padding:24px 24px calc(var(--safe-bot)+24px);
+  width:100%;max-width:430px;border-top:1px solid var(--border);max-height:92vh;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;animation:slideUp .35s cubic-bezier(.16,1,.3,1);}
 ::-webkit-scrollbar{display:none;}
 
 .dog-card{border-radius:20px;padding:20px;text-align:center;position:relative;overflow:hidden;transition:all .4s;}
@@ -146,16 +145,15 @@ overflow-y:auto;-webkit-overflow-scrolling:touch;animation:slideUp .35s cubic-be
 .dog-dead .dog-svg-wrap svg{animation:dogDeath .8s cubic-bezier(.68,-.55,.27,1.55) forwards;}
 .dog-meter{display:flex;gap:5px;justify-content:center;margin-top:8px;}
 .dog-pip{width:28px;height:6px;border-radius:3px;transition:background .4s;}
-.dog-pip.alive{background:var(–green);}
-.dog-pip.warned{background:var(–amber);}
+.dog-pip.alive{background:var(--green);}
+.dog-pip.warned{background:var(--amber);}
 .dog-pip.dead{background:#374151;}
 
 #death-screen{position:fixed;inset:0;background:#000;z-index:500;
-display:none;align-items:center;justify-content:center;flex-direction:column;
-animation:fadeIn .5s ease;}
+  display:none;align-items:center;justify-content:center;flex-direction:column;
+  animation:fadeIn .5s ease;}
 #death-screen.show{display:flex;}
 </style>
-
 </head>
 <body>
 <div id="app">
@@ -743,181 +741,185 @@ function editTactic(idx) {
       <h3 style="font-size:18px;font-weight:700;margin-bottom:20px">✏️ 記録を編集</h3>
       <label style="font-size:13px;color:var(--red);display:block;margin-bottom:8px;font-weight:700">CAUSE / 原因</label>
       <textarea id="edit-situation" class="inp" style="height:80px;resize:none;margin-bottom:20px;line-height:1.6">${t.situation || ""}</textarea>
-
-```
-  <label style="font-size:13px;color:var(--cyan);display:block;margin-bottom:8px;font-weight:700">STRATEGY / 対策</label>
-  <textarea id="edit-plan" class="inp" style="height:80px;resize:none;margin-bottom:28px;line-height:1.6">${t.plan || ""}</textarea>
-  <div class="row2">
-    <button class="btn-gray" onclick="closeModal()">キャンセル</button>
-    <button class="btn-cyan" onclick="saveEdit(${idx})">保存する</button>
-  </div>
-</div>
-```
-
+      <label style="font-size:13px;color:var(--cyan);display:block;margin-bottom:8px;font-weight:700">STRATEGY / 対策</label>
+      <textarea id="edit-plan" class="inp" style="height:80px;resize:none;margin-bottom:28px;line-height:1.6">${t.plan || ""}</textarea>
+      <div class="row2">
+        <button class="btn-gray" onclick="closeModal()">キャンセル</button>
+        <button class="btn-cyan" onclick="saveEdit(${idx})">保存する</button>
+      </div>
+    </div>
   </div>`;
 }
 
 function saveEdit(idx) {
-const situation = document.getElementById(“edit-situation”)?.value?.trim();
-const plan      = document.getElementById(“edit-plan”)?.value?.trim();
-state.tactics[idx].situation = situation;
-state.tactics[idx].plan      = plan || “”;
-saveState(); closeModal(); renderContent();
+  const situation = document.getElementById("edit-situation")?.value?.trim();
+  const plan      = document.getElementById("edit-plan")?.value?.trim();
+  state.tactics[idx].situation = situation;
+  state.tactics[idx].plan      = plan || "";
+  saveState(); closeModal(); renderContent();
 }
 
 function downloadCSV() {
-const header = “番号,日付,原因・状況,対策,実践済み,実践日”;
-const rows = (state.tactics || []).map((t, i) => {
-const num     = String(i + 1).padStart(3, “0”);
-const date    = new Date(t.date).toLocaleDateString(“ja-JP”);
-const sit     = (t.situation || “”).replace(/\n/g, “ “);
-const plan    = (t.plan || “”).replace(/\n/g, “ “);
-const tried   = t.tried ? “済み” : “未”;
-const triedDt = t.tried ? new Date(t.triedDate).toLocaleDateString(“ja-JP”) : “”;
-return `${num},${date},${sit},${plan},${tried},${triedDt}`;
-});
-const csv  = “\uFEFF” + header + “\n” + rows.join(”\n”);
-const blob = new Blob([csv], { type: “text/csv;charset=utf-8;” });
-const url  = URL.createObjectURL(blob);
-const a    = document.createElement(“a”);
-a.href = url; a.download = “namo_tactics_” + new Date().toISOString().slice(0,10) + “.csv”;
-a.click(); URL.revokeObjectURL(url);
+  const header = "番号,日付,原因・状況,対策,実践済み,実践日";
+  const rows = (state.tactics || []).map((t, i) => {
+    const num     = String(i + 1).padStart(3, "0");
+    const date    = new Date(t.date).toLocaleDateString("ja-JP");
+    const sit     = (t.situation || "").replace(/\n/g, " ");
+    const plan    = (t.plan || "").replace(/\n/g, " ");
+    const tried   = t.tried ? "済み" : "未";
+    const triedDt = t.tried ? new Date(t.triedDate).toLocaleDateString("ja-JP") : "";
+    return `${num},${date},${sit},${plan},${tried},${triedDt}`;
+  });
+  const csv  = "\uFEFF" + header + "\n" + rows.join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href = url; a.download = "namo_tactics_" + new Date().toISOString().slice(0,10) + ".csv";
+  a.click(); URL.revokeObjectURL(url);
 }
 
 // ─── HISTORY TAB ─────────────────────────────────────────────
 function changeMonth(delta) {
-state.historyMonthOffset = Math.max(0, Math.min(24, (state.historyMonthOffset || 0) + delta));
-renderContent();
+  state.historyMonthOffset = Math.max(0, Math.min(24, (state.historyMonthOffset || 0) + delta));
+  renderContent();
 }
 function toggleHistoryLog(dateStr) {
-const cur = state.log[dateStr];
-if (!cur) state.log[dateStr] = “sober”;
-else if (cur === “sober”) state.log[dateStr] = “drank”;
-else delete state.log[dateStr];
-saveState(); renderContent();
+  const cur = state.log[dateStr];
+  if (!cur) state.log[dateStr] = "sober";
+  else if (cur === "sober") state.log[dateStr] = "drank";
+  else delete state.log[dateStr];
+  saveState(); renderContent();
 }
 
 function renderHistory() {
-const {sober, saved} = totalStats();
-const gw = goalWeeks();
-const dayNames = [“月”,“火”,“水”,“木”,“金”,“土”,“日”];
-const summaryCards = [
-[“累計クリア”, sober+“日”,               “var(–cyan)”],
-[“確保した資金”,“¥”+saved.toLocaleString(),“var(–green)”],
-[“最高連続記録”,(state.bestStreak||0)+“日”,“var(–amber)”],
-].map(([l,v,c]) => `<div class="card" style="text-align:center;padding:16px"><p style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600">${l}</p><p style="font-size:22px;font-weight:700;color:${c}">${v}</p></div>`).join(””);
+  const {sober, saved} = totalStats();
+  const gw = goalWeeks();
+  const dayNames = ["月","火","水","木","金","土","日"];
+  const summaryCards = [
+    ["累計クリア", sober+"日",               "var(--cyan)"],
+    ["確保した資金","¥"+saved.toLocaleString(),"var(--green)"],
+    ["最高連続記録",(state.bestStreak||0)+"日","var(--amber)"],
+  ].map(([l,v,c]) => `<div class="card" style="text-align:center;padding:16px"><p style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600">${l}</p><p style="font-size:22px;font-weight:700;color:${c}">${v}</p></div>`).join("");
 
-const mo = state.historyMonthOffset || 0;
-const now = new Date();
-const target = new Date(now.getFullYear(), now.getMonth() - mo, 1);
-const yr = target.getFullYear(), mn = target.getMonth();
-const label = yr + “年” + (mn+1) + “月”;
-const dim = new Date(yr, mn+1, 0).getDate();
-const fdow = (new Date(yr, mn, 1).getDay() + 6) % 7;
-let mS = 0, mD = 0;
-for (let d = 1; d <= dim; d++) {
-const k = yr+”-”+String(mn+1).padStart(2,“0”)+”-”+String(d).padStart(2,“0”);
-if (state.log[k]===“sober”) mS++; else if (state.log[k]===“drank”) mD++;
-}
-let cells = “”;
-for (let i = 0; i < fdow; i++) cells += “<div></div>”;
-for (let d = 1; d <= dim; d++) {
-const k = yr+”-”+String(mn+1).padStart(2,“0”)+”-”+String(d).padStart(2,“0”);
-const s = state.log[k], isToday = k === todayKey();
-const bg = s===“sober”?“var(–cyan)”:s===“drank”?“var(–red)”:isToday?“rgba(34,211,238,.15)”:“rgba(30,41,59,.5)”;
-cells += `<div onclick="toggleHistoryLog('${k}')" class="week-cell" style="cursor:pointer;background:${bg};border:${isToday?"2px solid var(--cyan)":"2px solid transparent"};color:${s?"white":"var(--text)"};">${d}</div>`;
-}
-const dayHdr = dayNames.map(d => `<div style="text-align:center;font-size:10px;color:var(--muted);padding-bottom:6px;font-weight:600">${d}</div>`).join(””);
+  const mo = state.historyMonthOffset || 0;
+  const now = new Date();
+  const target = new Date(now.getFullYear(), now.getMonth() - mo, 1);
+  const yr = target.getFullYear(), mn = target.getMonth();
+  const label = yr + "年" + (mn+1) + "月";
+  const dim = new Date(yr, mn+1, 0).getDate();
+  const fdow = (new Date(yr, mn, 1).getDay() + 6) % 7;
+  let mS = 0, mD = 0;
+  for (let d = 1; d <= dim; d++) {
+    const k = yr+"-"+String(mn+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
+    if (state.log[k]==="sober") mS++; else if (state.log[k]==="drank") mD++;
+  }
+  let cells = "";
+  for (let i = 0; i < fdow; i++) cells += "<div></div>";
+  for (let d = 1; d <= dim; d++) {
+    const k = yr+"-"+String(mn+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
+    const s = state.log[k], isToday = k === todayKey();
+    const bg = s==="sober"?"var(--cyan)":s==="drank"?"var(--red)":isToday?"rgba(34,211,238,.15)":"rgba(30,41,59,.5)";
+    cells += `<div onclick="toggleHistoryLog('${k}')" class="week-cell" style="cursor:pointer;background:${bg};border:${isToday?"2px solid var(--cyan)":"2px solid transparent"};color:${s?"white":"var(--text)"};">${d}</div>`;
+  }
+  const dayHdr = dayNames.map(d => `<div style="text-align:center;font-size:10px;color:var(--muted);padding-bottom:6px;font-weight:600">${d}</div>`).join("");
 
-const milestoneCards = MILESTONES.map(m => {
-const done = gw >= m.weeks;
-return `<div class="card" style="text-align:center;opacity:${done?1:.5};border:1px solid ${done?"rgba(34,211,238,.4)":"var(--border)"};background:${done?"linear-gradient(180deg,var(--bg2),rgba(34,211,238,.05))":"var(--bg2)"}"> <div style="font-size:32px;filter:${done?"drop-shadow(0 0 10px rgba(34,211,238,.4))":"grayscale(1)"};margin-bottom:8px">${m.icon}</div> <p style="font-size:13px;font-weight:700;color:${done?"var(--cyan)":"var(--text)"}">${m.label}</p> <p style="font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4">${m.desc}</p> </div>`;
-}).join(””);
+  const milestoneCards = MILESTONES.map(m => {
+    const done = gw >= m.weeks;
+    return `<div class="card" style="text-align:center;opacity:${done?1:.5};border:1px solid ${done?"rgba(34,211,238,.4)":"var(--border)"};background:${done?"linear-gradient(180deg,var(--bg2),rgba(34,211,238,.05))":"var(--bg2)"}">
+      <div style="font-size:32px;filter:${done?"drop-shadow(0 0 10px rgba(34,211,238,.4))":"grayscale(1)"};margin-bottom:8px">${m.icon}</div>
+      <p style="font-size:13px;font-weight:700;color:${done?"var(--cyan)":"var(--text)"}">${m.label}</p>
+      <p style="font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4">${m.desc}</p>
+    </div>`;
+  }).join("");
 
-return `<div class="col">
-<h3 class="tab-title">📊 データ・実績</h3>
-<div class="row3">${summaryCards}</div>
-<h3 class="tab-title" style="margin-top:4px">📅 カレンダー</h3>
-<div class="card">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-<button onclick=“changeMonth(1)” style=“padding:10px;background:var(–bg3);border-radius:10px;font-size:16px;color:${mo>=24?“transparent”:“var(–text)”};pointer-events:${mo>=24?“none”:“auto”}”>◀</button>
-<div style="text-align:center"><p style="font-size:16px;font-weight:700">${label}</p><p style="font-size:11px;color:var(--muted);margin-top:4px;font-weight:600"><span style="color:var(--cyan)">✓ ${mS}日</span> / <span style="color:var(--red)">× ${mD}日</span></p></div>
-<button onclick=“changeMonth(-1)” style=“padding:10px;background:var(–bg3);border-radius:10px;font-size:16px;color:${mo<=0?“transparent”:“var(–text)”};pointer-events:${mo<=0?“none”:“auto”}”>▶</button>
-</div>
-<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">${dayHdr}${cells}</div>
-<p style="font-size:11px;color:var(--dim);text-align:center;margin-top:14px;font-weight:600">💡 日付をタップして記録を修正</p>
-</div>
-<h3 class="tab-title" style="margin-top:4px">🏆 マイルストーン</h3>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${milestoneCards}</div>
-
+  return `<div class="col">
+    <h3 class="tab-title">📊 データ・実績</h3>
+    <div class="row3">${summaryCards}</div>
+    <h3 class="tab-title" style="margin-top:4px">📅 カレンダー</h3>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <button onclick="changeMonth(1)" style="padding:10px;background:var(--bg3);border-radius:10px;font-size:16px;color:${mo>=24?"transparent":"var(--text)"};pointer-events:${mo>=24?"none":"auto"}">◀</button>
+        <div style="text-align:center"><p style="font-size:16px;font-weight:700">${label}</p><p style="font-size:11px;color:var(--muted);margin-top:4px;font-weight:600"><span style="color:var(--cyan)">✓ ${mS}日</span> / <span style="color:var(--red)">× ${mD}日</span></p></div>
+        <button onclick="changeMonth(-1)" style="padding:10px;background:var(--bg3);border-radius:10px;font-size:16px;color:${mo<=0?"transparent":"var(--text)"};pointer-events:${mo<=0?"none":"auto"}">▶</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">${dayHdr}${cells}</div>
+      <p style="font-size:11px;color:var(--dim);text-align:center;margin-top:14px;font-weight:600">💡 日付をタップして記録を修正</p>
+    </div>
+    <h3 class="tab-title" style="margin-top:4px">🏆 マイルストーン</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${milestoneCards}</div>
   </div>`;
 }
 
 // ─── ACTIONS ─────────────────────────────────────────────────
 function logToday(type) {
-state.log[todayKey()] = type;
-saveState();
-if (type === “drank”) {
-const weekDrinks = getWeekDrinks();
-if (weekDrinks >= WEEKLY_LIMIT) setTimeout(() => showDeathScreen(), 300);
-}
-renderContent();
+  state.log[todayKey()] = type;
+  saveState();
+  if (type === "drank") {
+    const weekDrinks = getWeekDrinks();
+    if (weekDrinks >= WEEKLY_LIMIT) setTimeout(() => showDeathScreen(), 300);
+  }
+  renderContent();
 }
 
 function undoToday() { delete state.log[todayKey()]; saveState(); renderContent(); }
-function morningCommit() { localStorage.setItem(“wb_commit_” + todayKey(), “1”); renderContent(); }
+function morningCommit() { localStorage.setItem("wb_commit_" + todayKey(), "1"); renderContent(); }
 
 function showDeathScreen() {
-const ds = document.getElementById(“death-screen”);
-const dc = document.getElementById(“death-content”);
-dc.innerHTML = `<div style="font-size:80px;margin-bottom:20px;animation:dogDeath .8s cubic-bezier(.68,-.55,.27,1.55) forwards">${getDogSVG(5)}</div> <h2 style="font-family:'Noto Serif JP',serif;font-size:24px;color:#ef4444;margin-bottom:16px;line-height:1.4">今週の柴犬が<br>倒れてしまいました</h2> <p style="color:#94a3b8;font-size:14px;line-height:1.8;margin-bottom:8px">今週は${WEEKLY_LIMIT}回の飲酒上限に達しました。</p> <p style="color:#64748b;font-size:13px;line-height:1.8;margin-bottom:32px">月曜日になると子犬に戻ります。<br>歴代記録と累計休肝日数は消えません。</p> <button onclick="closeDeathScreen()" class="btn-cyan" style="padding:16px;font-size:15px">記録を確認する</button>`;
-ds.classList.add(“show”);
+  const ds = document.getElementById("death-screen");
+  const dc = document.getElementById("death-content");
+  dc.innerHTML = `
+    <div style="font-size:80px;margin-bottom:20px;animation:dogDeath .8s cubic-bezier(.68,-.55,.27,1.55) forwards">${getDogSVG(5)}</div>
+    <h2 style="font-family:'Noto Serif JP',serif;font-size:24px;color:#ef4444;margin-bottom:16px;line-height:1.4">今週の柴犬が<br>倒れてしまいました</h2>
+    <p style="color:#94a3b8;font-size:14px;line-height:1.8;margin-bottom:8px">今週は${WEEKLY_LIMIT}回の飲酒上限に達しました。</p>
+    <p style="color:#64748b;font-size:13px;line-height:1.8;margin-bottom:32px">月曜日になると子犬に戻ります。<br>歴代記録と累計休肝日数は消えません。</p>
+    <button onclick="closeDeathScreen()" class="btn-cyan" style="padding:16px;font-size:15px">記録を確認する</button>
+  `;
+  ds.classList.add("show");
 }
 function closeDeathScreen() {
-const ds = document.getElementById(“death-screen”);
-ds.style.animation = “fadeOut .5s ease forwards”;
-setTimeout(() => { ds.classList.remove(“show”); ds.style.animation = “”; }, 500);
+  const ds = document.getElementById("death-screen");
+  ds.style.animation = "fadeOut .5s ease forwards";
+  setTimeout(() => { ds.classList.remove("show"); ds.style.animation = ""; }, 500);
 }
 
 // ─── MODALS ──────────────────────────────────────────────────
 function openModal(type) {
-const mc = document.getElementById(“modal-container”);
-if (type === “setup”)    mc.innerHTML = renderSetupModal();
-if (type === “recovery”) mc.innerHTML = renderRecoveryModal();
+  const mc = document.getElementById("modal-container");
+  if (type === "setup")    mc.innerHTML = renderSetupModal();
+  if (type === "recovery") mc.innerHTML = renderRecoveryModal();
 }
 function closeModal() {
-const o = document.querySelector(”.overlay”);
-if (!o) return;
-o.style.animation = “fadeIn .15s ease-out reverse forwards”;
-const s = o.querySelector(”.sheet”);
-if (s) s.style.animation = “slideUp .2s ease-in reverse forwards”;
-setTimeout(() => { document.getElementById(“modal-container”).innerHTML = “”; }, 180);
+  const o = document.querySelector(".overlay");
+  if (!o) return;
+  o.style.animation = "fadeIn .15s ease-out reverse forwards";
+  const s = o.querySelector(".sheet");
+  if (s) s.style.animation = "slideUp .2s ease-in reverse forwards";
+  setTimeout(() => { document.getElementById("modal-container").innerHTML = ""; }, 180);
 }
 
 function renderSetupModal() {
-const cur = state.startDate ? state.startDate.toISOString().slice(0,10) : new Date().toISOString().slice(0,10);
-return `<div class="overlay" onclick="if(event.target===this)closeModal()">
-<div class="sheet">
-<h3 style="font-size:18px;font-weight:700;margin-bottom:20px">⚙ 設定・データ管理</h3>
-<label style="font-size:13px;color:var(--muted);display:block;margin-bottom:8px;font-weight:600">開始日</label>
-<input type="date" id="setup-date" class="inp" value="${cur}">
-<label style="font-size:13px;color:var(--muted);display:block;margin-top:20px;margin-bottom:8px;font-weight:600">1日あたりの酒代（円）</label>
-<input type="number" id="setup-cost" class="inp" value="${state.dailyCost}">
-<div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border)">
-<p style="font-size:14px;font-weight:700;margin-bottom:8px;color:var(--cyan)">💾 データバックアップ</p>
-<p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">キャッシュ消去に備え、定期的にコピーしてiPhoneの「メモ」に保存してください。</p>
-<div class="row2" style="margin-bottom:12px">
-<button class="btn-sm" style="padding:12px;font-size:13px" onclick="exportData()">📋 コピー</button>
-<button class="btn-sm" style="padding:12px;font-size:13px" onclick="importData()">📥 復元</button>
-</div>
-<textarea id="backup-text" class="inp" style="height:80px;font-size:11px;color:var(--dim);resize:none;line-height:1.4" placeholder="復元する時はここにコピーしたテキストを貼り付けて「復元」を押す"></textarea>
-</div>
-<div class="row2" style="margin-top:32px">
-<button class="btn-gray" onclick="closeModal()">閉じる</button>
-<button class="btn-cyan" onclick="saveSetup()">保存</button>
-</div>
-</div>
-
+  const cur = state.startDate ? state.startDate.toISOString().slice(0,10) : new Date().toISOString().slice(0,10);
+  return `<div class="overlay" onclick="if(event.target===this)closeModal()">
+    <div class="sheet">
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:20px">⚙ 設定・データ管理</h3>
+      <label style="font-size:13px;color:var(--muted);display:block;margin-bottom:8px;font-weight:600">開始日</label>
+      <input type="date" id="setup-date" class="inp" value="${cur}">
+      <label style="font-size:13px;color:var(--muted);display:block;margin-top:20px;margin-bottom:8px;font-weight:600">1日あたりの酒代（円）</label>
+      <input type="number" id="setup-cost" class="inp" value="${state.dailyCost}">
+      <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border)">
+        <p style="font-size:14px;font-weight:700;margin-bottom:8px;color:var(--cyan)">💾 データバックアップ</p>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">キャッシュ消去に備え、定期的にコピーしてiPhoneの「メモ」に保存してください。</p>
+        <div class="row2" style="margin-bottom:12px">
+          <button class="btn-sm" style="padding:12px;font-size:13px" onclick="exportData()">📋 コピー</button>
+          <button class="btn-sm" style="padding:12px;font-size:13px" onclick="importData()">📥 復元</button>
+        </div>
+        <textarea id="backup-text" class="inp" style="height:80px;font-size:11px;color:var(--dim);resize:none;line-height:1.4" placeholder="復元する時はここにコピーしたテキストを貼り付けて「復元」を押す"></textarea>
+      </div>
+      <div class="row2" style="margin-top:32px">
+        <button class="btn-gray" onclick="closeModal()">閉じる</button>
+        <button class="btn-cyan" onclick="saveSetup()">保存</button>
+      </div>
+    </div>
   </div>`;
 }
 function saveSetup() {
@@ -931,277 +933,284 @@ function saveSetup() {
 
 // ── Recovery Modal（自由記述版）─────────────────────────────
 function renderRecoveryModal() {
-return `<div class="overlay" onclick="if(event.target===this)closeModal()">
-<div class="sheet">
-<h3 style="font-size:18px;font-weight:700;margin-bottom:10px">📝 リカバリー記録</h3>
-<p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:24px">
-今回の原因と次回への対策を自分の言葉で記録しましょう。<br>
-<span style="color:var(--cyan);font-weight:600">「作戦タブ」に保存されます（入力は任意です）。</span>
-</p>
+  return `<div class="overlay" onclick="if(event.target===this)closeModal()">
+    <div class="sheet">
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:10px">📝 リカバリー記録</h3>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:24px">
+        今回の原因と次回への対策を自分の言葉で記録しましょう。<br>
+        <span style="color:var(--cyan);font-weight:600">「作戦タブ」に保存されます（入力は任意です）。</span>
+      </p>
 
-```
-  <label style="font-size:13px;color:var(--red);display:block;margin-bottom:8px;font-weight:700">CAUSE / 原因・状況（任意）</label>
-  <textarea id="rec-situation" class="inp"
-    placeholder="例：残業後に疲れてコンビニで買ってしまった&#10;例：妻のLINEで迎えに行きついでに買った"
-    style="height:90px;resize:none;line-height:1.7;margin-bottom:20px"></textarea>
+      <label style="font-size:13px;color:var(--red);display:block;margin-bottom:8px;font-weight:700">CAUSE / 原因・状況（任意）</label>
+      <textarea id="rec-situation" class="inp"
+        placeholder="例：残業後に疲れてコンビニで買ってしまった&#10;例：妻のLINEで迎えに行きついでに買った"
+        style="height:90px;resize:none;line-height:1.7;margin-bottom:20px"></textarea>
 
-  <label style="font-size:13px;color:var(--cyan);display:block;margin-bottom:8px;font-weight:700">STRATEGY / 次回の対策（任意）</label>
-  <textarea id="rec-plan" class="inp"
-    placeholder="例：帰り道はイヤホンをして別ルートで帰る&#10;例：迎えに行く前に財布をカバンから出す"
-    style="height:90px;resize:none;line-height:1.7;margin-bottom:28px"></textarea>
+      <label style="font-size:13px;color:var(--cyan);display:block;margin-bottom:8px;font-weight:700">STRATEGY / 次回の対策（任意）</label>
+      <textarea id="rec-plan" class="inp"
+        placeholder="例：帰り道はイヤホンをして別ルートで帰る&#10;例：迎えに行く前に財布をカバンから出す"
+        style="height:90px;resize:none;line-height:1.7;margin-bottom:28px"></textarea>
 
-  <button class="btn-cyan" style="padding:16px;margin-bottom:12px" onclick="saveRecovery()">✓ 記録して保存する</button>
-  <button onclick="skipRecovery()" style="display:block;width:100%;text-align:center;font-size:14px;font-weight:600;color:var(--dim);padding:10px">スキップして記録だけする</button>
-</div>
-```
-
+      <button class="btn-cyan" style="padding:16px;margin-bottom:12px" onclick="saveRecovery()">✓ 記録して保存する</button>
+      <button onclick="skipRecovery()" style="display:block;width:100%;text-align:center;font-size:14px;font-weight:600;color:var(--dim);padding:10px">スキップして記録だけする</button>
+    </div>
   </div>`;
 }
 
 function saveRecovery() {
-const situation = document.getElementById(“rec-situation”)?.value?.trim() || “”;
-const plan      = document.getElementById(“rec-plan”)?.value?.trim() || “”;
-if (situation || plan) {
-state.tactics = state.tactics || [];
-state.tactics.push({ date: new Date().toISOString(), situation, plan });
-}
-logToday(“drank”);
-closeModal();
+  const situation = document.getElementById("rec-situation")?.value?.trim() || "";
+  const plan      = document.getElementById("rec-plan")?.value?.trim() || "";
+  if (situation || plan) {
+    state.tactics = state.tactics || [];
+    state.tactics.push({ date: new Date().toISOString(), situation, plan });
+  }
+  logToday("drank");
+  closeModal();
 }
 
-function skipRecovery() { logToday(“drank”); closeModal(); }
+function skipRecovery() { logToday("drank"); closeModal(); }
 
 // ─── URGE SURFING TAB ────────────────────────────────────────
-let urgeTimer=300, urgeRunning=false, urgeTrigger=””, urgeInterval=null;
+let urgeTimer=300, urgeRunning=false, urgeTrigger="", urgeInterval=null;
 let urgeRisk = null; // ランダムリスク（タイマー開始時に固定）
 
 const URGE_TRIGGERS = [
-{id:“wife_line”,icon:“📱”,label:“妻のLINE（迎え）”,  plan:”「今から行くね」とだけ返信し、財布を置いてから出発する”},
-{id:“station”,  icon:“🚃”,label:“最寄り駅に着いた”,  plan:“イヤホン装着→ポッドキャスト再生。食材はネットスーパーで帰宅後注文”},
-{id:“konbini”,  icon:“🏪”,label:“コンビニの前”,       plan:“目的がなければ入らない。代わりに自販機で炭酸水”},
-{id:“content”,  icon:“📺”,label:“酒コンテンツを見た”, plan:“すぐ料理動画（スペアリブ）に切り替え。作る側のモードへ”},
-{id:“stress”,   icon:“😤”,label:“仕事のストレス”,     plan:“帰宅前に5分ウォーキング。コルチゾールを消費する”},
-{id:“holiday”,  icon:“🏠”,label:“休日の昼〜夕方”,    plan:“14時にノンアルドリンクを作る習慣を先に入れる”},
+  {id:"wife_line",icon:"📱",label:"妻のLINE（迎え）",  plan:"「今から行くね」とだけ返信し、財布を置いてから出発する"},
+  {id:"station",  icon:"🚃",label:"最寄り駅に着いた",  plan:"イヤホン装着→ポッドキャスト再生。食材はネットスーパーで帰宅後注文"},
+  {id:"konbini",  icon:"🏪",label:"コンビニの前",       plan:"目的がなければ入らない。代わりに自販機で炭酸水"},
+  {id:"content",  icon:"📺",label:"酒コンテンツを見た", plan:"すぐ料理動画（スペアリブ）に切り替え。作る側のモードへ"},
+  {id:"stress",   icon:"😤",label:"仕事のストレス",     plan:"帰宅前に5分ウォーキング。コルチゾールを消費する"},
+  {id:"holiday",  icon:"🏠",label:"休日の昼〜夕方",    plan:"14時にノンアルドリンクを作る習慣を先に入れる"},
 ];
 
 function renderUrgeTab() {
-const R = 58, circ = 2 * Math.PI * R;
-const elapsed = 300 - urgeTimer;
-const offset  = circ - ((elapsed / 300) * circ);
-const min = Math.floor(urgeTimer / 60), sec = String(urgeTimer % 60).padStart(2, “0”);
-const isIdle    = !urgeRunning && urgeTimer === 300;
-const isRunning = urgeRunning;
-const isDone    = !urgeRunning && urgeTimer <= 0;
+  const R = 58, circ = 2 * Math.PI * R;
+  const elapsed = 300 - urgeTimer;
+  const offset  = circ - ((elapsed / 300) * circ);
+  const min = Math.floor(urgeTimer / 60), sec = String(urgeTimer % 60).padStart(2, "0");
+  const isIdle    = !urgeRunning && urgeTimer === 300;
+  const isRunning = urgeRunning;
+  const isDone    = !urgeRunning && urgeTimer <= 0;
 
-// フェーズメッセージ（タイマー稼働中のみ）
-const [phaseTitle, phaseDesc] = urgeTimer > 225
-? [“衝動の発生”,    “これは生理的な波。意志の弱さじゃない。”]
-: urgeTimer > 120
-? [“ピークへ向かう”,“これが最大値。あと少しで引き始める。”]
-: urgeTimer > 30
-? [“ピーク通過中”,  “波は引いている。もうほとんど過ぎた。”]
-: [“衝動が去っていく”,“よくやった。波を乗りこなした。”];
+  // フェーズメッセージ（タイマー稼働中のみ）
+  const [phaseTitle, phaseDesc] = urgeTimer > 225
+    ? ["衝動の発生",    "これは生理的な波。意志の弱さじゃない。"]
+    : urgeTimer > 120
+    ? ["ピークへ向かう","これが最大値。あと少しで引き始める。"]
+    : urgeTimer > 30
+    ? ["ピーク通過中",  "波は引いている。もうほとんど過ぎた。"]
+    : ["衝動が去っていく","よくやった。波を乗りこなした。"];
 
-// ── 待機画面 ────────────────────────────────────────
-if (isIdle) {
-// 待機中は毎回ランダムなリスクをプレビュー表示
-const previewRisk = REGRET_COSTS[Math.floor(Date.now() / 3600000) % REGRET_COSTS.length];
-return `<div class="col" style="padding-bottom:8px">
+  // ── 待機画面 ────────────────────────────────────────
+  if (isIdle) {
+    // 待機中は毎回ランダムなリスクをプレビュー表示
+    const previewRisk = REGRET_COSTS[Math.floor(Date.now() / 3600000) % REGRET_COSTS.length];
+    return `<div class="col" style="padding-bottom:8px">
 
-```
-  <!-- ヘッダー -->
-  <div style="text-align:center;padding:8px 0 4px">
-    <div style="font-size:52px;margin-bottom:8px;filter:drop-shadow(0 0 20px rgba(34,211,238,.5))">🌊</div>
-    <h2 style="font-family:'Noto Serif JP',serif;font-size:22px;font-weight:700;margin-bottom:8px">飲みたくなったら<br>まずここを押せ</h2>
-    <p style="font-size:13px;color:var(--muted);line-height:1.8">衝動は<span style="color:var(--cyan);font-weight:700">5〜10分で必ず消える</span>（ACT理論）。<br>タイマーが終わるまでその場にとどまれ。</p>
-  </div>
+      <!-- ヘッダー -->
+      <div style="text-align:center;padding:8px 0 4px">
+        <div style="font-size:52px;margin-bottom:8px;filter:drop-shadow(0 0 20px rgba(34,211,238,.5))">🌊</div>
+        <h2 style="font-family:'Noto Serif JP',serif;font-size:22px;font-weight:700;margin-bottom:8px">飲みたくなったら<br>まずここを押せ</h2>
+        <p style="font-size:13px;color:var(--muted);line-height:1.8">衝動は<span style="color:var(--cyan);font-weight:700">5〜10分で必ず消える</span>（ACT理論）。<br>タイマーが終わるまでその場にとどまれ。</p>
+      </div>
 
-  <!-- 今飲んだら -->
-  <div style="background:rgba(168,85,247,.08);border-radius:16px;padding:16px 18px;border:1px solid rgba(168,85,247,.3)">
-    <p style="font-size:10px;letter-spacing:2px;color:#a855f7;font-weight:700;text-transform:uppercase;margin-bottom:10px">💭 今飲んだら翌朝こうなる</p>
-    <div style="display:flex;gap:14px;align-items:flex-start">
-      <span style="font-size:28px;line-height:1;flex-shrink:0">${previewRisk[0]}</span>
-      <p style="font-size:14px;color:#c084fc;line-height:1.7;font-weight:600">${previewRisk[1]}</p>
+      <!-- 今飲んだら -->
+      <div style="background:rgba(168,85,247,.08);border-radius:16px;padding:16px 18px;border:1px solid rgba(168,85,247,.3)">
+        <p style="font-size:10px;letter-spacing:2px;color:#a855f7;font-weight:700;text-transform:uppercase;margin-bottom:10px">💭 今飲んだら翌朝こうなる</p>
+        <div style="display:flex;gap:14px;align-items:flex-start">
+          <span style="font-size:28px;line-height:1;flex-shrink:0">${previewRisk[0]}</span>
+          <p style="font-size:14px;color:#c084fc;line-height:1.7;font-weight:600">${previewRisk[1]}</p>
+        </div>
+      </div>
+
+      <!-- メインCTA -->
+      <button onclick="startUrgeTimerTab()"
+        style="background:linear-gradient(135deg,#0891b2,#0e7490);border-radius:20px;padding:22px;
+          color:white;font-weight:900;font-size:18px;width:100%;border:none;cursor:pointer;
+          box-shadow:0 8px 30px rgba(8,145,178,.5);letter-spacing:.5px;
+          font-family:inherit;touch-action:manipulation;">
+        🌊 波に乗る（5分タイマー開始）
+      </button>
+
+    </div>`;
+  }
+
+  // ── 実行中 / 終了後 ─────────────────────────────────
+  const timerColor  = isDone ? "var(--green)" : "var(--cyan)";
+  const arcStroke   = isDone ? "var(--green)" : "var(--cyan)";
+  const arcOffset   = isDone ? 0 : offset;
+
+  const resultBtns = `
+    <div class="row2" style="margin-top:4px">
+      <button onclick="switchTab('home');openModal('recovery')"
+        style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);border-radius:16px;
+          padding:16px 8px;color:var(--red);font-size:14px;font-weight:700;
+          font-family:inherit;cursor:pointer;line-height:1.4">
+        飲んでしまった<br><span style="font-size:11px;font-weight:400;color:var(--muted)">記録する</span>
+      </button>
+      <button onclick="logUrgeWinTab()"
+        style="background:linear-gradient(135deg,rgba(52,211,153,.2),rgba(52,211,153,.1));
+          border:1px solid rgba(52,211,153,.5);border-radius:16px;
+          padding:16px 8px;color:var(--green);font-size:14px;font-weight:700;
+          font-family:inherit;cursor:pointer;line-height:1.4">
+        ✓ 乗り越えた！<br><span style="font-size:11px;font-weight:400;color:var(--muted)">よくやった</span>
+      </button>
+    </div>`;
+
+  return `<div class="col" style="padding-bottom:8px">
+
+    <!-- 絶対禁止バナー（実行中のみ） -->
+    ${isRunning ? `
+    <div style="background:linear-gradient(135deg,#450a0a,#7f1d1d);border-radius:16px;
+      padding:16px 18px;border:1px solid rgba(239,68,68,.5);
+      animation:urgePulse 2s ease-in-out infinite;">
+      <p style="font-size:10px;letter-spacing:3px;color:#fca5a5;font-weight:700;text-transform:uppercase;margin-bottom:8px">🚨 絶対禁止</p>
+      <p style="font-size:17px;font-weight:900;color:white;line-height:1.6">
+        この時間は絶対に<br>酒を<span style="color:#fca5a5">買ったり・飲んだりする行動</span>をするな！
+      </p>
+      <p style="font-size:12px;color:rgba(252,165,165,.8);margin-top:10px;line-height:1.6;font-weight:600">
+        タイマーが終わるまで<strong style="color:#fca5a5">その場から動くな</strong>。衝動は必ず消える。
+      </p>
+    </div>` : `
+    <div style="background:rgba(52,211,153,.08);border-radius:16px;padding:16px 18px;border:1px solid rgba(52,211,153,.3);text-align:center">
+      <p style="font-size:22px;margin-bottom:6px">🎉</p>
+      <p style="font-size:16px;font-weight:700;color:var(--green)">衝動を乗り越えた！</p>
+      <p style="font-size:13px;color:var(--muted);margin-top:4px">どうしますか？</p>
+    </div>`}
+
+    <!-- タイマーサークル（position:absoluteで重ねて文字被りを完全解消） -->
+    <div style="background:var(--bg2);border-radius:20px;padding:24px 20px 20px;border:1px solid var(--border);text-align:center">
+      <!-- SVGと数字を同一コンテナ内でabsolute中央寄せ -->
+      <div style="position:relative;width:200px;height:200px;margin:0 auto 16px">
+        <svg width="200" height="200" viewBox="0 0 130 130"
+          style="position:absolute;inset:0;transform:rotate(-90deg)">
+          <circle cx="65" cy="65" r="${R}" fill="none" stroke="rgba(30,41,59,.8)" stroke-width="9"/>
+          <circle id="urge-arc" cx="65" cy="65" r="${R}" fill="none"
+            stroke="${arcStroke}" stroke-width="9" stroke-linecap="round"
+            stroke-dasharray="${circ.toFixed(2)}" stroke-dashoffset="${arcOffset.toFixed(2)}"
+            style="transition:stroke-dashoffset 1s linear;
+              filter:drop-shadow(0 0 6px ${arcStroke})"/>
+        </svg>
+        <!-- 中央テキスト：absoluteで正確に中央配置 -->
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;
+          align-items:center;justify-content:center;gap:2px">
+          <p id="urge-time"
+            style="font-family:'Noto Serif JP',serif;font-size:54px;font-weight:700;
+              letter-spacing:-2px;line-height:1;color:${timerColor}">${min}:${sec}</p>
+        </div>
+      </div>
+      <!-- フェーズ説明（サークル外・通常フロー） -->
+      <p id="urge-phase-title"
+        style="color:${timerColor};font-weight:700;font-size:15px;margin-bottom:6px">
+        ${isRunning ? phaseTitle : isDone ? "ミッションコンプリート" : ""}
+      </p>
+      <p id="urge-phase-desc"
+        style="color:var(--muted);font-size:13px;line-height:1.6;font-weight:600;min-height:20px">
+        ${isRunning ? phaseDesc : isDone ? "波を完全に乗りこなした。" : ""}
+      </p>
     </div>
-  </div>
 
-  <!-- メインCTA -->
-  <button onclick="startUrgeTimerTab()"
-    style="background:linear-gradient(135deg,#0891b2,#0e7490);border-radius:20px;padding:22px;
-      color:white;font-weight:900;font-size:18px;width:100%;border:none;cursor:pointer;
-      box-shadow:0 8px 30px rgba(8,145,178,.5);letter-spacing:.5px;
-      font-family:inherit;touch-action:manipulation;">
-    🌊 波に乗る（5分タイマー開始）
-  </button>
+    <!-- ランダムリスク（起動後は固定表示） -->
+    ${urgeRisk ? `
+    <div style="background:rgba(168,85,247,.08);border-radius:14px;padding:14px 16px;border:1px solid rgba(168,85,247,.25)">
+      <p style="font-size:10px;letter-spacing:2px;color:#a855f7;font-weight:700;text-transform:uppercase;margin-bottom:8px">💭 今飲んだら翌朝こうなる</p>
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <span style="font-size:24px;flex-shrink:0;line-height:1.2">${urgeRisk[0]}</span>
+        <p style="font-size:13px;color:#c084fc;line-height:1.7;font-weight:600">${urgeRisk[1]}</p>
+      </div>
+    </div>` : ""}
 
-</div>`;
-```
-
-}
-
-// ── 実行中 / 終了後 ─────────────────────────────────
-const timerColor  = isDone ? “var(–green)” : “var(–cyan)”;
-const arcStroke   = isDone ? “var(–green)” : “var(–cyan)”;
-const arcOffset   = isDone ? 0 : offset;
-
-const resultBtns = ` <div class="row2" style="margin-top:4px"> <button onclick="switchTab('home');openModal('recovery')" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);border-radius:16px; padding:16px 8px;color:var(--red);font-size:14px;font-weight:700; font-family:inherit;cursor:pointer;line-height:1.4"> 飲んでしまった<br><span style="font-size:11px;font-weight:400;color:var(--muted)">記録する</span> </button> <button onclick="logUrgeWinTab()" style="background:linear-gradient(135deg,rgba(52,211,153,.2),rgba(52,211,153,.1)); border:1px solid rgba(52,211,153,.5);border-radius:16px; padding:16px 8px;color:var(--green);font-size:14px;font-weight:700; font-family:inherit;cursor:pointer;line-height:1.4"> ✓ 乗り越えた！<br><span style="font-size:11px;font-weight:400;color:var(--muted)">よくやった</span> </button> </div>`;
-
-return `<div class="col" style="padding-bottom:8px">
-
-```
-<!-- 絶対禁止バナー（実行中のみ） -->
-${isRunning ? `
-<div style="background:linear-gradient(135deg,#450a0a,#7f1d1d);border-radius:16px;
-  padding:16px 18px;border:1px solid rgba(239,68,68,.5);
-  animation:urgePulse 2s ease-in-out infinite;">
-  <p style="font-size:10px;letter-spacing:3px;color:#fca5a5;font-weight:700;text-transform:uppercase;margin-bottom:8px">🚨 絶対禁止</p>
-  <p style="font-size:17px;font-weight:900;color:white;line-height:1.6">
-    この時間は絶対に<br>酒を<span style="color:#fca5a5">買ったり・飲んだりする行動</span>をするな！
-  </p>
-  <p style="font-size:12px;color:rgba(252,165,165,.8);margin-top:10px;line-height:1.6;font-weight:600">
-    タイマーが終わるまで<strong style="color:#fca5a5">その場から動くな</strong>。衝動は必ず消える。
-  </p>
-</div>` : `
-<div style="background:rgba(52,211,153,.08);border-radius:16px;padding:16px 18px;border:1px solid rgba(52,211,153,.3);text-align:center">
-  <p style="font-size:22px;margin-bottom:6px">🎉</p>
-  <p style="font-size:16px;font-weight:700;color:var(--green)">衝動を乗り越えた！</p>
-  <p style="font-size:13px;color:var(--muted);margin-top:4px">どうしますか？</p>
-</div>`}
-
-<!-- タイマーサークル（position:absoluteで重ねて文字被りを完全解消） -->
-<div style="background:var(--bg2);border-radius:20px;padding:24px 20px 20px;border:1px solid var(--border);text-align:center">
-  <!-- SVGと数字を同一コンテナ内でabsolute中央寄せ -->
-  <div style="position:relative;width:200px;height:200px;margin:0 auto 16px">
-    <svg width="200" height="200" viewBox="0 0 130 130"
-      style="position:absolute;inset:0;transform:rotate(-90deg)">
-      <circle cx="65" cy="65" r="${R}" fill="none" stroke="rgba(30,41,59,.8)" stroke-width="9"/>
-      <circle id="urge-arc" cx="65" cy="65" r="${R}" fill="none"
-        stroke="${arcStroke}" stroke-width="9" stroke-linecap="round"
-        stroke-dasharray="${circ.toFixed(2)}" stroke-dashoffset="${arcOffset.toFixed(2)}"
-        style="transition:stroke-dashoffset 1s linear;
-          filter:drop-shadow(0 0 6px ${arcStroke})"/>
-    </svg>
-    <!-- 中央テキスト：absoluteで正確に中央配置 -->
-    <div style="position:absolute;inset:0;display:flex;flex-direction:column;
-      align-items:center;justify-content:center;gap:2px">
-      <p id="urge-time"
-        style="font-family:'Noto Serif JP',serif;font-size:54px;font-weight:700;
-          letter-spacing:-2px;line-height:1;color:${timerColor}">${min}:${sec}</p>
-    </div>
-  </div>
-  <!-- フェーズ説明（サークル外・通常フロー） -->
-  <p id="urge-phase-title"
-    style="color:${timerColor};font-weight:700;font-size:15px;margin-bottom:6px">
-    ${isRunning ? phaseTitle : isDone ? "ミッションコンプリート" : ""}
-  </p>
-  <p id="urge-phase-desc"
-    style="color:var(--muted);font-size:13px;line-height:1.6;font-weight:600;min-height:20px">
-    ${isRunning ? phaseDesc : isDone ? "波を完全に乗りこなした。" : ""}
-  </p>
-</div>
-
-<!-- ランダムリスク（起動後は固定表示） -->
-${urgeRisk ? `
-<div style="background:rgba(168,85,247,.08);border-radius:14px;padding:14px 16px;border:1px solid rgba(168,85,247,.25)">
-  <p style="font-size:10px;letter-spacing:2px;color:#a855f7;font-weight:700;text-transform:uppercase;margin-bottom:8px">💭 今飲んだら翌朝こうなる</p>
-  <div style="display:flex;gap:12px;align-items:flex-start">
-    <span style="font-size:24px;flex-shrink:0;line-height:1.2">${urgeRisk[0]}</span>
-    <p style="font-size:13px;color:#c084fc;line-height:1.7;font-weight:600">${urgeRisk[1]}</p>
-  </div>
-</div>` : ""}
-
-<!-- アクションボタン -->
-<div id="urge-actions">${resultBtns}</div>
-<button onclick="resetUrgeTab()"
-  style="display:block;width:100%;text-align:center;font-size:12px;
-    color:var(--dim);padding:8px;cursor:pointer;background:none;border:none;font-family:inherit">
-  ↺ リセット
-</button>
-```
+    <!-- アクションボタン -->
+    <div id="urge-actions">${resultBtns}</div>
+    <button onclick="resetUrgeTab()"
+      style="display:block;width:100%;text-align:center;font-size:12px;
+        color:var(--dim);padding:8px;cursor:pointer;background:none;border:none;font-family:inherit">
+      ↺ リセット
+    </button>
 
   </div>`;
 }
 
 function setUrgeTriggerTab(id) {
-urgeTrigger = id;
-renderContent(); // タブを再描画してトリガープランを表示
+  urgeTrigger = id;
+  renderContent(); // タブを再描画してトリガープランを表示
 }
 
 function startUrgeTimerTab() {
-// ランダムリスクを固定（タイマー起動時に1つ選ぶ）
-urgeRisk = REGRET_COSTS[Math.floor(Math.random() * REGRET_COSTS.length)];
-urgeRunning = true;
-clearInterval(urgeInterval);
-urgeInterval = setInterval(() => {
-if (urgeTimer <= 0) { clearInterval(urgeInterval); urgeRunning = false; }
-else urgeTimer–;
-_updateUrgeTabDisplay();
-}, 1000);
-renderContent(); // 初回描画（バナー表示のため）
+  // ランダムリスクを固定（タイマー起動時に1つ選ぶ）
+  urgeRisk = REGRET_COSTS[Math.floor(Math.random() * REGRET_COSTS.length)];
+  urgeRunning = true;
+  clearInterval(urgeInterval);
+  urgeInterval = setInterval(() => {
+    if (urgeTimer <= 0) { clearInterval(urgeInterval); urgeRunning = false; }
+    else urgeTimer--;
+    _updateUrgeTabDisplay();
+  }, 1000);
+  renderContent(); // 初回描画（バナー表示のため）
 }
 
 function _updateUrgeTabDisplay() {
-if (state.currentTab !== “urge”) return;
+  if (state.currentTab !== "urge") return;
 
-const R = 58, circ = 2 * Math.PI * R;
-const elapsed = 300 - urgeTimer;
-const offset  = circ - ((elapsed / 300) * circ);
-const min = Math.floor(urgeTimer / 60), sec = String(urgeTimer % 60).padStart(2, “0”);
+  const R = 58, circ = 2 * Math.PI * R;
+  const elapsed = 300 - urgeTimer;
+  const offset  = circ - ((elapsed / 300) * circ);
+  const min = Math.floor(urgeTimer / 60), sec = String(urgeTimer % 60).padStart(2, "0");
 
-const [phaseTitle, phaseDesc] = urgeTimer > 225
-? [“衝動の発生”,    “これは生理的な波。意志の弱さじゃない。”]
-: urgeTimer > 120 ? [“ピークへ向かう”,“これが最大値。あと少しで引き始める。”]
-: urgeTimer > 30  ? [“ピーク通過中”,  “波は引いている。もうほとんど過ぎた。”]
-: [“衝動が去っていく”,“よくやった。波を乗りこなした。”];
+  const [phaseTitle, phaseDesc] = urgeTimer > 225
+    ? ["衝動の発生",    "これは生理的な波。意志の弱さじゃない。"]
+    : urgeTimer > 120 ? ["ピークへ向かう","これが最大値。あと少しで引き始める。"]
+    : urgeTimer > 30  ? ["ピーク通過中",  "波は引いている。もうほとんど過ぎた。"]
+    : ["衝動が去っていく","よくやった。波を乗りこなした。"];
 
-const g = id => document.getElementById(id);
-const col = urgeTimer <= 0 ? “var(–green)” : “var(–cyan)”;
-const arc = g(“urge-arc”);
-if (arc) {
-arc.setAttribute(“stroke-dashoffset”, offset.toFixed(2));
-arc.setAttribute(“stroke”, col);
-arc.style.filter = `drop-shadow(0 0 6px ${col})`;
-}
-if (g(“urge-time”)) { g(“urge-time”).textContent = `${min}:${sec}`; g(“urge-time”).style.color = col; }
-if (g(“urge-phase-title”)) g(“urge-phase-title”).textContent = urgeTimer > 0 ? phaseTitle : “ミッションコンプリート”;
-if (g(“urge-phase-desc”))  g(“urge-phase-desc”).textContent  = urgeTimer > 0 ? phaseDesc  : “波を完全に乗りこなした。”;
+  const g = id => document.getElementById(id);
+  const col = urgeTimer <= 0 ? "var(--green)" : "var(--cyan)";
+  const arc = g("urge-arc");
+  if (arc) {
+    arc.setAttribute("stroke-dashoffset", offset.toFixed(2));
+    arc.setAttribute("stroke", col);
+    arc.style.filter = `drop-shadow(0 0 6px ${col})`;
+  }
+  if (g("urge-time")) { g("urge-time").textContent = `${min}:${sec}`; g("urge-time").style.color = col; }
+  if (g("urge-phase-title")) g("urge-phase-title").textContent = urgeTimer > 0 ? phaseTitle : "ミッションコンプリート";
+  if (g("urge-phase-desc"))  g("urge-phase-desc").textContent  = urgeTimer > 0 ? phaseDesc  : "波を完全に乗りこなした。";
 
-if (!urgeRunning && urgeTimer <= 0) renderContent();
+  if (!urgeRunning && urgeTimer <= 0) renderContent();
 }
 
 function logUrgeWinTab() {
-clearInterval(urgeInterval);
-urgeRunning = false; urgeTimer = 300; urgeRisk = null; urgeTrigger = “”;
-// ホームタブへ戻して記録
-switchTab(‘home’);
+  clearInterval(urgeInterval);
+  urgeRunning = false; urgeTimer = 300; urgeRisk = null; urgeTrigger = "";
+  // ホームタブへ戻して記録
+  switchTab('home');
 }
 
 function resetUrgeTab() {
-clearInterval(urgeInterval);
-urgeRunning = false; urgeTimer = 300; urgeRisk = null;
-renderContent();
+  clearInterval(urgeInterval);
+  urgeRunning = false; urgeTimer = 300; urgeRisk = null;
+  renderContent();
 }
 
 // ─── SWIPE ───────────────────────────────────────────────────
 let _swipeX = null;
-document.addEventListener(“touchstart”, e => { if(state.currentTab===“history”) _swipeX=e.touches[0].clientX; }, {passive:true});
-document.addEventListener(“touchend”,   e => {
-if(state.currentTab!==“history”||_swipeX===null) return;
-const dx = e.changedTouches[0].clientX - _swipeX; _swipeX=null;
-if(Math.abs(dx)>60) changeMonth(dx<0?-1:1);
+document.addEventListener("touchstart", e => { if(state.currentTab==="history") _swipeX=e.touches[0].clientX; }, {passive:true});
+document.addEventListener("touchend",   e => {
+  if(state.currentTab!=="history"||_swipeX===null) return;
+  const dx = e.changedTouches[0].clientX - _swipeX; _swipeX=null;
+  if(Math.abs(dx)>60) changeMonth(dx<0?-1:1);
 }, {passive:true});
 
 let _lastVis = Date.now();
-document.addEventListener(“visibilitychange”, () => {
-if(document.visibilityState===“visible”) {
-const now=Date.now();
-if(now-_lastVis>60000){ renderContent(); checkDangerZone(); }
-_lastVis=now;
-}
+document.addEventListener("visibilitychange", () => {
+  if(document.visibilityState==="visible") {
+    const now=Date.now();
+    if(now-_lastVis>60000){ renderContent(); checkDangerZone(); }
+    _lastVis=now;
+  }
 });
 
-const _style = document.createElement(“style”);
-_style.textContent = “@keyframes spin{to{transform:rotate(360deg)}}”;
+const _style = document.createElement("style");
+_style.textContent = "@keyframes spin{to{transform:rotate(360deg)}}";
 document.head.appendChild(_style);
 
 loadState();
@@ -1209,16 +1218,15 @@ renderContent();
 checkDangerZone();
 setInterval(checkDangerZone, 60000);
 
-if (“serviceWorker” in navigator) {
-const sw = `const C='sober-v9',A=[self.location.href];`
-+ `self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)))});`
-+ `self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))))});`
-+ `self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))});`;
-navigator.serviceWorker
-.register(URL.createObjectURL(new Blob([sw], {type:“text/javascript”})))
-.catch(() => {});
+if ("serviceWorker" in navigator) {
+  const sw = `const C='sober-v9',A=[self.location.href];`
+    + `self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)))});`
+    + `self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))))});`
+    + `self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))});`;
+  navigator.serviceWorker
+    .register(URL.createObjectURL(new Blob([sw], {type:"text/javascript"})))
+    .catch(() => {});
 }
 </script>
-
 </body>
 </html>
