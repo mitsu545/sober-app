@@ -13,7 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 <script>
 (function(){
-  const iconSvg = [
+  try {
     "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'>",
     "<defs>",
     "<linearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'>",
@@ -37,7 +37,8 @@
   const _ml=document.createElement('link');
   _ml.rel='manifest';
   _ml.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/json'}));
-  document.head.appendChild(_ml);
+    document.head.appendChild(_ml);
+  } catch(e) { /* manifest failure should never block the app */ }
 })();
 </script>
 <style>
@@ -682,7 +683,23 @@ const _style=document.createElement(“style”);
 _style.textContent=”@keyframes spin{to{transform:rotate(360deg)}}”;
 document.head.appendChild(_style);
 
-loadState();renderContent();checkDangerZone();setInterval(checkDangerZone,60000);
+// Global error handler for debugging
+window.addEventListener(‘error’, function(e) {
+document.body.style.background = ‘#020b18’;
+const el = document.getElementById(‘content’);
+if (el) el.innerHTML = ‘<div style="padding:40px 20px;color:#ef4444;font-size:14px;font-family:monospace">Error: ’ + e.message + ‘<br>’ + (e.filename||’’) + ‘:’ + (e.lineno||’’) + ‘</div>’;
+});
+
+try {
+loadState();
+renderContent();
+checkDangerZone();
+setInterval(checkDangerZone, 60000);
+} catch(e) {
+console.error(‘Init error:’, e);
+const el = document.getElementById(‘content’);
+if (el) el.innerHTML = ’<div style="padding:40px 20px;color:#ef4444;font-size:14px">起動エラー: ’ + e.message + ‘</div>’;
+}
 
 if(“serviceWorker” in navigator){
 const sw=`const C='sober-v10',A=[self.location.href];`
