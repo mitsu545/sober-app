@@ -665,15 +665,14 @@ _style.textContent=”@keyframes spin{to{transform:rotate(360deg)}}”;
 document.head.appendChild(_style);
 
 document.addEventListener(‘DOMContentLoaded’, function() {
-try {
-loadState();
-renderContent();
-checkDangerZone();
-setInterval(checkDangerZone, 60000);
-} catch(e) {
 var el = document.getElementById(‘content’);
-if (el) el.innerHTML = ’<div style="padding:40px 20px;color:#ef4444;font-size:14px;line-height:1.8">起動エラー: ’ + e.message + ‘</div>’;
+try { loadState(); } catch(e) {
+if(el) el.innerHTML = ‘<div style="padding:20px;color:#ef4444;font-size:13px">loadState error: ‘+e.message+’</div>’; return;
 }
+try { renderContent(); } catch(e) {
+if(el) el.innerHTML = ‘<div style="padding:20px;color:#ef4444;font-size:13px">renderContent error: ‘+e.message+’<br>’+e.stack+’</div>’; return;
+}
+try { checkDangerZone(); setInterval(checkDangerZone, 60000); } catch(e) {}
 });
 
 if(“serviceWorker” in navigator){
