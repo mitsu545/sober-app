@@ -128,7 +128,7 @@ input,textarea{font-family:inherit;outline:none;-webkit-appearance:none;}
     <button onclick="openModal('setup')"
       style="background:var(--bg3);border:1px solid #334155;border-radius:10px;padding:8px 12px;color:var(--text);font-size:16px;">⚙</button>
   </div>
-  <div id="content"><div style="text-align:center;padding:80px 20px;color:#64748b;font-size:14px">読み込み中...</div></div>
+  <div id="content"><div id="fallback" style="text-align:center;padding:60px 20px;color:#64748b;font-size:14px">読み込み中...</div></div>
   <nav id="nav">
     <button class="nav-btn active" onclick="switchTab('home')"    id="nav-home">   <span class="nav-icon">🏠</span><span class="nav-label">今日</span></button>
     <button class="nav-btn"        onclick="switchTab('savings')" id="nav-savings"> <span class="nav-icon">💰</span><span class="nav-label">資産</span></button>
@@ -664,12 +664,13 @@ const _style=document.createElement(“style”);
 _style.textContent=”@keyframes spin{to{transform:rotate(360deg)}}”;
 document.head.appendChild(_style);
 
+window._mainScriptLoaded = true;
 document.addEventListener(‘DOMContentLoaded’, function() {
 var el = document.getElementById(‘content’);
 try { loadState(); } catch(e) {
 if(el) el.innerHTML = ‘<div style="padding:20px;color:#ef4444;font-size:13px">loadState error: ‘+e.message+’</div>’; return;
 }
-try { renderContent(); } catch(e) {
+try { renderContent(); window._appRendered = true; } catch(e) {
 if(el) el.innerHTML = ‘<div style="padding:20px;color:#ef4444;font-size:13px">renderContent error: ‘+e.message+’<br>’+e.stack+’</div>’; return;
 }
 try { checkDangerZone(); setInterval(checkDangerZone, 60000); } catch(e) {}
@@ -682,6 +683,21 @@ const sw=`const C='sober-v10',A=[self.location.href];`
 +`self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))});`;
 navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:“text/javascript”}))).catch(()=>{});
 }
+</script>
+
+<script>
+// このスクリプトはメインスクリプトの後に実行される
+setTimeout(function() {
+  var fb = document.getElementById('fallback');
+  if (!fb) return;
+  if (!window._mainScriptLoaded) {
+    fb.style.color = '#ef4444';
+    fb.innerHTML = 'JSパースエラー: メインスクリプトが読み込めていません<br>iOSバージョン: ' + navigator.userAgent.match(/OS (\d+_\d+)/)?.[1] || '不明';
+  } else if (!window._appRendered) {
+    fb.style.color = '#f59e0b';
+    fb.innerHTML = 'DOMContentLoadedが未発火<br>詳細: ' + (window._lastError || '不明');
+  }
+}, 3000);
 </script>
 
 </body>
