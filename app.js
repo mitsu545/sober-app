@@ -310,6 +310,12 @@ function renderHome() {
   const regretItems=[0,1,2].map(i=>REGRET_COSTS[(dayIdx+i)%REGRET_COSTS.length])
     .map(([e,t])=>`<div style="display:flex;gap:12px;margin-bottom:10px;align-items:flex-start"><span style="font-size:16px">${e}</span><p style="font-size:12px;color:#c084fc;line-height:1.6">${t}</p></div>`).join("");
 
+  const _deadBlock = isDead
+    ? '<div style="margin-top:14px;background:rgba(239,68,68,.1);border-radius:10px;padding:12px;text-align:center;border:1px solid rgba(239,68,68,.3)"><p style="font-size:13px;color:var(--red);font-weight:700">今週の飲酒上限に達しました</p><p style="font-size:12px;color:var(--muted);margin-top:4px">月曜日になると柴犬が復活します</p></div>'
+    : weekDrinks>=WEEKLY_GOAL
+      ? '<div style="margin-top:14px;background:rgba(245,158,11,.08);border-radius:10px;padding:10px;text-align:center"><p style="font-size:12px;color:var(--amber);font-weight:600">⚠ 目標の週'+WEEKLY_GOAL+'回を超えています。あと'+remaining+'回で柴犬が倒れます。</p></div>'
+      : '';
+
   return `<div class="col">
     <div class="dog-card" style="background:${dogBg};border:1px solid ${dogBorder}">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
@@ -328,11 +334,6 @@ function renderHome() {
           <p style="font-size:${daysToRecover===0?"16px":"18px"};font-weight:700;color:${daysToRecover===0?"var(--green)":"var(--amber)"}">${daysToRecover===0?"回復中":daysToRecover+"日飲まない"}</p>
         </div>
       </div>
-      const _deadBlock = isDead
-        ? '<div style="margin-top:14px;background:rgba(239,68,68,.1);border-radius:10px;padding:12px;text-align:center;border:1px solid rgba(239,68,68,.3)"><p style="font-size:13px;color:var(--red);font-weight:700">今週の飲酒上限に達しました</p><p style="font-size:12px;color:var(--muted);margin-top:4px">月曜日になると柴犬が復活します</p></div>'
-        : weekDrinks>=WEEKLY_GOAL
-          ? '<div style="margin-top:14px;background:rgba(245,158,11,.08);border-radius:10px;padding:10px;text-align:center"><p style="font-size:12px;color:var(--amber);font-weight:600">⚠ 目標の週'+WEEKLY_GOAL+'回を超えています。あと'+remaining+'回で柴犬が倒れます。</p></div>'
-          : '';
       ${_deadBlock}
     </div>
     <div class="card" style="background:linear-gradient(135deg,#0c1a2e,#091526);border:1px solid #0e3a5c">
