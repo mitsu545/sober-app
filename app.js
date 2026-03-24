@@ -39,7 +39,6 @@ let state = {
 };
 
 // ─── ★ タイムゾーンバグ修正：常にローカル日付を使う ──────────
-// toISOString() はUTC日付を返すため、日本時間深夜0〜9時に前日の日付になるバグがあった
 function localDateStr(date) {
   const d = date || new Date();
   const y = d.getFullYear();
@@ -48,10 +47,8 @@ function localDateStr(date) {
   return `${y}-${m}-${day}`;
 }
 
-// 「今日」のキーを常にローカル時刻で返す
 const todayKey = () => localDateStr(new Date());
 
-// n日前のローカル日付キーを返す
 function daysAgoKey(n) {
   const d = new Date();
   d.setDate(d.getDate() - n);
@@ -133,7 +130,6 @@ function importData() {
 function getWeekDays(offset = 0) {
   const days = [];
   const now = new Date();
-  // 今週月曜を計算（ローカル時刻ベース）
   const mon = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7) + offset * 7);
   for (let i = 0; i < 7; i++) {
@@ -158,7 +154,6 @@ function totalStats() {
 function calcStreak() {
   let streak = 0;
   const ts = state.log[todayKey()];
-  // 今日未記録 or 飲んだ場合は昨日から遡る
   let startDaysAgo = (!ts) ? 1 : (ts === "drank") ? -1 : 0;
   if (startDaysAgo < 0) return 0;
   for (let i = startDaysAgo; i < 365; i++) {
@@ -172,7 +167,6 @@ function calcStreak() {
 function getDogStage() {
   const drankCount = getWeekDays(0).filter(d => state.log[d] === "drank").length;
   if (drankCount >= WEEKLY_LIMIT) return 5;
-  // 回復チェック：昨日と一昨日が両方sober
   const k1 = daysAgoKey(1);
   const k2 = daysAgoKey(2);
   const recovered = (state.log[k1] === "sober" && state.log[k2] === "sober");
@@ -195,6 +189,123 @@ function getDaysUntilRecovery() {
 function checkDangerZone() {
   const h = new Date().getHours() + new Date().getMinutes() / 60;
   document.getElementById("danger-banner")?.classList.toggle("show", h >= 18 && h < 19.5);
+}
+
+// ─── MODAL ────────────────────────────────────────────────────
+function openModal(type) {
+  const mc = document.getElementById("modal-container");
+  let content = "";
+  if (type === 'setup') {
+    content = `<h3 class="tab-title">⚙️ セットアップ</h3>
+      <p class="section-desc">基本情報を設定してください。</p>
+      <div class="col">
+        <div><label class="label-sm">開始日</label><input type="date" id="setup-date" class="inp" value="${state.startDate ? localDateStr(state.startDate) : todayKey()}"></div>
+        <div><label class="label-sm">1日の酒代（平均）</label><input type="number" id="setup-cost" class="inp" value="${state.dailyCost}"></div>
+        <button class="btn-cyan" onclick="saveSetup()">保存する</button>
+      </div>`;
+  } else if (type === 'recovery') {
+    content = `<h3 class="tab-title">📝 飲酒の記録</h3>
+      <p class="section-desc">飲んでしまった状況を記録して、次回の対策を立てましょう。</p>
+      <div class="col">
+        <div><label class="label-sm">どんな状況でしたか？（原因）</label><textarea id="rec-situation" class="inp" style="height:80px" placeholder="例：仕事で疲れて駅前のコンビニに寄った"></textarea></div>
+        <div><label class="label-sm">次はどうしますか？（対策）</label><textarea id="rec-action" class="inp" style="height:80px" placeholder="例：炭酸水を買って帰る、別の道を通る"></textarea></div>
+        <button class="btn-red" style="background:var(--red);color:white" onclick="logToday('drank')">記録を保存</button>
+      </div>`;
+  } else if (type === 'backup') {
+    content = `<h3 class="tab-title">💾 バックアップ・復元</h3>
+      <p class="section-desc">データをテキスト形式で保存・復元できます。</p>
+      <textarea id="backup-text" class="inp" style="height:120px;font-size:10px;margin-bottom:16px"></textarea>
+      <div class="row2">
+        <button class="btn-gray" onclick="exportData()">コピー</button>
+        <button class="btn-cyan" onclick="importData()">復元</button>
+      </div>`;
+  } else if (type === 'tactic') {
+    content = `<h3 class="tab-title">🛡️ 新しい対策</h3>
+      <div class="col">
+        <div><label class="label-sm">状況</label><textarea id="tac-situation" class="inp" style="height:80px"></textarea></div>
+        <div><label class="label-sm">行動</label><textarea id="tac-action" class="inp" style="height:80px"></textarea></div>
+        <button class="btn-cyan" onclick="saveTactic()">登録する</button>
+      </div>`;
+  }
+  
+  mc.innerHTML = `<div class="overlay" onclick="if(event.target===this)closeModal()">
+    <div class="sheet">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+        <button onclick="closeModal()" style="font-size:24px;color:var(--muted)">×</button>
+      </div>
+      ${content}
+    </div>
+  </div>`;
+}
+
+function closeModal() {
+  document.getElementById("modal-container").innerHTML = "";
+}
+
+function saveSetup() {
+  const date = document.getElementById("setup-date").value;
+  const cost = document.getElementById("setup-cost").value;
+  if (!date || !cost) return;
+  state.startDate = new Date(date);
+  state.dailyCost = Number(cost);
+  saveState();
+  closeModal();
+  renderContent();
+}
+
+function saveTactic() {
+  const sit = document.getElementById("tac-situation").value.trim();
+  const act = document.getElementById("tac-action").value.trim();
+  if (!sit || !act) return;
+  state.tactics.push({ date:todayKey(), situation:sit, action:act, attempts:[] });
+  saveState();
+  closeModal();
+  renderContent();
+}
+
+// ─── LOGGING ──────────────────────────────────────────────────
+function logToday(val) {
+  const k = todayKey();
+  state.log[k] = val;
+  if (val === "drank") {
+    const sit = document.getElementById("rec-situation")?.value?.trim();
+    const act = document.getElementById("rec-action")?.value?.trim();
+    if (sit && act) {
+      state.tactics.push({ date:k, situation:sit, action:act, attempts:[] });
+    }
+    // 飲んだ場合はコミットメントをリセット
+    localStorage.removeItem("wb_commit_" + k);
+  }
+  saveState();
+  closeModal();
+  renderContent();
+  if (val === "drank" && getDogStage() === 5) {
+    showDeathScreen();
+  }
+}
+
+function undoToday() {
+  if (!confirm("今日の記録を取り消しますか？")) return;
+  delete state.log[todayKey()];
+  saveState();
+  renderContent();
+}
+
+function morningCommit() {
+  localStorage.setItem("wb_commit_" + todayKey(), "1");
+  renderContent();
+}
+
+function showDeathScreen() {
+  const ds = document.getElementById("death-screen");
+  const dc = document.getElementById("death-content");
+  dc.innerHTML = `
+    <div style="font-size:80px;margin-bottom:20px">💀</div>
+    <h2 style="color:var(--red);font-size:24px;margin-bottom:16px">柴犬が倒れました</h2>
+    <p style="color:var(--muted);line-height:1.8;margin-bottom:30px">今週の飲酒上限を超えました。<br>柴犬を休ませてあげてください。<br>来週の月曜日に復活します。</p>
+    <button class="btn-gray" onclick="document.getElementById('death-screen').classList.remove('show')">閉じる</button>
+  `;
+  ds.classList.add("show");
 }
 
 // ─── ROUTING ─────────────────────────────────────────────────
@@ -283,7 +394,7 @@ function renderHome() {
     ? '<p style="font-size:11px;color:var(--amber);font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">✊ 今朝宣言済み — ミッション実行中</p>'
     : '';
   const drankNote = todayLogged === "drank"
-    ? '<p style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6">原因と対策が「作戦タブ」に輰録されました。<br>明日はまた新しいスタートです。</p>'
+    ? '<p style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6">原因と対策が「作戦タブ」に記録されました。<br>明日はまた新しいスタートです。</p>'
     : '';
   const _tcBorder  = committed ? "rgba(245,158,11,.4)"  : "rgba(34,211,238,.3)";
   const _tcBg      = committed ? "rgba(245,158,11,.03)" : "rgba(34,211,238,.03)";
@@ -344,12 +455,11 @@ function renderHome() {
       <div class="week-grid">${weekCells}</div>
     </div>
     ${streakCard}${morningCard}${todayCard}
-    <button onclick="switchTab('urge')" class="card" style="display:flex;align-items:center;gap:16px;width:100%;text-align:left;border:1px solid rgba(34,211,238,.2);background:linear-gradient(90deg,rgba(34,211,238,.04),transparent)">
-      <span style="font-size:32px;filter:drop-shadow(0 0 8px rgba(34,211,238,.4))">🌊</span>
-      <div><p style="font-weight:700;font-size:15px">飲みたくなったとき（誘惑サーフィン）</p><p style="font-size:12px;color:var(--cyan);margin-top:4px;font-weight:600">→ 波乗りタブを開く</p></div>
-    </button>
+    <div id="home-urge-section">
+      ${renderUrgeSection()}
+    </div>
     <div class="card" style="background:#0f0a1e;border:1px solid #1e1040">
-      <p style="font-size:11px;letter-spacing:2px;color:#a855f7;text-transform:uppercase;margin-bottom:14px;font-weight:700">💭 翌朝の後悔コスト（毎日入れ替わります）</p>
+      <p style="font-size:11px;letter-spacing:2px;color:#a855f7;text-transform:uppercase;margin-bottom:14px;font-weight:700">💭 翌朝の後悔コスト</p>
       ${regretItems}
     </div>
   </div>`;
@@ -390,7 +500,7 @@ function renderTactics() {
   function isRepeat(s){if(!s)return false;const kws=["LINE","迎え","コンビニ","駅","疲れ","仕事","残業","家","ストック","休日","動画"];for(const kw of kws){if((state.tactics||[]).filter(t=>t.situation&&t.situation.includes(kw)).length>=2&&s.includes(kw))return true;}return false;}
   const cards=tactics.length>0?tactics.map((t,ri)=>{
     const oi=total-1-ri, num=String(total-ri).padStart(3,"0"), rep=isRepeat(t.situation);
-    const attempts=t.attempts||(t.tried?[{date:t.triedDate||t.date,effective:null}]:[]);
+    const attempts=t.attempts||[];
     const tot=attempts.length, wins=attempts.filter(a=>a.effective===true).length, losses=attempts.filter(a=>a.effective===false).length;
     const rate=tot>0?Math.round((wins/tot)*100):null;
     const rc=rate===null?"var(--muted)":rate>=70?"var(--green)":rate>=40?"var(--amber)":"var(--red)";
@@ -435,25 +545,33 @@ function renderHistory() {
   const days=[];for(let i=0;i<startDay;i++)days.push(null);for(let i=1;i<=lastDate;i++)days.push(i);
   const monthLabel=`${Y}年 ${M+1}月`;
   const grid=days.map(d=>{
-    if(!d)return `<div class="hist-cell empty"></div>`;
+    if(!d)return `<div class="hist-cell empty" style="aspect-ratio:1;background:rgba(30,41,59,.2);border-radius:8px"></div>`;
     const k=`${Y}-${String(M+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`,s=state.log[k];
-    let cls="hist-cell";if(s==="sober")cls+=" sober";else if(s==="drank")cls+=" drank";
-    return `<div class="${cls}">${d}</div>`;
+    let style="aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;";
+    if(s==="sober") style += "background:var(--cyan);color:var(--bg);";
+    else if(s==="drank") style += "background:var(--red);color:white;";
+    else style += "background:var(--bg3);color:var(--muted);";
+    return `<div style="${style}">${d}</div>`;
   }).join("");
+  
   const sober=Object.keys(state.log).filter(k=>k.startsWith(`${Y}-${String(M+1).padStart(2,"0")}`)&&state.log[k]==="sober").length;
   const drank=Object.keys(state.log).filter(k=>k.startsWith(`${Y}-${String(M+1).padStart(2,"0")}`)&&state.log[k]==="drank").length;
   const milestones=MILESTONES.map(m=>{
     const {sober:totalSober}=totalStats(),totalWeeks=Math.floor(totalSober/WEEKLY_GOAL),pct=Math.min((totalWeeks/m.weeks)*100,100);
     return `<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;font-weight:700">${m.icon} ${m.label} <span style="font-size:11px;color:var(--muted);font-weight:600">(${m.desc})</span></span><span style="font-size:11px;color:var(--muted);font-weight:700">${Math.round(pct)}%</span></div><div style="background:var(--bg3);height:6px;border-radius:3px;overflow:hidden"><div style="width:${pct}%;height:100%;background:var(--cyan);border-radius:3px"></div></div></div>`;
   }).join("");
+  
   return `<div class="col"><h3 class="tab-title">📅 記録・マイルストーン</h3>
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-        <button onclick="changeMonth(-1)" class="nav-btn" style="padding:8px 12px">◀</button>
+        <button onclick="changeMonth(-1)" style="padding:8px 12px;background:var(--bg3);border-radius:8px">◀</button>
         <p style="font-weight:700;font-size:17px;letter-spacing:1px">${monthLabel}</p>
-        <button onclick="changeMonth(1)" class="nav-btn" style="padding:8px 12px">▶</button>
+        <button onclick="changeMonth(1)" style="padding:8px 12px;background:var(--bg3);border-radius:8px">▶</button>
       </div>
-      <div class="hist-grid" style="margin-bottom:20px"><div class="hist-day">月</div><div class="hist-day">火</div><div class="hist-day">水</div><div class="hist-day">木</div><div class="hist-day">金</div><div class="hist-day" style="color:var(--cyan)">土</div><div class="hist-day" style="color:var(--red)">日</div>${grid}</div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:20px">
+        ${["月","火","水","木","金","土","日"].map(d=>`<div style="text-align:center;font-size:10px;color:var(--muted);font-weight:700;padding-bottom:8px">${d}</div>`).join("")}
+        ${grid}
+      </div>
       <div class="row2"><div style="text-align:center"><p class="label-sm">休肝日数</p><p style="font-size:20px;font-weight:700;color:var(--cyan)">${sober} <span style="font-size:12px;color:var(--muted)">日</span></p></div><div style="text-align:center"><p class="label-sm">飲酒日数</p><p style="font-size:20px;font-weight:700;color:var(--red)">${drank} <span style="font-size:12px;color:var(--muted)">日</span></p></div></div>
     </div>
     <div class="card"><p style="font-size:11px;letter-spacing:2px;color:var(--amber);text-transform:uppercase;margin-bottom:16px;font-weight:700">🏆 ロードマップ</p>${milestones}</div>
@@ -463,72 +581,71 @@ function renderHistory() {
 function changeMonth(v){state.historyMonthOffset+=v;renderContent();}
 function resetAll(){if(confirm("全てのデータを消去します。よろしいですか？")){localStorage.clear();location.reload();}}
 
-// ─── URGE TAB (SURFING) ───────────────────────────────────────
-let urgeTimer=300,urgeInterval=null,urgeRunning=false,urgeRisk=null;
-function renderUrgeTab(){
-  const R=58,circ=2*Math.PI*R;
-  return `<div class="col"><h3 class="tab-title">🌊 誘惑サーフィン</h3>
-    <div class="card" style="text-align:center;padding:40px 20px">
-      <div style="position:relative;width:160px;height:160px;margin:0 auto 30px">
-        <svg width="160" height="160" viewBox="0 0 140 140" style="transform:rotate(-90deg)">
-          <circle cx="70" cy="70" r="${R}" fill="none" stroke="var(--bg3)" stroke-width="8"/>
-          <circle id="urge-arc" cx="70" cy="70" r="${R}" fill="none" stroke="var(--cyan)" stroke-width="8" stroke-dasharray="${circ}" stroke-dashoffset="${circ}" stroke-linecap="round" style="transition:stroke-dashoffset 1s linear, stroke 0.3s"/>
-        </svg>
-        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">
-          <p id="urge-time" style="font-size:36px;font-weight:700;font-family:monospace;color:var(--cyan)">5:00</p>
-        </div>
-      </div>
-      <h4 id="urge-phase-title" style="font-size:18px;margin-bottom:10px">衝動の波に乗る</h4>
-      <p id="urge-phase-desc" style="font-size:13px;color:var(--muted);line-height:1.6;min-height:3em">飲みたい衝動は通常10〜15分で消えます。<br>この5分間をやり過ごせば、波は引いていきます。</p>
-      <div style="margin-top:30px">
-        ${!urgeRunning?`<button class="btn-cyan" onclick="startUrge()">タイマー開始</button>`:`<button class="btn-red" style="background:var(--bg3);color:var(--text);border:1px solid var(--border)" onclick="resetUrgeTab()">中止</button>`}
+// ─── URGE (SURFING) INTEGRATED ───────────────────────────────
+let urgeTimer=300,urgeInterval=null,urgeRunning=false;
+
+function renderUrgeSection() {
+  if (!urgeRunning && urgeTimer === 300) {
+    return `<button onclick="startUrge()" class="card" style="display:flex;align-items:center;gap:16px;width:100%;text-align:left;border:1px solid rgba(34,211,238,.2);background:linear-gradient(90deg,rgba(34,211,238,.04),transparent);cursor:pointer">
+      <span style="font-size:32px;filter:drop-shadow(0 0 8px rgba(34,211,238,.4))">🌊</span>
+      <div><p style="font-weight:700;font-size:15px">飲みたくなったとき（誘惑サーフィン）</p><p style="font-size:12px;color:var(--cyan);margin-top:4px;font-weight:600">→ 5分タイマーを開始する</p></div>
+    </button>`;
+  }
+
+  const R=58,circ=2*Math.PI*R,elapsed=300-urgeTimer,offset=circ-((elapsed/300)*circ);
+  const min=Math.floor(urgeTimer/60),sec=String(urgeTimer%60).padStart(2,"0");
+  const col=urgeTimer<=0?"var(--green)":"var(--cyan)";
+  
+  return `<div class="card" style="text-align:center;padding:24px 16px;border:1px solid ${col}">
+    <div style="position:relative;width:120px;height:120px;margin:0 auto 16px">
+      <svg width="120" height="120" viewBox="0 0 140 140" style="transform:rotate(-90deg)">
+        <circle cx="70" cy="70" r="${R}" fill="none" stroke="var(--bg3)" stroke-width="8"/>
+        <circle id="urge-arc" cx="70" cy="70" r="${R}" fill="none" stroke="${col}" stroke-width="8" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round" style="transition:stroke-dashoffset 1s linear"/>
+      </svg>
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">
+        <p id="urge-time" style="font-size:28px;font-weight:700;font-family:monospace;color:${col}">${min}:${sec}</p>
       </div>
     </div>
-    <div class="card" style="background:rgba(34,211,238,.03);border:1px solid rgba(34,211,238,.2)">
-      <p style="font-size:11px;letter-spacing:1px;color:var(--cyan);text-transform:uppercase;margin-bottom:12px;font-weight:700">💡 波を乗りこなすコツ</p>
-      <ul style="font-size:12px;color:var(--muted);padding-left:16px;line-height:1.8">
-        <li><strong>深呼吸：</strong>4秒吸って8秒吐く。これを繰り返す。</li>
-        <li><strong>観察：</strong>「あ、いま喉が鳴ったな」「焦ってるな」と客観視する。</li>
-        <li><strong>水分：</strong>炭酸水や冷たい水を一口飲む。</li>
-        <li><strong>移動：</strong>今いる場所から別の部屋へ移動する。</li>
-      </ul>
+    <p id="urge-phase" style="font-size:14px;font-weight:700;margin-bottom:12px">${urgeTimer > 0 ? "衝動の波に乗っています..." : "🎉 波を乗り越えた！"}</p>
+    <div class="row2">
+      ${urgeTimer > 0 ? `<button class="btn-gray" onclick="stopUrge()" style="padding:10px">中止</button>` : `<button class="btn-cyan" onclick="resetUrge()" style="padding:10px">完了</button>`}
     </div>
   </div>`;
 }
-function startUrge(){
-  if(urgeRunning)return;urgeRunning=true;urgeTimer=300;renderContent();
-  urgeInterval=setInterval(()=>{
-    urgeTimer--;updateUrgeUI();
-    if(urgeTimer<=0){clearInterval(urgeInterval);urgeRunning=false;saveUrgeWin();}
-  },1000);
-}
-function saveUrgeWin(){
-  const tactics=state.tactics||[];
-  const bestTactic=tactics.sort((a,b)=>{
-    const rA=(a.attempts?.filter(x=>x.effective===true).length||0)/(a.attempts?.length||1);
-    const rB=(b.attempts?.filter(x=>x.effective===true).length||0)/(b.attempts?.length||1);
-    return rB-rA;
-  })[0];
-  const msg=bestTactic?`波を乗りこなしました！\n次は「${bestTactic.action}」も試してみましょう。`:`波を乗りこなしました！素晴らしい自制心です。`;
-  alert(msg);
+
+function startUrge() {
+  if(urgeRunning) return;
+  urgeRunning = true;
+  urgeTimer = 300;
   renderContent();
-}
-function updateUrgeUI(){
-  if(state.currentTab!=="urge")return;
-  const R=58,circ=2*Math.PI*R,elapsed=300-urgeTimer,offset=circ-((elapsed/300)*circ);
-  const min=Math.floor(urgeTimer/60),sec=String(urgeTimer%60).padStart(2,"0");
-  const [pT,pD]=urgeTimer>225?["衝動の発生","これは生理的な波。意志の弱さじゃない。"]:urgeTimer>120?["ピークへ向かう","これが最大値。あと少しで引き始める。"]:urgeTimer>30?["ピーク通過中","波は引いている。もうほとんど過ぎた。"]:["衝動が去っていく","よくやった。波を乗りこなした。"];
-  const col=urgeTimer<=0?"var(--green)":"var(--cyan)";
-  const g=id=>document.getElementById(id);
-  const arc=g("urge-arc");if(arc){arc.setAttribute("stroke-dashoffset",offset.toFixed(2));arc.setAttribute("stroke",col);arc.style.filter=`drop-shadow(0 0 6px ${col})`;}
-  if(g("urge-time")){g("urge-time").textContent=`${min}:${sec}`;g("urge-time").style.color=col;}
-  if(g("urge-phase-title"))g("urge-phase-title").textContent=urgeTimer>0?pT:"ミッションコンプリート";
-  if(g("urge-phase-desc"))g("urge-phase-desc").textContent=urgeTimer>0?pD:"波を完全に乗りこなした。";
-  if(!urgeRunning&&urgeTimer<=0)renderContent();
+  urgeInterval = setInterval(() => {
+    urgeTimer--;
+    if (urgeTimer <= 0) {
+      clearInterval(urgeInterval);
+      urgeRunning = false;
+    }
+    const section = document.getElementById("home-urge-section");
+    if (section) section.innerHTML = renderUrgeSection();
+  }, 1000);
 }
 
-function logUrgeWinTab(){clearInterval(urgeInterval);urgeRunning=false;urgeTimer=300;urgeRisk=null;switchTab('home');}
-function resetUrgeTab(){clearInterval(urgeInterval);urgeRunning=false;urgeTimer=300;urgeRisk=null;renderContent();}
+function stopUrge() {
+  clearInterval(urgeInterval);
+  urgeRunning = false;
+  urgeTimer = 300;
+  renderContent();
+}
+
+function resetUrge() {
+  urgeTimer = 300;
+  renderContent();
+}
+
+function renderUrgeTab() {
+  // 誘惑サーフィンタブは「今日」タブへ統合されたため、今日タブへリダイレクト
+  setTimeout(() => switchTab('home'), 0);
+  return "";
+}
 
 // ─── SWIPE ───────────────────────────────────────────────────
 let _swipeX=null;
@@ -538,26 +655,8 @@ document.addEventListener("touchend",e=>{if(state.currentTab!=="history"||_swipe
 let _lastVis=Date.now();
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){const now=Date.now();if(now-_lastVis>60000){renderContent();checkDangerZone();}_lastVis=now;}});
 
-const _style=document.createElement("style");
-_style.textContent="@keyframes spin{to{transform:rotate(360deg)}}";
-document.head.appendChild(_style);
-
 window._mainScriptLoaded = true;
 document.addEventListener('DOMContentLoaded', function() {
-  var el = document.getElementById('content');
-  try { loadState(); } catch(e) {
-    if(el) el.innerHTML = '<div style="padding:20px;color:#ef4444;font-size:13px">loadState error: '+e.message+'</div>'; return;
-  }
-  try { renderContent(); window._appRendered = true; } catch(e) {
-    if(el) el.innerHTML = '<div style="padding:20px;color:#ef4444;font-size:13px">renderContent error: '+e.message+'<br>'+e.stack+'</div>'; return;
-  }
-  try { checkDangerZone(); setInterval(checkDangerZone, 60000); } catch(e) {}
+  try { loadState(); } catch(e) { console.error(e); }
+  try { renderContent(); checkDangerZone(); setInterval(checkDangerZone, 60000); } catch(e) { console.error(e); }
 });
-
-if("serviceWorker" in navigator){
-  const sw=`const C='sober-v10',A=[self.location.href];`
-    +`self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)))});`
-    +`self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))))});`
-    +`self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))});`;
-  navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:"text/javascript"}))).catch(()=>{});
-}
