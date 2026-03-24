@@ -398,156 +398,122 @@ function renderTactics() {
     return `<div class="card" style="border:1px solid ${tot>0&&wins/tot>=0.5?"rgba(52,211,153,0.35)":"rgba(34,211,238,0.15)"}">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span style="font-family:'Noto Serif JP',serif;font-size:13px;font-weight:700;color:var(--muted)">#${num}</span>
-          <span style="font-size:11px;color:var(--muted)">${new Date(t.date).toLocaleDateString("ja-JP")}</span>
-          ${rep?`<span style="font-size:10px;font-weight:700;color:var(--amber);background:rgba(245,158,11,0.12);padding:2px 8px;border-radius:10px">⚠ 繰り返し</span>`:""}
+          <span class="label-sm" style="background:var(--bg3);padding:2px 8px;border-radius:6px;color:var(--dim)">#${num}</span>
+          ${rep?`<span style="background:rgba(239,68,68,.1);color:var(--red);font-size:10px;padding:2px 8px;border-radius:6px;font-weight:700">⚠️ 頻出パターン</span>`:""}
+          <span style="font-size:11px;color:var(--muted);font-weight:600">${t.date}</span>
         </div>
-        <div style="display:flex;gap:6px;flex-shrink:0">
-          <button onclick="editTactic(${oi})" style="font-size:12px;font-weight:600;color:var(--cyan);background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);border-radius:8px;padding:4px 10px">編集</button>
-          <button onclick="deleteTactic(${oi})" style="font-size:12px;font-weight:600;color:var(--red);background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:4px 10px">削除</button>
+        <button onclick="removeTactic(${oi})" style="color:var(--dim);padding:4px;font-size:18px">×</button>
+      </div>
+      <div style="margin-bottom:14px"><p style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:700;letter-spacing:1px">SITUATION</p><p style="font-size:15px;font-weight:700;line-height:1.5">${t.situation}</p></div>
+      <div style="margin-bottom:16px;background:rgba(255,255,255,.03);padding:12px;border-radius:10px;border-left:3px solid var(--cyan)"><p style="font-size:11px;color:var(--cyan);margin-bottom:4px;font-weight:700;letter-spacing:1px">TACTIC</p><p style="font-size:14px;font-weight:600;line-height:1.5">${t.action}</p></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--border)">
+        <div style="display:flex;gap:4px;align-items:center">${dots}</div>
+        <div style="text-align:right">
+          <p style="font-size:10px;color:var(--muted);margin-bottom:2px;font-weight:600">有効率</p>
+          <p style="font-size:16px;font-weight:700;color:${rc}">${rate===null?"--":rate+"%"}</p>
         </div>
-      </div>
-      <div style="background:rgba(239,68,68,0.06);border-radius:10px;padding:12px;margin-bottom:10px;border-left:3px solid var(--red)">
-        <p style="font-size:10px;color:var(--red);font-weight:700;letter-spacing:2px;margin-bottom:6px">CAUSE / 原因</p>
-        <p style="font-size:14px;color:var(--text);line-height:1.6">${t.situation||"（未記入）"}</p>
-      </div>
-      <div style="background:rgba(34,211,238,0.06);border-radius:10px;padding:12px;margin-bottom:12px;border-left:3px solid var(--cyan)">
-        <p style="font-size:10px;color:var(--cyan);font-weight:700;letter-spacing:2px;margin-bottom:6px">STRATEGY / 対策</p>
-        <p style="font-size:14px;color:var(--text);line-height:1.6;font-weight:600">${t.plan||"（未記入）"}</p>
-      </div>
-      <div style="border-top:1px solid var(--border);padding-top:12px">
-        ${tot>0?`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:700;color:var(--green)">${wins}勝</span><span style="font-size:13px;font-weight:700;color:var(--red)">${losses}敗</span><span style="font-size:11px;color:var(--muted)">(${tot}回試行)</span></div><span style="font-size:13px;font-weight:700;color:${rc}">有効率 ${rate}%</span></div><div style="background:rgba(30,41,59,0.5);border-radius:4px;height:5px;margin-bottom:8px;overflow:hidden"><div style="height:100%;width:${rate||0}%;background:${rc};border-radius:4px;transition:width .8s ease"></div></div><div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:10px">${dots}</div>`:""}
-        <button onclick="toggleTried(${oi})" style="width:100%;padding:10px;border-radius:12px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.25);color:var(--cyan)">
-          + この対策を試した結果を記録する
-        </button>
       </div>
     </div>`;
-  }).join(""):`<div class="card" style="text-align:center;padding:40px 20px;border:1px dashed var(--border)"><p style="font-size:36px;margin-bottom:14px">📖</p><p style="font-weight:700;font-size:16px;margin-bottom:8px">失敗辞書はまだ空です</p><p style="font-size:13px;color:var(--muted);line-height:1.8">「飲んでしまった」を押して状況と対策を記録すると<br>ここに辞書が積み上がっていきます。</p></div>`;
-  const statsBar=total>0?`<div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border-radius:12px;padding:12px 16px;border:1px solid var(--border)"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:20px">📖</span><div><p style="font-size:13px;font-weight:700">失敗辞書</p><p style="font-size:11px;color:var(--muted)">${total}件の経験が蓄積されています</p></div></div><button onclick="downloadCSV()" style="font-size:12px;font-weight:700;color:var(--amber);background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:inherit">📥 CSV</button></div>`:"";
-  return `<div class="col"><h3 class="tab-title">📖 失敗辞書</h3><p class="section-desc">飲んだ時の原因と対策を記録します。辞書が厚くなるほど防衛力が上がります。</p>${statsBar}${cards}</div>`;
+  }).join(""):"";
+  return `<div class="col"><h3 class="tab-title">🛡️ 対策（IF-THENプラン）</h3>
+    <div class="card" style="border:1px solid rgba(34,211,238,.3);background:linear-gradient(135deg,rgba(34,211,238,.05),transparent)">
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px">「〇〇のとき（状況）、✕✕する（行動）」と決めておくと、脳の自動操縦を防げます。</p>
+      <button class="btn-cyan" onclick="openModal('tactic')">＋ 新しい対策を登録</button>
+    </div>
+    ${cards}
+  </div>`;
 }
-
-function deleteTactic(idx){if(!confirm("この記録を削除しますか？"))return;state.tactics.splice(idx,1);saveState();renderContent();}
-function toggleTried(idx){const t=state.tactics[idx];if(!t)return;if(!t.attempts){t.attempts=t.tried?[{date:t.triedDate||new Date().toISOString(),effective:null}]:[];delete t.tried;delete t.triedDate;saveState();}openTriedModal(idx);}
-function openTriedModal(idx){const t=state.tactics[idx];if(!t)return;const mc=document.getElementById("modal-container");mc.innerHTML=`<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="sheet"><h3 style="font-size:18px;font-weight:700;margin-bottom:10px">📋 対策を試した記録</h3><div style="background:rgba(34,211,238,.06);border-radius:12px;padding:14px;margin-bottom:20px;border:1px solid rgba(34,211,238,.2)"><p style="font-size:12px;color:var(--cyan);font-weight:700;margin-bottom:6px">STRATEGY / 対策</p><p style="font-size:14px;color:var(--text);line-height:1.6;font-weight:600">${t.plan||"（未記入）"}</p></div><p style="font-size:14px;font-weight:700;margin-bottom:16px;text-align:center">この対策を試した結果は？</p><div class="row2" style="margin-bottom:24px"><button onclick="recordAttempt(${idx},true)" style="background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.4);border-radius:14px;padding:16px;color:var(--green);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">✅ 効果があった<br><span style="font-size:11px;font-weight:400;color:var(--muted)">飲まずに済んだ</span></button><button onclick="recordAttempt(${idx},false)" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:14px;padding:16px;color:var(--red);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">❌ 効果がなかった<br><span style="font-size:11px;font-weight:400;color:var(--muted)">それでも飲んだ</span></button></div><button onclick="closeModal()" style="display:block;width:100%;text-align:center;font-size:13px;color:var(--dim);padding:8px;cursor:pointer">キャンセル</button></div></div>`;}
-function recordAttempt(idx,effective){const t=state.tactics[idx];if(!t)return;if(!t.attempts)t.attempts=[];t.attempts.push({date:new Date().toISOString(),effective});saveState();closeModal();renderContent();}
-function editTactic(idx){const t=state.tactics[idx];if(!t)return;const mc=document.getElementById("modal-container");mc.innerHTML=`<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="sheet"><h3 style="font-size:18px;font-weight:700;margin-bottom:20px">✏️ 記録を編集</h3><label style="font-size:13px;color:var(--red);display:block;margin-bottom:8px;font-weight:700">CAUSE / 原因</label><textarea id="edit-situation" class="inp" style="height:80px;resize:none;margin-bottom:20px;line-height:1.6">${t.situation||""}</textarea><label style="font-size:13px;color:var(--cyan);display:block;margin-bottom:8px;font-weight:700">STRATEGY / 対策</label><textarea id="edit-plan" class="inp" style="height:80px;resize:none;margin-bottom:28px;line-height:1.6">${t.plan||""}</textarea><div class="row2"><button class="btn-gray" onclick="closeModal()">キャンセル</button><button class="btn-cyan" onclick="saveEdit(${idx})">保存する</button></div></div></div>`;}
-function saveEdit(idx){const situation=document.getElementById("edit-situation")?.value?.trim();const plan=document.getElementById("edit-plan")?.value?.trim();state.tactics[idx].situation=situation;state.tactics[idx].plan=plan||"";saveState();closeModal();renderContent();}
-function downloadCSV(){const header="番号,日付,原因・状況,対策,試行回数,有効率";const rows=(state.tactics||[]).map((t,i)=>{const attempts=t.attempts||(t.tried?[{effective:null}]:[]);const tot=attempts.length, wins=attempts.filter(a=>a.effective===true).length;const rate=tot>0?Math.round((wins/tot)*100)+"%" :"-";return `${String(i+1).padStart(3,"0")},${new Date(t.date).toLocaleDateString("ja-JP")},${(t.situation||"").replace(/\n/g," ")},${(t.plan||"").replace(/\n/g," ")},${tot}回,${rate}`;});const csv="\uFEFF"+header+"\n"+rows.join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8;"}));a.download="namo_"+new Date().toISOString().slice(0,10)+".csv";a.click();}
+function removeTactic(i){if(!confirm("削除しますか？"))return;state.tactics.splice(i,1);saveState();renderContent();}
 
 // ─── HISTORY TAB ─────────────────────────────────────────────
-function changeMonth(delta){state.historyMonthOffset=Math.max(0,Math.min(24,(state.historyMonthOffset||0)+delta));renderContent();}
-function toggleHistoryLog(dateStr){const cur=state.log[dateStr];if(!cur)state.log[dateStr]="sober";else if(cur==="sober")state.log[dateStr]="drank";else delete state.log[dateStr];saveState();renderContent();}
-
 function renderHistory() {
-  const {sober,saved}=totalStats(), gw=goalWeeks();
-  const dayNames=["月","火","水","木","金","土","日"];
-  const sc=[["累計クリア",sober+"日","var(--cyan)"],["確保した資金","¥"+saved.toLocaleString(),"var(--green)"],["最高連続記録",(state.bestStreak||0)+"日","var(--amber)"]].map(([l,v,c])=>`<div class="card" style="text-align:center;padding:16px"><p style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600">${l}</p><p style="font-size:22px;font-weight:700;color:${c}">${v}</p></div>`).join("");
-  const mo=state.historyMonthOffset||0, now=new Date();
-  // カレンダーもローカル日付で生成
-  const yr=now.getFullYear(), baseMn=now.getMonth()-mo;
-  const target=new Date(yr, baseMn, 1);
-  const calYr=target.getFullYear(), calMn=target.getMonth();
-  const label=calYr+"年"+(calMn+1)+"月";
-  const dim=new Date(calYr,calMn+1,0).getDate();
-  const fdow=(new Date(calYr,calMn,1).getDay()+6)%7;
-  let mS=0, mD=0;
-  for(let d=1;d<=dim;d++){const k=localDateStr(new Date(calYr,calMn,d));if(state.log[k]==="sober")mS++;else if(state.log[k]==="drank")mD++;}
-  let cells="";
-  for(let i=0;i<fdow;i++)cells+="<div></div>";
-  for(let d=1;d<=dim;d++){
-    const k=localDateStr(new Date(calYr,calMn,d));
-    const s=state.log[k], isToday=k===todayKey();
-    const bg=s==="sober"?"var(--cyan)":s==="drank"?"var(--red)":isToday?"rgba(34,211,238,.15)":"rgba(30,41,59,.5)";
-    cells+=`<div onclick="toggleHistoryLog('${k}')" class="week-cell" style="cursor:pointer;background:${bg};border:${isToday?"2px solid var(--cyan)":"2px solid transparent"};color:${s?"white":"var(--text)"};">${d}</div>`;
-  }
-  const dh=dayNames.map(d=>`<div style="text-align:center;font-size:10px;color:var(--muted);padding-bottom:6px;font-weight:600">${d}</div>`).join("");
-  const mc=MILESTONES.map(m=>{const done=gw>=m.weeks;return `<div class="card" style="text-align:center;opacity:${done?1:.5};border:1px solid ${done?"rgba(34,211,238,.4)":"var(--border)"};background:${done?"linear-gradient(180deg,var(--bg2),rgba(34,211,238,.05))":"var(--bg2)"}"><div style="font-size:32px;filter:${done?"drop-shadow(0 0 10px rgba(34,211,238,.4))":"grayscale(1)"};margin-bottom:8px">${m.icon}</div><p style="font-size:13px;font-weight:700;color:${done?"var(--cyan)":"var(--text)"}">${m.label}</p><p style="font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4">${m.desc}</p></div>`;}).join("");
-  return `<div class="col"><h3 class="tab-title">📊 データ・実績</h3><div class="row3">${sc}</div>
-    <h3 class="tab-title" style="margin-top:4px">📅 カレンダー</h3>
-    <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><button onclick="changeMonth(1)" style="padding:10px;background:var(--bg3);border-radius:10px;font-size:16px;color:${mo>=24?"transparent":"var(--text)"};pointer-events:${mo>=24?"none":"auto"}">◀</button><div style="text-align:center"><p style="font-size:16px;font-weight:700">${label}</p><p style="font-size:11px;color:var(--muted);margin-top:4px;font-weight:600"><span style="color:var(--cyan)">✓ ${mS}日</span> / <span style="color:var(--red)">× ${mD}日</span></p></div><button onclick="changeMonth(-1)" style="padding:10px;background:var(--bg3);border-radius:10px;font-size:16px;color:${mo<=0?"transparent":"var(--text)"};pointer-events:${mo<=0?"none":"auto"}">▶</button></div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">${dh}${cells}</div><p style="font-size:11px;color:var(--dim);text-align:center;margin-top:14px;font-weight:600">💡 日付をタップして記録を修正</p></div>
-    <h3 class="tab-title" style="margin-top:4px">🏆 マイルストーン</h3>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${mc}</div>
+  const now=new Date();
+  const target=new Date(now.getFullYear(),now.getMonth()+state.historyMonthOffset,1);
+  const Y=target.getFullYear(),M=target.getMonth();
+  const start=new Date(Y,M,1),end=new Date(Y,M+1,0);
+  const startDay=(start.getDay()+6)%7,lastDate=end.getDate();
+  const days=[];for(let i=0;i<startDay;i++)days.push(null);for(let i=1;i<=lastDate;i++)days.push(i);
+  const monthLabel=`${Y}年 ${M+1}月`;
+  const grid=days.map(d=>{
+    if(!d)return `<div class="hist-cell empty"></div>`;
+    const k=`${Y}-${String(M+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`,s=state.log[k];
+    let cls="hist-cell";if(s==="sober")cls+=" sober";else if(s==="drank")cls+=" drank";
+    return `<div class="${cls}">${d}</div>`;
+  }).join("");
+  const sober=Object.keys(state.log).filter(k=>k.startsWith(`${Y}-${String(M+1).padStart(2,"0")}`)&&state.log[k]==="sober").length;
+  const drank=Object.keys(state.log).filter(k=>k.startsWith(`${Y}-${String(M+1).padStart(2,"0")}`)&&state.log[k]==="drank").length;
+  const milestones=MILESTONES.map(m=>{
+    const {sober:totalSober}=totalStats(),totalWeeks=Math.floor(totalSober/WEEKLY_GOAL),pct=Math.min((totalWeeks/m.weeks)*100,100);
+    return `<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;font-weight:700">${m.icon} ${m.label} <span style="font-size:11px;color:var(--muted);font-weight:600">(${m.desc})</span></span><span style="font-size:11px;color:var(--muted);font-weight:700">${Math.round(pct)}%</span></div><div style="background:var(--bg3);height:6px;border-radius:3px;overflow:hidden"><div style="width:${pct}%;height:100%;background:var(--cyan);border-radius:3px"></div></div></div>`;
+  }).join("");
+  return `<div class="col"><h3 class="tab-title">📅 記録・マイルストーン</h3>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <button onclick="changeMonth(-1)" class="nav-btn" style="padding:8px 12px">◀</button>
+        <p style="font-weight:700;font-size:17px;letter-spacing:1px">${monthLabel}</p>
+        <button onclick="changeMonth(1)" class="nav-btn" style="padding:8px 12px">▶</button>
+      </div>
+      <div class="hist-grid" style="margin-bottom:20px"><div class="hist-day">月</div><div class="hist-day">火</div><div class="hist-day">水</div><div class="hist-day">木</div><div class="hist-day">金</div><div class="hist-day" style="color:var(--cyan)">土</div><div class="hist-day" style="color:var(--red)">日</div>${grid}</div>
+      <div class="row2"><div style="text-align:center"><p class="label-sm">休肝日数</p><p style="font-size:20px;font-weight:700;color:var(--cyan)">${sober} <span style="font-size:12px;color:var(--muted)">日</span></p></div><div style="text-align:center"><p class="label-sm">飲酒日数</p><p style="font-size:20px;font-weight:700;color:var(--red)">${drank} <span style="font-size:12px;color:var(--muted)">日</span></p></div></div>
+    </div>
+    <div class="card"><p style="font-size:11px;letter-spacing:2px;color:var(--amber);text-transform:uppercase;margin-bottom:16px;font-weight:700">🏆 ロードマップ</p>${milestones}</div>
+    <div class="card" style="border:1px dashed var(--border);background:transparent"><p style="font-size:14px;font-weight:700;margin-bottom:12px">⚙️ 設定・バックアップ</p><button class="btn-cyan" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);margin-bottom:10px" onclick="openModal('backup')">データのバックアップ・復元</button><button class="btn-red" style="background:transparent;border:1px solid rgba(239,68,68,.3);color:var(--red);font-size:12px" onclick="resetAll()">全データをリセット</button></div>
   </div>`;
 }
+function changeMonth(v){state.historyMonthOffset+=v;renderContent();}
+function resetAll(){if(confirm("全てのデータを消去します。よろしいですか？")){localStorage.clear();location.reload();}}
 
-// ─── ACTIONS ─────────────────────────────────────────────────
-function logToday(type){state.log[todayKey()]=type;saveState();if(type==="drank"&&getWeekDrinks()>=WEEKLY_LIMIT)setTimeout(()=>showDeathScreen(),300);renderContent();}
-function undoToday(){delete state.log[todayKey()];saveState();renderContent();}
-function morningCommit(){localStorage.setItem("wb_commit_"+todayKey(),"1");renderContent();}
-
-function showDeathScreen(){const ds=document.getElementById("death-screen"),dc=document.getElementById("death-content");dc.innerHTML=`<div style="font-size:80px;margin-bottom:20px">${getDogSVG(5)}</div><h2 style="font-family:'Noto Serif JP',serif;font-size:24px;color:#ef4444;margin-bottom:16px;line-height:1.4">今週の柴犬が<br>倒れてしまいました</h2><p style="color:#94a3b8;font-size:14px;line-height:1.8;margin-bottom:8px">今週は${WEEKLY_LIMIT}回の飲酒上限に達しました。</p><p style="color:#64748b;font-size:13px;line-height:1.8;margin-bottom:32px">月曜日になると子犬に戻ります。<br>歴代記録と累計休肝日数は消えません。</p><button onclick="closeDeathScreen()" class="btn-cyan" style="padding:16px;font-size:15px">記録を確認する</button>`;ds.classList.add("show");}
-function closeDeathScreen(){const ds=document.getElementById("death-screen");ds.style.animation="fadeOut .5s ease forwards";setTimeout(()=>{ds.classList.remove("show");ds.style.animation="";},500);}
-
-// ─── MODALS ──────────────────────────────────────────────────
-function openModal(type){const mc=document.getElementById("modal-container");if(type==="setup")mc.innerHTML=renderSetupModal();if(type==="recovery")mc.innerHTML=renderRecoveryModal();}
-function closeModal(){const o=document.querySelector(".overlay");if(!o)return;o.style.animation="fadeIn .15s ease-out reverse forwards";const s=o.querySelector(".sheet");if(s)s.style.animation="slideUp .2s ease-in reverse forwards";setTimeout(()=>{document.getElementById("modal-container").innerHTML="";},180);}
-
-function renderSetupModal(){const cur=state.startDate?state.startDate.toISOString().slice(0,10):new Date().toISOString().slice(0,10);return `<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="sheet"><h3 style="font-size:18px;font-weight:700;margin-bottom:20px">⚙ 設定・データ管理</h3><label style="font-size:13px;color:var(--muted);display:block;margin-bottom:8px;font-weight:600">開始日</label><input type="date" id="setup-date" class="inp" value="${cur}"><label style="font-size:13px;color:var(--muted);display:block;margin-top:20px;margin-bottom:8px;font-weight:600">1日あたりの酒代（円）</label><input type="number" id="setup-cost" class="inp" value="${state.dailyCost}"><div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border)"><p style="font-size:14px;font-weight:700;margin-bottom:8px;color:var(--cyan)">💾 データバックアップ</p><p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">キャッシュ消去に備え、定期的にコピーしてiPhoneの「メモ」に保存してください。</p><div class="row2" style="margin-bottom:12px"><button class="btn-sm" style="padding:12px;font-size:13px" onclick="exportData()">📋 コピー</button><button class="btn-sm" style="padding:12px;font-size:13px" onclick="importData()">📥 復元</button></div><textarea id="backup-text" class="inp" style="height:80px;font-size:11px;color:var(--dim);resize:none;line-height:1.4" placeholder="復元する時はここにコピーしたテキストを貼り付けて「復元」を押す"></textarea></div><div class="row2" style="margin-top:32px"><button class="btn-gray" onclick="closeModal()">閉じる</button><button class="btn-cyan" onclick="saveSetup()">保存</button></div></div></div>`;}
-function saveSetup(){const d=document.getElementById("setup-date").value;const c=Number(document.getElementById("setup-cost").value);if(!d||!c)return;state.startDate=new Date(d+"T00:00:00");state.dailyCost=c;saveState();closeModal();renderContent();}
-
-function renderRecoveryModal(){return `<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="sheet"><h3 style="font-size:18px;font-weight:700;margin-bottom:10px">📝 リカバリー記録</h3><p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:24px">今回の原因と次回への対策を自分の言葉で記録しましょう。<br><span style="color:var(--cyan);font-weight:600">「作戦タブ」に保存されます（入力は任意です）。</span></p><label style="font-size:13px;color:var(--red);display:block;margin-bottom:8px;font-weight:700">CAUSE / 原因・状況（任意）</label><textarea id="rec-situation" class="inp" placeholder="例：残業後に疲れてコンビニで買ってしまった&#10;例：妻のLINEで迎えに行きついでに買った" style="height:90px;resize:none;line-height:1.7;margin-bottom:20px"></textarea><label style="font-size:13px;color:var(--cyan);display:block;margin-bottom:8px;font-weight:700">STRATEGY / 次回の対策（任意）</label><textarea id="rec-plan" class="inp" placeholder="例：帰り道はイヤホンをして別ルートで帰る&#10;例：迎えに行く前に財布をカバンから出す" style="height:90px;resize:none;line-height:1.7;margin-bottom:28px"></textarea><button class="btn-cyan" style="padding:16px;margin-bottom:12px" onclick="saveRecovery()">✓ 記録して保存する</button><button onclick="skipRecovery()" style="display:block;width:100%;text-align:center;font-size:14px;font-weight:600;color:var(--dim);padding:10px">スキップして記録だけする</button></div></div>`;}
-function saveRecovery(){const situation=document.getElementById("rec-situation")?.value?.trim()||"";const plan=document.getElementById("rec-plan")?.value?.trim()||"";if(situation||plan){state.tactics=state.tactics||[];state.tactics.push({date:new Date().toISOString(),situation,plan});}logToday("drank");closeModal();}
-function skipRecovery(){logToday("drank");closeModal();}
-
-// ─── URGE SURFING TAB ────────────────────────────────────────
-let urgeTimer=300, urgeRunning=false, urgeInterval=null, urgeRisk=null;
-
-function renderUrgeTab() {
-  const R=58, circ=2*Math.PI*R;
-  const elapsed=300-urgeTimer, offset=circ-((elapsed/300)*circ);
-  const min=Math.floor(urgeTimer/60), sec=String(urgeTimer%60).padStart(2,"0");
-  const isIdle=!urgeRunning&&urgeTimer===300, isDone=!urgeRunning&&urgeTimer<=0;
-  const [pT,pD]=urgeTimer>225?["衝動の発生","これは生理的な波。意志の弱さじゃない。"]:urgeTimer>120?["ピークへ向かう","これが最大値。あと少しで引き始める。"]:urgeTimer>30?["ピーク通過中","波は引いている。もうほとんど過ぎた。"]:["衝動が去っていく","よくやった。波を乗りこなした。"];
-
-  if (isIdle) {
-    const prev=REGRET_COSTS[Math.floor(Date.now()/3600000)%REGRET_COSTS.length];
-    return `<div class="col" style="padding-bottom:8px">
-      <div style="text-align:center;padding:8px 0 4px"><div style="font-size:52px;margin-bottom:8px;filter:drop-shadow(0 0 20px rgba(34,211,238,.5))">🌊</div>
-        <h2 style="font-family:'Noto Serif JP',serif;font-size:22px;font-weight:700;margin-bottom:8px">飲みたくなったら<br>まずここを押せ</h2>
-        <p style="font-size:13px;color:var(--muted);line-height:1.8">衝動は<span style="color:var(--cyan);font-weight:700">5〜10分で必ず消える</span>（ACT理論）。<br>タイマーが終わるまでその場にとどまれ。</p>
-      </div>
-      <div style="background:rgba(168,85,247,.08);border-radius:16px;padding:16px 18px;border:1px solid rgba(168,85,247,.3)">
-        <p style="font-size:10px;letter-spacing:2px;color:#a855f7;font-weight:700;text-transform:uppercase;margin-bottom:10px">💭 今飲んだら翌朝こうなる</p>
-        <div style="display:flex;gap:14px;align-items:flex-start"><span style="font-size:28px;line-height:1;flex-shrink:0">${prev[0]}</span><p style="font-size:14px;color:#c084fc;line-height:1.7;font-weight:600">${prev[1]}</p></div>
-      </div>
-      <button onclick="startUrgeTimerTab()" style="background:linear-gradient(135deg,#0891b2,#0e7490);border-radius:20px;padding:22px;color:white;font-weight:900;font-size:18px;width:100%;border:none;cursor:pointer;box-shadow:0 8px 30px rgba(8,145,178,.5);font-family:inherit;touch-action:manipulation;">
-        🌊 波に乗る（5分タイマー開始）
-      </button>
-    </div>`;
-  }
-
-  const col=isDone?"var(--green)":"var(--cyan)";
-  const urgeBanner = urgeRunning
-    ? '<div style="background:linear-gradient(135deg,#450a0a,#7f1d1d);border-radius:16px;padding:16px 18px;border:1px solid rgba(239,68,68,.5);animation:urgePulse 2s ease-in-out infinite"><p style="font-size:10px;letter-spacing:3px;color:#fca5a5;font-weight:700;text-transform:uppercase;margin-bottom:8px">🚨 絶対禁止</p><p style="font-size:17px;font-weight:900;color:white;line-height:1.6">この時間は絶対に<br>酒を<span style=\"color:#fca5a5\">買ったり・飲んだりする行動</span>をするな！</p><p style="font-size:12px;color:rgba(252,165,165,.8);margin-top:10px;line-height:1.6;font-weight:600">タイマーが終わるまで<strong style=\"color:#fca5a5\">その場から動くな</strong>。衝動は必ず消える。</p></div>'
-    : '<div style="background:rgba(52,211,153,.08);border-radius:16px;padding:16px 18px;border:1px solid rgba(52,211,153,.3);text-align:center"><p style="font-size:22px;margin-bottom:6px">🎉</p><p style="font-size:16px;font-weight:700;color:var(--green)">衝動を乗り越えた！</p><p style="font-size:13px;color:var(--muted);margin-top:4px">どうしますか？</p></div>';
-  return `<div class="col" style="padding-bottom:8px">
-    ${urgeBanner}
-    <div class="card" style="text-align:center">
-      <div style="position:relative;width:200px;height:200px;margin:0 auto 16px">
-        <svg width="200" height="200" viewBox="0 0 130 130" style="position:absolute;inset:0;transform:rotate(-90deg)">
-          <circle cx="65" cy="65" r="${R}" fill="none" stroke="rgba(30,41,59,.8)" stroke-width="9"/>
-          <circle id="urge-arc" cx="65" cy="65" r="${R}" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${circ.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}" style="transition:stroke-dashoffset 1s linear;filter:drop-shadow(0 0 6px ${col})"/>
+// ─── URGE TAB (SURFING) ───────────────────────────────────────
+let urgeTimer=300,urgeInterval=null,urgeRunning=false,urgeRisk=null;
+function renderUrgeTab(){
+  const R=58,circ=2*Math.PI*R;
+  return `<div class="col"><h3 class="tab-title">🌊 誘惑サーフィン</h3>
+    <div class="card" style="text-align:center;padding:40px 20px">
+      <div style="position:relative;width:160px;height:160px;margin:0 auto 30px">
+        <svg width="160" height="160" viewBox="0 0 140 140" style="transform:rotate(-90deg)">
+          <circle cx="70" cy="70" r="${R}" fill="none" stroke="var(--bg3)" stroke-width="8"/>
+          <circle id="urge-arc" cx="70" cy="70" r="${R}" fill="none" stroke="var(--cyan)" stroke-width="8" stroke-dasharray="${circ}" stroke-dashoffset="${circ}" stroke-linecap="round" style="transition:stroke-dashoffset 1s linear, stroke 0.3s"/>
         </svg>
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
-          <p id="urge-time" style="font-family:'Noto Serif JP',serif;font-size:54px;font-weight:700;letter-spacing:-2px;line-height:1;color:${col}">${min}:${sec}</p>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">
+          <p id="urge-time" style="font-size:36px;font-weight:700;font-family:monospace;color:var(--cyan)">5:00</p>
         </div>
       </div>
-      <p id="urge-phase-title" style="color:${col};font-weight:700;font-size:15px;margin-bottom:6px">${urgeRunning?pT:isDone?"ミッションコンプリート":""}</p>
-      <p id="urge-phase-desc" style="color:var(--muted);font-size:13px;line-height:1.6;font-weight:600">${urgeRunning?pD:isDone?"波を完全に乗りこなした。":""}</p>
+      <h4 id="urge-phase-title" style="font-size:18px;margin-bottom:10px">衝動の波に乗る</h4>
+      <p id="urge-phase-desc" style="font-size:13px;color:var(--muted);line-height:1.6;min-height:3em">飲みたい衝動は通常10〜15分で消えます。<br>この5分間をやり過ごせば、波は引いていきます。</p>
+      <div style="margin-top:30px">
+        ${!urgeRunning?`<button class="btn-cyan" onclick="startUrge()">タイマー開始</button>`:`<button class="btn-red" style="background:var(--bg3);color:var(--text);border:1px solid var(--border)" onclick="resetUrgeTab()">中止</button>`}
+      </div>
     </div>
-    ${urgeRisk?`<div style="background:rgba(168,85,247,.08);border-radius:14px;padding:14px 16px;border:1px solid rgba(168,85,247,.25)"><p style="font-size:10px;letter-spacing:2px;color:#a855f7;font-weight:700;text-transform:uppercase;margin-bottom:8px">💭 今飲んだら翌朝こうなる</p><div style="display:flex;gap:12px;align-items:flex-start"><span style="font-size:24px;flex-shrink:0;line-height:1.2">${urgeRisk[0]}</span><p style="font-size:13px;color:#c084fc;line-height:1.7;font-weight:600">${urgeRisk[1]}</p></div></div>`:""}
-    <div class="row2">
-      <button onclick="switchTab('home');openModal('recovery')" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);border-radius:16px;padding:16px 8px;color:var(--red);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;line-height:1.4">飲んでしまった<br><span style="font-size:11px;font-weight:400;color:var(--muted)">記録する</span></button>
-      <button onclick="logUrgeWinTab()" style="background:linear-gradient(135deg,rgba(52,211,153,.2),rgba(52,211,153,.1));border:1px solid rgba(52,211,153,.5);border-radius:16px;padding:16px 8px;color:var(--green);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;line-height:1.4">✓ 乗り越えた！<br><span style="font-size:11px;font-weight:400;color:var(--muted)">よくやった</span></button>
+    <div class="card" style="background:rgba(34,211,238,.03);border:1px solid rgba(34,211,238,.2)">
+      <p style="font-size:11px;letter-spacing:1px;color:var(--cyan);text-transform:uppercase;margin-bottom:12px;font-weight:700">💡 波を乗りこなすコツ</p>
+      <ul style="font-size:12px;color:var(--muted);padding-left:16px;line-height:1.8">
+        <li><strong>深呼吸：</strong>4秒吸って8秒吐く。これを繰り返す。</li>
+        <li><strong>観察：</strong>「あ、いま喉が鳴ったな」「焦ってるな」と客観視する。</li>
+        <li><strong>水分：</strong>炭酸水や冷たい水を一口飲む。</li>
+        <li><strong>移動：</strong>今いる場所から別の部屋へ移動する。</li>
+      </ul>
     </div>
-    <button onclick="resetUrgeTab()" style="display:block;width:100%;text-align:center;font-size:12px;color:var(--dim);padding:8px;cursor:pointer;background:none;border:none;font-family:inherit">↺ リセット</button>
   </div>`;
 }
-
-function startUrgeTimerTab(){urgeRisk=REGRET_COSTS[Math.floor(Math.random()*REGRET_COSTS.length)];urgeRunning=true;clearInterval(urgeInterval);urgeInterval=setInterval(()=>{if(urgeTimer<=0){clearInterval(urgeInterval);urgeRunning=false;}else urgeTimer--;_updateUrgeTabDisplay();},1000);renderContent();}
-
-function _updateUrgeTabDisplay(){
+function startUrge(){
+  if(urgeRunning)return;urgeRunning=true;urgeTimer=300;renderContent();
+  urgeInterval=setInterval(()=>{
+    urgeTimer--;updateUrgeUI();
+    if(urgeTimer<=0){clearInterval(urgeInterval);urgeRunning=false;saveUrgeWin();}
+  },1000);
+}
+function saveUrgeWin(){
+  const tactics=state.tactics||[];
+  const bestTactic=tactics.sort((a,b)=>{
+    const rA=(a.attempts?.filter(x=>x.effective===true).length||0)/(a.attempts?.length||1);
+    const rB=(b.attempts?.filter(x=>x.effective===true).length||0)/(b.attempts?.length||1);
+    return rB-rA;
+  })[0];
+  const msg=bestTactic?`波を乗りこなしました！\n次は「${bestTactic.action}」も試してみましょう。`:`波を乗りこなしました！素晴らしい自制心です。`;
+  alert(msg);
+  renderContent();
+}
+function updateUrgeUI(){
   if(state.currentTab!=="urge")return;
   const R=58,circ=2*Math.PI*R,elapsed=300-urgeTimer,offset=circ-((elapsed/300)*circ);
   const min=Math.floor(urgeTimer/60),sec=String(urgeTimer%60).padStart(2,"0");
