@@ -192,7 +192,7 @@ function checkDangerZone() {
 }
 
 // ─── MODAL ────────────────────────────────────────────────────
-function openModal(type) {
+function openModal(type, extra = null) {
   const mc = document.getElementById("modal-container");
   let content = "";
   if (type === 'setup') {
@@ -220,11 +220,22 @@ function openModal(type) {
         <button class="btn-cyan" onclick="importData()">復元</button>
       </div>`;
   } else if (type === 'tactic') {
-    content = `<h3 class="tab-title">🛡️ 新しい対策</h3>
+    const t = extra !== null ? state.tactics[extra] : null;
+    content = `<h3 class="tab-title">${t ? '🛡️ 対策を編集' : '🛡️ 新しい対策'}</h3>
       <div class="col">
-        <div><label class="label-sm">状況</label><textarea id="tac-situation" class="inp" style="height:80px"></textarea></div>
-        <div><label class="label-sm">行動</label><textarea id="tac-action" class="inp" style="height:80px"></textarea></div>
-        <button class="btn-cyan" onclick="saveTactic()">登録する</button>
+        <div><label class="label-sm">状況（いつ、どこで、どんな時に飲みたくなりますか？）</label><textarea id="tac-situation" class="inp" style="height:80px">${t ? t.situation : ''}</textarea></div>
+        <div><label class="label-sm">対策（その時、代わりに何をするか決めておきましょう）</label><textarea id="tac-action" class="inp" style="height:80px">${t ? t.action : ''}</textarea></div>
+        <button class="btn-cyan" onclick="saveTactic(${extra})">${t ? '更新する' : '登録する'}</button>
+      </div>`;
+  } else if (type === 'edit-log') {
+    const k = extra; // date string
+    const val = state.log[k];
+    content = `<h3 class="tab-title">✏️ 記録を修正 (${k})</h3>
+      <p class="section-desc">この日の記録を変更します。</p>
+      <div class="col">
+        <button class="btn-cyan" style="margin-bottom:10px;${val==='sober'?'border:2px solid white':''}" onclick="updateLog('${k}', 'sober')">✅ 休肝達成</button>
+        <button class="btn-red" style="margin-bottom:10px;${val==='drank'?'border:2px solid white':''}" onclick="updateLog('${k}', 'drank')">🍷 飲んでしまった</button>
+        <button class="btn-gray" onclick="updateLog('${k}', null)">🗑️ 記録を削除</button>
       </div>`;
   }
   
@@ -253,11 +264,24 @@ function saveSetup() {
   renderContent();
 }
 
-function saveTactic() {
+function saveTactic(idx) {
   const sit = document.getElementById("tac-situation").value.trim();
   const act = document.getElementById("tac-action").value.trim();
   if (!sit || !act) return;
-  state.tactics.push({ date:todayKey(), situation:sit, action:act, attempts:[] });
+  if (idx !== null) {
+    state.tactics[idx].situation = sit;
+    state.tactics[idx].action = act;
+  } else {
+    state.tactics.push({ date:todayKey(), situation:sit, action:act, attempts:[] });
+  }
+  saveState();
+  closeModal();
+  renderContent();
+}
+
+function updateLog(date, val) {
+  if (val === null) delete state.log[date];
+  else state.log[date] = val;
   saveState();
   closeModal();
   renderContent();
@@ -273,7 +297,6 @@ function logToday(val) {
     if (sit && act) {
       state.tactics.push({ date:k, situation:sit, action:act, attempts:[] });
     }
-    // 飲んだ場合はコミットメントをリセット
     localStorage.removeItem("wb_commit_" + k);
   }
   saveState();
@@ -285,10 +308,7 @@ function logToday(val) {
 }
 
 function undoToday() {
-  if (!confirm("今日の記録を取り消しますか？")) return;
-  delete state.log[todayKey()];
-  saveState();
-  renderContent();
+  openModal('edit-log', todayKey());
 }
 
 function morningCommit() {
@@ -365,7 +385,7 @@ function renderHome() {
     const s=state.log[d],isToday=i===todayIdx;
     let cls="week-cell";
     if(s==="sober")cls+=" sober";else if(s==="drank")cls+=" drank";else if(isToday)cls+=" today";else cls+=" empty";
-    return `<div><div class="week-cell-label" style="color:${isToday?"var(--cyan)":"var(--muted)"}">${dayNames[i]}</div><div class="${cls}">${s==="sober"?"○":s==="drank"?"×":""}</div></div>`;
+    return `<div onclick="openModal('edit-log', '${d}')"><div class="week-cell-label" style="color:${isToday?"var(--cyan)":"var(--muted)"}">${dayNames[i]}</div><div class="${cls}">${s==="sober"?"○":s==="drank"?"×":""}</div></div>`;
   }).join("");
 
   const streakCard = streak>0?`
@@ -390,7 +410,7 @@ function renderHome() {
     </div>`:"";
 
   const commitBanner = committed
-    ? '<div class="card" style="border:1px solid rgba(245,158,11,.4);background:rgba(245,158,11,.05);text-align:center;padding:12px"><p style="font-size:12px;color:var(--amber);font-weight:700;letter-spacing:1px;text-transform:uppercase">✊ 今日は飲まないと宣言済み — ミッション実行中</p></div>'
+    ? '<div class="card" style="border:1px solid rgba(245,158,11,.4);background:rgba(245,158,11,.05);text-align:center;padding:12px;margin-bottom:16px"><p style="font-size:12px;color:var(--amber);font-weight:700;letter-spacing:1px;text-transform:uppercase">✊ 今日は飲まないと宣言済み — ミッション実行中</p></div>'
     : '';
   const drankNote = todayLogged === "drank"
     ? '<p style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6">原因と対策が「作戦タブ」に記録されました。<br>明日はまた新しいスタートです。</p>'
@@ -411,7 +431,7 @@ function renderHome() {
       + "<button class=\"btn-red\" style=\"padding:16px;font-size:14px\" onclick=\"openModal('recovery')\">飲んでしまった</button>"
       + '</div></div>'
     : '<div class="card" style="text-align:center;position:relative;background:'+_lgBg+';border:1px solid '+_lgBorder+'">'
-      + '<button onclick="undoToday()" style="position:absolute;top:14px;right:14px;font-size:12px;font-weight:600;color:var(--muted);background:var(--bg3);padding:6px 12px;border-radius:8px;border:1px solid var(--border)">↩ 取消</button>'
+      + '<button onclick="undoToday()" style="position:absolute;top:14px;right:14px;font-size:12px;font-weight:600;color:var(--muted);background:var(--bg3);padding:6px 12px;border-radius:8px;border:1px solid var(--border)">↩ 修正</button>'
       + '<p style="font-size:32px;margin-bottom:8px;margin-top:8px">'+_lgIcon+'</p>'
       + '<p style="color:'+_lgColor+';font-weight:700;font-size:16px">'+_lgMsg+'</p>'
       + drankNote + '</div>';
@@ -488,30 +508,41 @@ function removeGoal(idx){let goals=[];try{goals=JSON.parse(localStorage.getItem(
 // ─── TACTICS TAB ─────────────────────────────────────────────
 function renderTactics() {
   const tactics=(state.tactics||[]).slice().reverse(), total=state.tactics.length;
-  function isRepeat(s){if(!s)return false;const kws=["LINE","迎え","コンビニ","駅","疲れ","仕事","残業","家","ストック","休日","動画"];for(const kw of kws){if((state.tactics||[]).filter(t=>t.situation&&t.situation.includes(kw)).length>=2&&s.includes(kw))return true;}return false;}
   const cards=tactics.length>0?tactics.map((t,ri)=>{
-    const oi=total-1-ri, num=String(total-ri).padStart(3,"0"), rep=isRepeat(t.situation);
+    const oi=total-1-ri, num=String(total-ri).padStart(3,"0");
     const attempts=t.attempts||[];
     const tot=attempts.length, wins=attempts.filter(a=>a.effective===true).length;
     const rate=tot>0?Math.round((wins/tot)*100):null;
     const rc=rate===null?"var(--muted)":rate>=70?"var(--green)":rate>=40?"var(--amber)":"var(--red)";
-    const dots=attempts.map((a,ai)=>`<span onclick="toggleAttempt(${oi},${ai})" style="font-size:18px;line-height:1;cursor:pointer">${a.effective===true?"✅":a.effective===false?"❌":"⬜"}</span>`).join("");
-    return `<div class="card" style="border:1px solid ${tot>0&&wins/tot>=0.5?"rgba(52,211,153,0.35)":"rgba(34,211,238,0.15)"}">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span class="label-sm" style="background:var(--bg3);padding:2px 8px;border-radius:6px;color:var(--dim)">#${num}</span>
-          ${rep?`<span style="background:rgba(239,68,68,.1);color:var(--red);font-size:10px;padding:2px 8px;border-radius:6px;font-weight:700">⚠️ 頻出パターン</span>`:""}
+    const dots=attempts.map((a,ai)=>`
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+        <div style="display:flex;gap:2px">
+          <button onclick="updateAttempt(${oi},${ai},true)" style="width:32px;height:32px;border-radius:8px;background:${a.effective===true?'var(--green)':'var(--bg3)'};color:${a.effective===true?'var(--bg)':'var(--muted)'};font-size:14px;font-weight:700;border:1px solid ${a.effective===true?'var(--green)':'var(--border)'}">✓</button>
+          <button onclick="updateAttempt(${oi},${ai},false)" style="width:32px;height:32px;border-radius:8px;background:${a.effective===false?'var(--red)':'var(--bg3)'};color:${a.effective===false?'white':'var(--muted)'};font-size:14px;font-weight:700;border:1px solid ${a.effective===false?'var(--red)':'var(--border)'}">×</button>
+        </div>
+        <span style="font-size:9px;color:var(--dim)">${a.date.slice(5)}</span>
+      </div>`).join("");
+    return `<div class="card" style="border:1px solid ${tot>0&&wins/tot>=0.5?"rgba(52,211,153,0.3)":"var(--border)"}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="label-sm" style="background:var(--bg3);padding:2px 8px;border-radius:6px;color:var(--dim);margin:0">#${num}</span>
           <span style="font-size:11px;color:var(--muted);font-weight:600">${t.date}</span>
         </div>
-        <button onclick="removeTactic(${oi})" style="color:var(--dim);padding:4px;font-size:18px">×</button>
+        <div style="display:flex;gap:8px">
+          <button onclick="openModal('tactic', ${oi})" style="color:var(--cyan);font-size:12px;font-weight:700">編集</button>
+          <button onclick="removeTactic(${oi})" style="color:var(--dim);font-size:18px">×</button>
+        </div>
       </div>
-      <div style="margin-bottom:14px"><p style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:700;letter-spacing:1px">SITUATION</p><p style="font-size:15px;font-weight:700;line-height:1.5">${t.situation}</p></div>
-      <div style="margin-bottom:16px;background:rgba(255,255,255,.03);padding:12px;border-radius:10px;border-left:3px solid var(--cyan)"><p style="font-size:11px;color:var(--cyan);margin-bottom:4px;font-weight:700;letter-spacing:1px">TACTIC</p><p style="font-size:14px;font-weight:600;line-height:1.5">${t.action}</p></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--border)">
-        <div style="display:flex;gap:8px;align-items:center">${dots}<button onclick="addAttempt(${oi})" style="background:var(--bg3);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--muted)">+</button></div>
-        <div style="text-align:right">
+      <div style="margin-bottom:12px"><p style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:700;letter-spacing:1px">【状況】</p><p style="font-size:15px;font-weight:700;line-height:1.5">${t.situation}</p></div>
+      <div style="margin-bottom:16px;background:rgba(34,211,238,.05);padding:12px;border-radius:12px;border:1px solid rgba(34,211,238,.1)"><p style="font-size:11px;color:var(--cyan);margin-bottom:4px;font-weight:700;letter-spacing:1px">【対策】</p><p style="font-size:14px;font-weight:600;line-height:1.5">${t.action}</p></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:12px;border-top:1px solid var(--border)">
+        <div style="display:flex;gap:10px;align-items:center;overflow-x:auto;padding-bottom:4px">
+          ${dots}
+          <button onclick="addAttempt(${oi})" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;width:32px;height:32px;flex-shrink:0;font-size:20px;color:var(--muted);display:flex;align-items:center;justify-content:center">+</button>
+        </div>
+        <div style="text-align:right;flex-shrink:0;margin-left:12px">
           <p style="font-size:10px;color:var(--muted);margin-bottom:2px;font-weight:600">有効率</p>
-          <p style="font-size:16px;font-weight:700;color:${rc}">${rate===null?"--":rate+"%"}</p>
+          <p style="font-size:18px;font-weight:700;color:${rc}">${rate===null?"--":rate+"%"}</p>
         </div>
       </div>
     </div>`;
@@ -526,7 +557,7 @@ function renderTactics() {
 }
 function removeTactic(i){if(!confirm("削除しますか？"))return;state.tactics.splice(i,1);saveState();renderContent();}
 function addAttempt(i){state.tactics[i].attempts=state.tactics[i].attempts||[];state.tactics[i].attempts.push({date:todayKey(),effective:null});saveState();renderContent();}
-function toggleAttempt(ti,ai){const a=state.tactics[ti].attempts[ai];if(a.effective===null)a.effective=true;else if(a.effective===true)a.effective=false;else a.effective=null;saveState();renderContent();}
+function updateAttempt(ti,ai,val){state.tactics[ti].attempts[ai].effective=val;saveState();renderContent();}
 
 // ─── HISTORY TAB ─────────────────────────────────────────────
 function renderHistory() {
@@ -540,11 +571,11 @@ function renderHistory() {
   const grid=days.map(d=>{
     if(!d)return `<div class="hist-cell empty" style="aspect-ratio:1;background:rgba(30,41,59,.2);border-radius:8px"></div>`;
     const k=`${Y}-${String(M+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`,s=state.log[k];
-    let style="aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;";
+    let style="aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;cursor:pointer;";
     if(s==="sober") style += "background:var(--cyan);color:var(--bg);";
     else if(s==="drank") style += "background:var(--red);color:white;";
     else style += "background:var(--bg3);color:var(--muted);";
-    return `<div style="${style}">${d}</div>`;
+    return `<div onclick="openModal('edit-log', '${k}')" style="${style}">${d}</div>`;
   }).join("");
   
   const sober=Object.keys(state.log).filter(k=>k.startsWith(`${Y}-${String(M+1).padStart(2,"0")}`)&&state.log[k]==="sober").length;
@@ -574,14 +605,14 @@ function renderHistory() {
 function changeMonth(v){state.historyMonthOffset+=v;renderContent();}
 function resetAll(){if(confirm("全てのデータを消去します。よろしいですか？")){localStorage.clear();location.reload();}}
 
-// ─── MINDFUL PAUSE (URGE SURFING) ───────────────────────────
+// ─── 5-MIN CALM (URGE SURFING) ───────────────────────────
 let urgeTimer=300,urgeInterval=null,urgeRunning=false,urgeRegretIdx=0;
 
 function renderUrgeSection() {
   if (!urgeRunning && urgeTimer === 300) {
     return `<button onclick="startUrge()" class="card" style="display:flex;align-items:center;gap:16px;width:100%;text-align:left;border:1px solid rgba(34,211,238,.3);background:linear-gradient(135deg,rgba(34,211,238,.08),rgba(34,211,238,.02));cursor:pointer;border-radius:24px;padding:20px">
       <div style="width:48px;height:48px;background:var(--cyan);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 0 15px rgba(34,211,238,.4)">🧘</div>
-      <div><p style="font-weight:700;font-size:15px">マインドフル・ポーズ</p><p style="font-size:12px;color:var(--cyan);margin-top:4px;font-weight:600">飲酒欲求を「観察」する5分間</p></div>
+      <div><p style="font-weight:700;font-size:15px">5分間の凪（なぎ）</p><p style="font-size:12px;color:var(--cyan);margin-top:4px;font-weight:600">飲酒欲求を「観察」する5分間</p></div>
     </button>`;
   }
 
@@ -621,7 +652,7 @@ function startUrge() {
   renderContent();
   urgeInterval = setInterval(() => {
     urgeTimer--;
-    if (urgeTimer % 15 === 0) { // 15秒ごとにデメリットを切り替え
+    if (urgeTimer % 15 === 0) {
       urgeRegretIdx = Math.floor(Math.random() * REGRET_COSTS.length);
     }
     if (urgeTimer <= 0) {
