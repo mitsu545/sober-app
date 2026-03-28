@@ -5,133 +5,112 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="節酒">
+<meta name="apple-mobile-web-app-title" content="NAMO">
 <meta name="theme-color" content="#020b18">
-<title>節酒トラッカー</title>
+<title>NAMO - 節酒サポート</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=DM+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <script>
-/* PWA manifest - fail-safe */
-try {
-  var _m = {name:"節酒",short_name:"節酒",start_url:".",display:"standalone",
-    background_color:"#020b18",theme_color:"#020b18",orientation:"portrait"};
-  var _ml = document.createElement('link');
-  _ml.rel = 'manifest';
-  _ml.href = URL.createObjectURL(new Blob([JSON.stringify(_m)],{type:'application/json'}));
-  document.head.appendChild(_ml);
-} catch(e) {}
+try{var _m={name:"NAMO",short_name:"NAMO",start_url:".",display:"standalone",background_color:"#020b18",theme_color:"#020b18",orientation:"portrait"};var _ml=document.createElement("link");_ml.rel="manifest";_ml.href=URL.createObjectURL(new Blob([JSON.stringify(_m)],{type:"application/json"}));document.head.appendChild(_ml);}catch(e){}
 </script>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
   --bg:#020b18;--bg2:#0d1b2e;--bg3:#1e293b;--border:#0e2740;
   --cyan:#22d3ee;--green:#34d399;--amber:#f59e0b;--red:#ef4444;
   --text:#f1f5f9;--muted:#64748b;--dim:#475569;
-  --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
+  --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px)
 }
-html,body{height:100%;background:var(--bg);color:var(--text);
-  font-family:'DM Sans',"Hiragino Kaku Gothic ProN",sans-serif;
-  -webkit-font-smoothing:antialiased;overscroll-behavior:none;}
-#app{display:flex;flex-direction:column;height:100%;max-width:430px;margin:0 auto;background:var(--bg);}
-button,.chip{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;
-  touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
-  transition:opacity .15s,transform .1s;}
-button:active,.chip:active{opacity:.7;transform:scale(.97);}
-input,textarea{font-family:inherit;outline:none;-webkit-appearance:none;}
-#danger-banner{
-  background:linear-gradient(90deg,#450a0a,#7f1d1d);
-  padding-top:calc(var(--safe-top) + 10px);
-  padding-bottom:10px;padding-left:16px;padding-right:16px;
-  display:none;align-items:center;gap:8px;font-size:12px;color:#fca5a5;font-weight:600;flex-shrink:0;}
-#danger-banner.show{display:flex;animation:slideDown .3s ease;}
-#header{padding:calc(var(--safe-top) + 14px) 20px 10px;display:flex;justify-content:space-between;
-  align-items:center;border-bottom:1px solid #0a1a2e;flex-shrink:0;}
-#danger-banner.show ~ #header{padding-top:14px;}
-#header .title{font-size:11px;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;font-weight:600;}
-#header .sub{font-size:12px;color:var(--muted);margin-top:2px;}
-#content{flex:1;overflow-y:auto;padding:16px 20px 90px;-webkit-overflow-scrolling:touch;}
-#nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateZ(0);
-  width:100%;max-width:430px;background:rgba(2,11,24,.92);
-  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-  border-top:1px solid #0a1a2e;display:grid;grid-template-columns:repeat(4,1fr);
-  padding:8px 0 calc(var(--safe-bot)+10px);z-index:100;}
-.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 2px;opacity:.4;transition:opacity .2s;}
-.nav-btn.active{opacity:1;}
-.nav-btn .nav-icon{font-size:20px;transition:transform .25s cubic-bezier(.34,1.56,.64,1);}
-.nav-btn.active .nav-icon{transform:translateY(-2px) scale(1.12);}
-.nav-btn .nav-label{font-size:9px;color:var(--muted);font-weight:600;}
-.nav-btn.active .nav-label{color:var(--cyan);}
-@keyframes urgePulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}50%{box-shadow:0 0 0 8px rgba(239,68,68,0)}}
-.card{background:var(--bg2);border-radius:18px;padding:18px;border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,.2);margin-bottom:16px;}
-.col{display:flex;flex-direction:column;}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.label-sm{font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;font-weight:600;}
-.btn-cyan{background:linear-gradient(135deg,#0891b2,#0e7490);border-radius:14px;padding:14px 24px;
-  color:white;font-weight:700;font-size:15px;display:block;width:100%;text-align:center;box-shadow:0 4px 12px rgba(8,145,178,.3);}
-.btn-gray{background:var(--bg3);border:1px solid #334155;border-radius:14px;padding:14px;color:var(--text);font-size:14px;font-weight:600;}
-.btn-red{background:var(--bg3);border:1px solid #334155;border-radius:14px;padding:14px;color:var(--red);font-size:14px;font-weight:600;}
-.inp{width:100%;background:var(--bg3);border:1px solid #334155;border-radius:12px;padding:14px;color:var(--text);font-size:15px;}
-.tab-title{font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;margin-bottom:4px;}
-.section-desc{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:12px;}
-.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:16px;}
-.week-cell-label{font-size:10px;color:var(--muted);text-align:center;margin-bottom:6px;font-weight:600;}
-.week-cell{width:100%;aspect-ratio:1;border-radius:10px;display:flex;align-items:center;
-  justify-content:center;font-size:13px;border:2px solid transparent;}
-.week-cell.sober{background:var(--cyan);color:#020b18;font-weight:700;}
-.week-cell.drank{background:var(--red);color:white;font-weight:700;}
-.week-cell.today{border-color:var(--cyan);background:rgba(34,211,238,.05);}
-.week-cell.empty{background:rgba(30,41,59,.5);}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',"Hiragino Kaku Gothic ProN",sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+#app{display:flex;flex-direction:column;height:100%;max-width:430px;margin:0 auto;background:var(--bg)}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;touch-action:manipulation;-webkit-user-select:none;user-select:none;transition:opacity .15s,transform .1s}
+button:active{opacity:.7;transform:scale(.97)}
+input,textarea{font-family:inherit;outline:none;-webkit-appearance:none}
+#danger-banner{background:linear-gradient(90deg,#450a0a,#7f1d1d);padding-top:calc(var(--safe-top)+10px);padding-bottom:10px;padding-left:16px;padding-right:16px;display:none;align-items:center;gap:8px;font-size:12px;color:#fca5a5;font-weight:600;flex-shrink:0}
+#danger-banner.show{display:flex}
+#header{padding:calc(var(--safe-top)+14px) 20px 10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(14,39,64,.6);flex-shrink:0}
+#danger-banner.show~#header{padding-top:14px}
+#content{flex:1;overflow-y:auto;padding:16px 20px 90px;-webkit-overflow-scrolling:touch}
+#nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateZ(0);width:100%;max-width:430px;background:rgba(2,11,24,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(14,39,64,.6);display:grid;grid-template-columns:repeat(4,1fr);padding:6px 0 calc(var(--safe-bot)+10px);z-index:100}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;opacity:.35;transition:opacity .2s}
+.nav-btn.active{opacity:1}
+.nav-btn .ni{font-size:19px;transition:transform .2s}
+.nav-btn.active .ni{transform:translateY(-1px) scale(1.1)}
+.nav-btn .nl{font-size:9px;color:var(--muted);font-weight:500}
+.nav-btn.active .nl{color:var(--cyan);font-weight:700}
+.card{background:var(--bg2);border-radius:18px;padding:18px;border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,.2);margin-bottom:16px}
+.col{display:flex;flex-direction:column}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.label-sm{font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;font-weight:600}
+.btn-cyan{background:linear-gradient(135deg,#0891b2,#0e7490);border-radius:14px;padding:14px 24px;color:white;font-weight:700;font-size:15px;display:block;width:100%;text-align:center;box-shadow:0 4px 12px rgba(8,145,178,.3)}
+.btn-gray{background:var(--bg3);border:1px solid #334155;border-radius:14px;padding:14px;color:var(--text);font-size:14px;font-weight:600}
+.btn-red{background:var(--bg3);border:1px solid #334155;border-radius:14px;padding:14px;color:var(--red);font-size:14px;font-weight:600}
+.inp{width:100%;background:var(--bg3);border:1px solid #334155;border-radius:12px;padding:14px;color:var(--text);font-size:15px}
+.tab-title{font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;margin-bottom:4px}
+.section-desc{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:12px}
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:16px}
+.week-cell-label{font-size:10px;color:var(--muted);text-align:center;margin-bottom:6px;font-weight:600}
+.week-cell{width:100%;aspect-ratio:1;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;border:2px solid transparent}
+.week-cell.sober{background:var(--cyan);color:#020b18;font-weight:700}
+.week-cell.drank{background:var(--red);color:white;font-weight:700}
+.week-cell.today{border-color:var(--cyan);background:rgba(34,211,238,.05)}
+.week-cell.empty{background:rgba(30,41,59,.5)}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 @keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:flex-end;
-  justify-content:center;z-index:200;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-  animation:fadeIn .2s ease-out;}
-.sheet{background:#0a1628;border-radius:24px 24px 0 0;padding:24px 24px calc(var(--safe-bot)+24px);
-  width:100%;max-width:430px;border-top:1px solid var(--border);max-height:92vh;
-  overflow-y:auto;-webkit-overflow-scrolling:touch;animation:slideUp .35s cubic-bezier(.16,1,.3,1);}
-::-webkit-scrollbar{display:none;}
-.dog-card{border-radius:20px;padding:20px;text-align:center;position:relative;overflow:hidden;transition:all .4s;margin-bottom:16px;}
-.dog-svg-wrap{display:flex;justify-content:center;align-items:center;margin:8px 0 12px;}
-.dog-meter{display:flex;gap:5px;justify-content:center;margin-top:8px;}
-.dog-pip{width:28px;height:6px;border-radius:3px;transition:background .4s;}
-.dog-pip.alive{background:var(--green);}
-.dog-pip.warned{background:var(--amber);}
-.dog-pip.dead{background:#374151;}
-#death-screen{position:fixed;inset:0;background:#000;z-index:500;
-  display:none;align-items:center;justify-content:center;flex-direction:column;
-  animation:fadeIn .5s ease;}
-#death-screen.show{display:flex;}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:flex-end;justify-content:center;z-index:200;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:fadeIn .2s ease-out}
+.sheet{background:#0a1628;border-radius:24px 24px 0 0;padding:24px 24px calc(var(--safe-bot)+24px);width:100%;max-width:430px;border-top:1px solid var(--border);max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch;animation:slideUp .35s cubic-bezier(.16,1,.3,1)}
+::-webkit-scrollbar{display:none}
+.dog-card{border-radius:20px;padding:20px;text-align:center;position:relative;overflow:hidden;transition:all .4s;margin-bottom:16px}
+.dog-svg-wrap{display:flex;justify-content:center;align-items:center;margin:8px 0 12px}
+.dog-meter{display:flex;gap:5px;justify-content:center;margin-top:8px}
+.dog-pip{width:28px;height:6px;border-radius:3px;transition:background .4s}
+.dog-pip.alive{background:var(--green)}.dog-pip.warned{background:var(--amber)}.dog-pip.dead{background:#374151}
+#death-screen{position:fixed;inset:0;background:#000;z-index:500;display:none;align-items:center;justify-content:center;flex-direction:column}
+#death-screen.show{display:flex;animation:fadeIn .5s ease}
+@keyframes commitGlow{0%,100%{box-shadow:0 0 20px rgba(245,158,11,.06)}50%{box-shadow:0 0 36px rgba(245,158,11,.14)}}
+#urge-modal{position:fixed;inset:0;z-index:300;background:#0A0F1D;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px 20px calc(var(--safe-bot)+20px)}
+#urge-modal.show{display:flex;animation:fadeIn .4s ease}
+@keyframes breatheIn{0%,100%{transform:scale(1);opacity:.15}50%{transform:scale(1.5);opacity:.25}}
+@keyframes breatheOut{0%,100%{transform:scale(1.2);opacity:.05}50%{transform:scale(1.8);opacity:.1}}
+.dtog{display:flex;background:#0a1220;border-radius:12px;padding:3px;margin-bottom:20px}
+.dtog button{flex:1;padding:10px 0;border-radius:10px;border:none;cursor:pointer;background:transparent;color:var(--muted);font-weight:600;font-size:13px;font-family:inherit;transition:all .2s}
+.dtog button.act{background:var(--bg3);color:var(--text)}
+@keyframes dotB{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 </style>
 </head>
 <body>
 <div id="app">
-  <div id="danger-banner">
-    <span style="font-size:16px">⚠️</span>
-    <span>魔の時間帯 (18:00–19:30) — 財布を置いてから出発</span>
-  </div>
+  <div id="danger-banner"><span style="font-size:16px">⚠️</span><span>魔の時間帯 (18:00–19:30) — 財布を置いてから出発</span></div>
   <div id="header">
-    <div>
-      <div class="title">WATABE · 節酒記録</div>
-      <div class="sub">目標 週3日以内の飲酒</div>
+    <div style="display:flex;align-items:baseline;gap:8px">
+      <span style="font-size:18px;font-weight:800;color:var(--cyan);letter-spacing:3px">NAMO</span>
+      <span style="font-size:11px;color:var(--dim);font-weight:500">節酒サポート</span>
     </div>
-    <button onclick="openModal('setup')"
-      style="background:var(--bg3);border:1px solid #334155;border-radius:10px;padding:8px 12px;color:var(--text);font-size:16px;">⚙</button>
+    <button onclick="openModal('settings')" style="color:var(--dim);font-size:18px;padding:4px">⚙</button>
   </div>
   <div id="content"></div>
   <nav id="nav">
-    <button class="nav-btn active" onclick="switchTab('home')"    id="nav-home">   <span class="nav-icon">🏠</span><span class="nav-label">今日</span></button>
-    <button class="nav-btn"        onclick="switchTab('savings')" id="nav-savings"> <span class="nav-icon">💰</span><span class="nav-label">資産</span></button>
-    <button class="nav-btn"        onclick="switchTab('tactics')" id="nav-tactics"> <span class="nav-icon">🎯</span><span class="nav-label">作戦</span></button>
-    <button class="nav-btn"        onclick="switchTab('history')" id="nav-history"> <span class="nav-icon">📊</span><span class="nav-label">記録</span></button>
+    <button class="nav-btn active" onclick="switchTab('home')" id="nav-home"><span class="ni">🏠</span><span class="nl">ホーム</span></button>
+    <button class="nav-btn" onclick="switchTab('data')" id="nav-data"><span class="ni">📊</span><span class="nl">データ</span></button>
+    <button class="nav-btn" onclick="switchTab('tactics')" id="nav-tactics"><span class="ni">🛡️</span><span class="nl">作戦</span></button>
+    <button class="nav-btn" onclick="switchTab('namo')" id="nav-namo"><span class="ni">🐕</span><span class="nl">なも</span></button>
   </nav>
 </div>
-<div id="modal-container"></div>
-<div id="death-screen">
-  <div id="death-content" style="text-align:center;padding:40px 20px;max-width:320px;"></div>
+<div id="urge-modal">
+  <div style="position:relative;width:180px;height:180px;margin-bottom:48px;display:flex;align-items:center;justify-content:center">
+    <div style="position:absolute;width:140px;height:140px;border-radius:50%;background:#00D4FF;animation:breatheOut 6s ease-in-out infinite"></div>
+    <div style="position:absolute;width:140px;height:140px;border-radius:50%;background:#00D4FF;animation:breatheIn 6s ease-in-out infinite"></div>
+    <div style="position:relative;z-index:1;width:140px;height:140px;border-radius:50%;background:rgba(10,15,29,.93);border:1px solid rgba(0,212,255,.25);display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px rgba(0,212,255,.06)">
+      <span id="urge-time" style="font-size:40px;font-weight:200;color:#FFF;font-variant-numeric:tabular-nums;letter-spacing:2px">05:00</span>
+    </div>
+  </div>
+  <p id="urge-phase" style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:12px;text-align:center">深呼吸しながら、衝動を観察しよう</p>
+  <div style="position:absolute;bottom:120px;left:0;right:0;padding:0 36px;text-align:center"><p id="urge-demerit" style="color:rgba(138,148,166,.8);font-size:14px;line-height:22px;font-weight:500"></p></div>
+  <button id="urge-close-btn" onclick="closeUrgeModal()" style="position:absolute;bottom:calc(var(--safe-bot) + 44px);padding:11px 28px;border-radius:20px;background:rgba(255,255,255,.04);color:rgba(138,148,166,.7);font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,.06)">キャンセル</button>
 </div>
-
+<div id="modal-container"></div>
+<div id="death-screen"><div id="death-content" style="text-align:center;padding:40px 20px;max-width:320px"></div></div>
 <script src="app.js"></script>
-
 </body>
 </html>
