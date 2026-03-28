@@ -619,8 +619,8 @@ function sendNamoChat() {
   const history = _chatMessages.map(m => ({role: m.role === "user" ? "user" : "model", parts: [{text: m.text}]}));
   
   // 無料枠で最も安定している gemini-1.5-flash エンドポイントを指定。
-  fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey, {
-    method: "POST", headers: {"Content-Type": "application/json"},
+// ▼このように「-latest」を付け足してください
+fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=" + apiKey, {    method: "POST", headers: {"Content-Type": "application/json"},
     body: JSON.stringify({contents: history, systemInstruction: {parts: [{text: persona}]}})
   })
   .then(r => r.json())
