@@ -180,18 +180,16 @@ function getDogSVG(stage) {
   return '<img src="dog' + stage + '.' + ext + '" width="' + w + '" height="' + h + '" style="object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.4))" alt="なも stage ' + stage + '" onerror="this.src=\'https://placehold.co/' + w + 'x' + h + '/1e293b/f1f5f9?text=dog' + stage + '.' + ext + '\'">';
 }
 
-// ─── STATE ───────────────────────────────────────
 const STATE_KEY = "wb_state_v3";
 let state = {
   startDate:null, dailyCost:600, log:{}, urges:[], tactics:[],
   currentTab:"home", historyMonthOffset:0, bestStreak:0, bestWeeks:0,
-  savingGoals: [], iconSel: "✈️" // 資産の目標設定もメインデータに統合しました
+  savingGoals: [], iconSel: "✈️"
 };
 let _dataView = "calendar";
 let _chatMessages = [{role:"namo",text:"こんにちは！なもだよ 🐕\n今日も一緒にがんばろうね。何か話したいことある？"}];
 let _chatLoading = false;
 
-// ─── TIMEZONE: 常にローカル日付 ─────────────────
 function localDateStr(date) {
   const d = date || new Date();
   return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
@@ -199,7 +197,6 @@ function localDateStr(date) {
 const todayKey = () => localDateStr(new Date());
 function daysAgoKey(n) { const d = new Date(); d.setDate(d.getDate()-n); return localDateStr(d); }
 
-// ─── PERF ────────────────────────────────────────
 let _gwCache = {v:0, h:""};
 function goalWeeks() {
   const h = JSON.stringify(state.log);
@@ -213,7 +210,6 @@ function goalWeeks() {
   return c;
 }
 
-// ─── PERSISTENCE ─────────────────────────────────
 function saveState() {
   try {
     const streak = calcStreak();
@@ -224,7 +220,7 @@ function saveState() {
       startDate: state.startDate ? state.startDate.toISOString() : null,
       dailyCost: state.dailyCost, log: state.log, urges: state.urges,
       tactics: state.tactics, bestStreak: state.bestStreak, bestWeeks: state.bestWeeks,
-      savingGoals: state.savingGoals, iconSel: state.iconSel // 資産データもスプシ連携に含める
+      savingGoals: state.savingGoals, iconSel: state.iconSel
     }));
     _gwCache.h = "";
     scheduleAutoBackup();
@@ -248,7 +244,6 @@ function loadState() {
   } catch(e) { console.warn("Load failed:", e); }
 }
 
-// ─── BACKUP ──────────────────────────────────────
 let _bkTimer = null, _lastBk = 0;
 function getGasUrl() { return localStorage.getItem("wb_gas_url") || ""; }
 
@@ -285,11 +280,27 @@ function restoreFromSheets() {
     .catch(e => { alert("通信エラー: " + e.message); });
 }
 
+function exportData() {
+  const raw = localStorage.getItem(STATE_KEY) || "{}";
+  const ta = document.getElementById("backup-text");
+  if (ta) ta.value = raw;
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(raw).then(() => alert("コピーしました！")).catch(() => { if (ta) ta.select(); alert("手動でコピーしてください。"); });
+  } else { if (ta) { ta.select(); try { document.execCommand("copy"); alert("コピーしました！"); } catch(e) { alert("手動でコピーしてください。"); } } }
+}
+
+function importData() {
+  const ta = document.getElementById("backup-text");
+  const raw = ta ? ta.value.trim() : "";
+  if (!raw) { alert("テキストが空です。"); return; }
+  if (!confirm("現在のデータを上書きします。よろしいですか？")) return;
+  try { JSON.parse(raw); localStorage.setItem(STATE_KEY, raw); loadState(); closeModal(); renderContent(); alert("復元しました！"); } catch(e) { alert("データが壊れています。"); }
+}
+
 function forceUpdate() {
   if ("caches" in window) { caches.keys().then(n => { return Promise.all(n.map(k => caches.delete(k))); }).then(() => { location.reload(true); }); } else { location.reload(true); }
 }
 
-// ─── HELPERS ─────────────────────────────────────
 function getWeekDays(offset) {
   if (offset === undefined) offset = 0;
   const days = [], now = new Date(), mon = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -320,7 +331,6 @@ function getDaysUntilRecovery() {
 function checkDangerZone() { const h = new Date().getHours() + new Date().getMinutes() / 60; const el = document.getElementById("danger-banner"); if (el) el.classList.toggle("show", h >= 18 && h < 19.5); }
 function escHtml(s) { return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>"); }
 
-// ─── MODAL ───────────────────────────────────────
 function openModal(type, extra) {
   if (extra === undefined) extra = null;
   const mc = document.getElementById("modal-container");
@@ -350,6 +360,7 @@ function openModal(type, extra) {
       + '<div class="card" style="border:1px solid var(--border)"><p style="font-size:14px;font-weight:700;margin-bottom:8px">🔄 アプリを最新版に更新</p><p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px">キャッシュをクリアして最新版を読み込みます。</p><button class="btn-cyan" onclick="forceUpdate()">更新を確認する</button></div>'
       + '<div class="card" style="border:1px solid rgba(34,211,238,.2)"><p style="font-size:13px;font-weight:700;color:var(--cyan);margin-bottom:4px">☁️ スプシ連携（自動）</p><p style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px">データ変更時に自動バックアップ（無料）</p><label class="label-sm">GAS URL</label><input id="gas-url-inp" class="inp" style="font-size:12px;margin-bottom:10px" value="' + gu + '" placeholder="https://script.google.com/macros/s/..."><button class="btn-cyan" style="margin-bottom:10px;font-size:13px" onclick="saveGasUrlBtn()">URLを保存</button><div class="row2" style="margin-bottom:8px"><button class="btn-gray" style="font-size:12px" onclick="manualBackup()">📤 バックアップ</button><button class="btn-gray" style="font-size:12px" onclick="restoreFromSheets()">📥 復元</button></div><p style="font-size:10px;color:var(--dim)">最終: ' + lbkStr + '</p></div>'
       + '<div class="card" style="border:1px solid rgba(245,158,11,.2)"><p style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:4px">🐕 なもの人格設定</p><p style="font-size:11px;color:var(--muted);margin-bottom:10px">なもの性格をカスタマイズ</p><label class="label-sm">Gemini API Key</label><input id="namo-key-inp" class="inp" style="font-size:12px;font-family:monospace;margin-bottom:10px" value="' + ak + '"><label class="label-sm">人格プロンプト</label><textarea id="namo-persona-inp" class="inp" style="font-size:12px;height:100px;margin-bottom:10px">' + ps + '</textarea><button class="btn-cyan" style="font-size:13px" onclick="saveNamoSettings()">保存</button></div>'
+      + '<div class="card"><p style="font-size:13px;font-weight:700;margin-bottom:10px">📋 テキストバックアップ</p><textarea id="backup-text" class="inp" style="height:80px;font-size:10px;margin-bottom:10px"></textarea><div class="row2"><button class="btn-gray" style="font-size:12px" onclick="exportData()">コピー</button><button class="btn-gray" style="font-size:12px" onclick="importData()">復元</button></div></div>'
       + '<div style="margin-top:24px;margin-bottom:16px;"><button style="width:100%;padding:14px;border-radius:12px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.05);color:var(--red);font-size:13px;font-weight:700" onclick="resetAll()">全データをリセット</button></div>';
   }
 
@@ -383,7 +394,6 @@ function showDeathScreen() {
 }
 function resetAll() { if (confirm("全てのデータを消去します。よろしいですか？")) { localStorage.clear(); location.reload(); } }
 
-// ─── ROUTING ─────────────────────────────────────
 function switchTab(tab) {
   state.currentTab = tab;
   document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
@@ -397,7 +407,6 @@ function renderContent() {
   el.innerHTML = (map[state.currentTab] || renderHome)();
 }
 
-// ─── 5min RESET MODAL ────────────────────────────
 let _urgeTimer = 300, _urgeInterval = null, _urgeDemerit = "";
 function openUrgeModal() {
   _urgeTimer = 300;
@@ -427,7 +436,6 @@ function updateUrgeDisplay() {
   }
 }
 
-// ━━━━━━━━━━━━━ HOME TAB ━━━━━━━━━━━━━━━━━━━━━━━
 function renderHome() {
   if (!state.startDate) {
     return '<div style="text-align:center;padding:80px 20px"><div style="font-size:80px;margin-bottom:20px;filter:drop-shadow(0 0 20px rgba(34,211,238,.3))">🐕</div><h2 style="font-family:\'Noto Serif JP\',serif;font-size:24px;margin-bottom:16px;line-height:1.5">NAMOへようこそ</h2><p style="color:var(--muted);font-size:14px;line-height:1.8;margin-bottom:40px">なもと一緒に節酒を続けましょう。<br>飲むたびになもが元気をなくします。</p><button class="btn-cyan" onclick="openModal(\'setup\')">今すぐセットアップ →</button></div>';
@@ -439,7 +447,6 @@ function renderHome() {
   const hr = new Date().getHours(), isMorn = hr >= 5 && hr < 12;
   const comm = localStorage.getItem("wb_commit_" + todayKey()) === "1";
 
-  // Dog
   let dbg, dbd;
   if (isDead) { dbg = "linear-gradient(135deg,#1a0a0a,#0d0505)"; dbd = "#3D1515"; }
   else if (ds >= 3) { dbg = "linear-gradient(135deg,#1a0d0a,#120800)"; dbd = "#3D2010"; }
@@ -450,14 +457,12 @@ function renderHome() {
   let dots = "";
   for (let i = 0; i < WEEKLY_LIMIT; i++) { const fl = i < (WEEKLY_LIMIT - wk); dots += '<div class="dog-pip ' + (fl ? (i < WEEKLY_LIMIT - WEEKLY_GOAL ? "alive" : "warned") : "dead") + '"></div>'; }
 
-  // Stats
   const remColor = rem <= 1 ? "var(--red)" : rem <= 2 ? "var(--amber)" : "var(--cyan)";
   const stats = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;margin:16px 0;background:var(--border);border-radius:16px;overflow:hidden">'
     + '<div style="background:#0a1220;padding:16px 8px;text-align:center"><p style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:6px;letter-spacing:1px">連続</p><p style="font-size:24px;font-weight:700;color:var(--amber);line-height:1">' + streak + '<span style="font-size:12px;color:var(--dim);font-weight:500">日</span></p></div>'
     + '<div style="background:#0a1220;padding:16px 8px;text-align:center"><p style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:6px;letter-spacing:1px">今週あと</p><p style="font-size:24px;font-weight:700;color:' + remColor + ';line-height:1">' + (isDead ? "0" : rem) + '<span style="font-size:12px;color:var(--dim);font-weight:500">回</span></p></div>'
     + '<div style="background:#0a1220;padding:16px 8px;text-align:center"><p style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:6px;letter-spacing:1px">節約累計</p><p style="font-size:20px;font-weight:700;color:var(--green);line-height:1">¥' + saved.toLocaleString() + '</p></div></div>';
 
-  // Week
   let wcells = "";
   tw.forEach((d, i) => {
     const s = state.log[d], it = i === ti;
@@ -466,7 +471,6 @@ function renderHome() {
     wcells += '<div onclick="openModal(\'edit-log\',\'' + d + '\')"><div class="week-cell-label" style="color:' + (it ? "var(--cyan)" : "var(--muted)") + '">' + dn[i] + '</div><div class="' + cls + '">' + (s === "sober" ? "○" : s === "drank" ? "×" : "") + '</div></div>';
   });
 
-  // Commit
   let commitHtml = "";
   if (comm) {
     commitHtml = '<div style="border-radius:18px;padding:18px 20px;margin-bottom:16px;text-align:center;position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(245,158,11,.14),rgba(245,158,11,.04));border:1.5px solid rgba(245,158,11,.45);box-shadow:0 0 30px rgba(245,158,11,.06);animation:commitGlow 3s ease-in-out infinite"><div style="display:flex;align-items:center;justify-content:center;gap:10px"><span style="font-size:28px">✊</span><div><p style="font-size:15px;font-weight:800;color:var(--amber);letter-spacing:2px">宣言済み</p><p style="font-size:11px;color:var(--text);margin-top:3px;font-weight:500">今日は飲まない — なもが見守り中</p></div></div><div style="margin-top:10px;padding:6px 14px;background:rgba(245,158,11,.1);border-radius:10px;display:inline-block"><span style="font-size:10px;color:var(--amber);font-weight:700;letter-spacing:1px">🔥 MISSION IN PROGRESS</span></div></div>';
@@ -474,7 +478,6 @@ function renderHome() {
     commitHtml = '<button onclick="morningCommit()" style="width:100%;padding:20px;border-radius:18px;border:1.5px solid rgba(34,211,238,.4);background:linear-gradient(160deg,rgba(34,211,238,.12),rgba(52,211,153,.06));text-align:left;margin-bottom:16px"><div style="display:flex;align-items:center;justify-content:space-between"><div><p style="font-size:12px;color:var(--cyan);font-weight:700;letter-spacing:2px;margin-bottom:6px">☀️ MORNING COMMITMENT</p><p style="font-size:17px;font-weight:700;color:var(--text)">今日は飲まないと宣言する</p><p style="font-size:11px;color:var(--muted);margin-top:4px">朝の宣言で夕方の衝動が40%抑制</p></div><span style="font-size:24px;opacity:.5">→</span></div></button>';
   }
 
-  // Today
   let todayCard = "";
   if (!tl) {
     todayCard = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn-cyan" style="padding:20px;font-size:16px" onclick="logToday(\'sober\')">✓ 休肝達成</button><button style="padding:20px;border-radius:14px;border:1px solid rgba(239,68,68,.3);background:transparent;color:var(--red);font-weight:600;font-size:14px" onclick="openModal(\'recovery\')">飲んでしまった</button></div>';
@@ -487,13 +490,11 @@ function renderHome() {
     todayCard = '<div style="text-align:center;padding:20px;border-radius:18px;background:' + lb + ';border:1px solid ' + lbd + ';margin-bottom:16px;position:relative"><button onclick="undoToday()" style="position:absolute;top:12px;right:12px;font-size:11px;color:var(--muted);background:var(--bg3);padding:5px 10px;border-radius:8px;border:1px solid var(--border)">↩</button><p style="font-size:32px;margin-bottom:6px">' + li + '</p><p style="color:' + lc + ';font-weight:700;font-size:15px">' + lm + '</p>' + dn2 + '</div>';
   }
 
-  // 5min Reset
   const urgeCard = '<button onclick="openUrgeModal()" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:rgba(0,212,255,.04);padding:16px 20px;border-radius:14px;border:1px solid rgba(0,212,255,.15);margin-top:20px;text-align:left"><div style="display:flex;align-items:center;gap:12px"><div style="width:36px;height:36px;border-radius:18px;background:rgba(0,212,255,.1);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="14.31" y1="8" x2="20.05" y2="17.94"/><line x1="9.69" y1="8" x2="21.17" y2="8"/><line x1="7.38" y1="12" x2="13.12" y2="2.06"/></svg></div><div><p style="font-weight:700;font-size:14px">5min Reset</p><p style="font-size:11px;color:#00D4FF;font-weight:500;margin-top:2px">衝動をやり過ごす5分間</p></div></div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--dim)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>';
 
   return '<div class="col"><div style="text-align:center;padding-top:12px;padding-bottom:4px"><div class="dog-svg-wrap">' + getDogSVG(ds) + '</div><div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:4px"><p style="font-size:12px;font-weight:700;color:' + sc[ds] + '">🐕 ' + sn[ds] + '</p></div><div class="dog-meter">' + dots + '</div></div>' + stats + '<div class="week-grid" style="margin:0 0 20px">' + wcells + '</div>' + commitHtml + todayCard + urgeCard + '</div>';
 }
 
-// ━━━━━━━━━━━━━ DATA TAB ━━━━━━━━━━━━━━━━━━━━━━━━
 function switchDataView(v) { _dataView = v; renderContent(); }
 
 function renderData() {
@@ -559,7 +560,6 @@ function selectIcon(el, e) { e.stopPropagation(); state.iconSel = el.getAttribut
 function addGoal() { const ne = document.getElementById("goal-name"), ae = document.getElementById("goal-amount"); const name = ne ? ne.value.trim() : "", amount = ae ? Number(ae.value) : 0; const icon = state.iconSel || "✈️"; if (!name || !amount) return; state.savingGoals = state.savingGoals || []; state.savingGoals.push({name, amount, icon}); saveState(); renderContent(); }
 function removeGoal(idx) { if(!state.savingGoals) return; state.savingGoals.splice(idx, 1); saveState(); renderContent(); }
 
-// ━━━━━━━━━━━━━ TACTICS TAB ━━━━━━━━━━━━━━━━━━━━━
 function renderTactics() {
   const tactics = (state.tactics || []).slice().reverse(), total = state.tactics.length;
   let cards = "";
@@ -581,7 +581,6 @@ function removeTactic(i) { if (!confirm("削除しますか？")) return; state.
 function addAttempt(i) { state.tactics[i].attempts = state.tactics[i].attempts || []; state.tactics[i].attempts.push({date:todayKey(), effective:null}); saveState(); renderContent(); }
 function updateAttempt(ti, ai, val) { state.tactics[ti].attempts[ai].effective = val; saveState(); renderContent(); }
 
-// ━━━━━━━━━━━━━ NAMO CHAT ━━━━━━━━━━━━━━━━━━━━━━━
 const DEFAULT_PERSONA = 'あなたは「なも」という名前の柴犬のAIアシスタントです。ユーザーの節酒・断酒をやさしく応援します。明るく前向き。飲んでしまっても責めず次の一歩を考える。短く2-3文で返答。健康データや行動心理学の知識を交える。語尾に「わん」等は使わない自然な日本語。';
 
 function renderNamo() {
@@ -618,9 +617,8 @@ function sendNamoChat() {
   const persona = localStorage.getItem("wb_namo_persona") || DEFAULT_PERSONA;
   const history = _chatMessages.map(m => ({role: m.role === "user" ? "user" : "model", parts: [{text: m.text}]}));
   
-  // 無料枠で最も安定している gemini-1.5-flash エンドポイントを指定。
-// ▼このように「-latest」を付け足してください
-fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=" + apiKey, {    method: "POST", headers: {"Content-Type": "application/json"},
+  fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey, {
+    method: "POST", headers: {"Content-Type": "application/json"},
     body: JSON.stringify({contents: history, systemInstruction: {parts: [{text: persona}]}})
   })
   .then(r => r.json())
@@ -628,7 +626,6 @@ fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-
     _chatLoading = false;
     let reply = "ごめん、うまく返事できなかった...";
     
-    // APIからエラーが返ってきた場合は、その原因をチャットに表示する
     if (d.error) {
       reply = "【APIエラー】" + d.error.message;
     } else if (d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts && d.candidates[0].content.parts[0]) {
@@ -646,7 +643,6 @@ fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-
 }
 function scrollChatBottom() { setTimeout(function() { const el = document.getElementById("chat-end"); if (el) el.scrollIntoView({behavior:"smooth"}); }, 50); }
 
-// ─── SWIPE ───────────────────────────────────────
 let _swipeX = null;
 document.addEventListener("touchstart", e => { if (state.currentTab === "data" && _dataView === "calendar") _swipeX = e.touches[0].clientX; }, {passive:true});
 document.addEventListener("touchend", e => { if (state.currentTab !== "data" || _dataView !== "calendar" || _swipeX === null) return; const dx = e.changedTouches[0].clientX - _swipeX; _swipeX = null; if (Math.abs(dx) > 60) changeMonth(dx < 0 ? -1 : 1); }, {passive:true});
@@ -659,7 +655,13 @@ document.addEventListener("DOMContentLoaded", function() {
   try { loadState(); } catch(e) { console.error(e); }
   try { renderContent(); checkDangerZone(); setInterval(checkDangerZone, 60000); } catch(e) { console.error(e); }
 });
-
 </script>
 </body>
 </html>
+
+今の状態
+
+うまく返事できないのエラーがこれに変更になった
+【APIエラー】API key not valid. Please pass a valid API key.
+
+解決策２にしたほうがいい？？
