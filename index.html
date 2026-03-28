@@ -85,11 +85,11 @@ input,textarea{font-family:inherit;outline:none;-webkit-appearance:none}
 </head>
 <body>
 <div id="app">
-  <div id="danger-banner"><span style="font-size:16px">⚠️</span><span>魔の時間帯 (18:00–19:30) — 細心の注意を払って過ごして！</span></div>
+  <div id="danger-banner"><span style="font-size:16px">⚠️</span><span>魔の時間帯 (18:00–19:30) — 財布を置いてから出発</span></div>
   <div id="header">
     <div style="display:flex;align-items:baseline;gap:8px">
       <span style="font-size:18px;font-weight:800;color:var(--cyan);letter-spacing:3px">NAMO</span>
-      <span style="font-size:11px;color:var(--dim);font-weight:500">節酒サポート</span>
+      <span style="font-size:11px;color:var(--dim);font-weight:600;letter-spacing:1px">Smart Moderation</span>
     </div>
     <button onclick="openModal('settings')" style="color:var(--dim);font-size:18px;padding:4px">⚙</button>
   </div>
@@ -109,7 +109,7 @@ input,textarea{font-family:inherit;outline:none;-webkit-appearance:none}
       <span id="urge-time" style="font-size:40px;font-weight:200;color:#FFF;font-variant-numeric:tabular-nums;letter-spacing:2px">05:00</span>
     </div>
   </div>
-  <p id="urge-phase" style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:12px;text-align:center">深呼吸しよう。この時は酒に向かう行動はしない。</p>
+  <p id="urge-phase" style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:12px;text-align:center">深呼吸しながら、衝動を観察しよう</p>
   <div style="position:absolute;bottom:120px;left:0;right:0;padding:0 36px;text-align:center"><p id="urge-demerit" style="color:rgba(138,148,166,.8);font-size:14px;line-height:22px;font-weight:500"></p></div>
   <button id="urge-close-btn" onclick="closeUrgeModal()" style="position:absolute;bottom:calc(var(--safe-bot) + 44px);padding:11px 28px;border-radius:20px;background:rgba(255,255,255,.04);color:rgba(138,148,166,.7);font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,.06)">キャンセル</button>
 </div>
@@ -644,13 +644,21 @@ function sendNamoChat() {
   .then(r => r.json())
   .then(d => {
     _chatLoading = false;
-    const reply = (d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts && d.candidates[0].content.parts[0] && d.candidates[0].content.parts[0].text) || "ごめん、うまく返事できなかった...";
+    let reply = "ごめん、うまく返事できなかった...";
+    
+    // APIからエラーが返ってきた場合は、その原因をチャットに表示する
+    if (d.error) {
+      reply = "【APIエラー】" + d.error.message;
+    } else if (d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts && d.candidates[0].content.parts[0]) {
+      reply = d.candidates[0].content.parts[0].text || reply;
+    }
+    
     _chatMessages.push({role:"namo", text:reply});
     renderContent(); scrollChatBottom();
   })
-  .catch(() => {
+  .catch((e) => {
     _chatLoading = false;
-    _chatMessages.push({role:"namo", text:"通信エラーもなあ・・・"});
+    _chatMessages.push({role:"namo", text:"通信エラーだよ。接続やAPIキーを確認してね。\n詳細: " + e.message});
     renderContent(); scrollChatBottom();
   });
 }
