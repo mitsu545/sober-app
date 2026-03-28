@@ -19,7 +19,6 @@ try{var _m={name:"NAMO",short_name:"NAMO",start_url:".",display:"standalone",bac
   --bg:#020b18;--bg2:#0d1b2e;--bg3:#1e293b;--border:#0e2740;
   --cyan:#22d3ee;--green:#34d399;--amber:#f59e0b;--red:#ef4444;
   --text:#f1f5f9;--muted:#64748b;--dim:#475569;
-  /* 修正：安全マージンを取りすぎていたので、ちょうど良い値(20px)に最適化 */
   --safe-top:env(safe-area-inset-top, 20px);
   --safe-bot:env(safe-area-inset-bottom, 20px);
 }
@@ -28,12 +27,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM San
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;touch-action:manipulation;-webkit-user-select:none;user-select:none;transition:opacity .15s,transform .1s}
 button:active{opacity:.7;transform:scale(.97)}
 input,textarea{font-family:inherit;outline:none;-webkit-appearance:none}
-/* 修正：ヘッダーの上に足す余白を減らし、もう少し上に配置されるようにしました */
 #danger-banner{background:linear-gradient(90deg,#450a0a,#7f1d1d);padding-top:calc(var(--safe-top) + 4px);padding-bottom:10px;padding-left:16px;padding-right:16px;display:none;align-items:center;gap:8px;font-size:12px;color:#fca5a5;font-weight:600;flex-shrink:0}
 #danger-banner.show{display:flex}
 #header{padding:calc(var(--safe-top) + 8px) 20px 10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(14,39,64,.6);flex-shrink:0}
 #danger-banner.show~#header{padding-top:10px}
-/* 修正：コンテンツ下部とナビゲーションの余白を調整（ホームバーとの被り防止） */
 #content{flex:1;overflow-y:auto;padding:16px 20px calc(var(--safe-bot) + 90px);-webkit-overflow-scrolling:touch}
 #nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateZ(0);width:100%;max-width:430px;background:rgba(2,11,24,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(14,39,64,.6);display:grid;grid-template-columns:repeat(4,1fr);padding:6px 0 calc(var(--safe-bot) + 12px);z-index:100}
 .nav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;opacity:.35;transition:opacity .2s}
@@ -116,7 +113,6 @@ input,textarea{font-family:inherit;outline:none;-webkit-appearance:none}
 <div id="modal-container"></div>
 <div id="death-screen"><div id="death-content" style="text-align:center;padding:40px 20px;max-width:320px"></div></div>
 
-<!-- app.js の内容をここに統合しました -->
 <script>
 "use strict";
 const WEEKLY_LIMIT = 5;
@@ -181,8 +177,6 @@ function getDogSVG(stage) {
   const ext = stage === 5 ? 'jpg' : 'png';
   const w   = stage >= 4 ? 160 : 130;
   const h   = stage >= 4 ? 110 : 130;
-  
-  // ▼ ここを修正：画像が見つからない時は仮の画像(プレースホルダー)を表示するようにしました
   return '<img src="dog' + stage + '.' + ext + '" width="' + w + '" height="' + h + '" style="object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.4))" alt="なも stage ' + stage + '" onerror="this.src=\'https://placehold.co/' + w + 'x' + h + '/1e293b/f1f5f9?text=dog' + stage + '.' + ext + '\'">';
 }
 
@@ -370,11 +364,9 @@ function openModal(type, extra) {
       + '<div class="card" style="border:1px solid rgba(34,211,238,.2)"><p style="font-size:13px;font-weight:700;color:var(--cyan);margin-bottom:4px">☁️ スプシ連携（自動）</p><p style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px">データ変更時に自動バックアップ（無料）</p><label class="label-sm">GAS URL</label><input id="gas-url-inp" class="inp" style="font-size:12px;margin-bottom:10px" value="' + gu + '" placeholder="https://script.google.com/macros/s/..."><button class="btn-cyan" style="margin-bottom:10px;font-size:13px" onclick="saveGasUrlBtn()">URLを保存</button><div class="row2" style="margin-bottom:8px"><button class="btn-gray" style="font-size:12px" onclick="manualBackup()">📤 バックアップ</button><button class="btn-gray" style="font-size:12px" onclick="restoreFromSheets()">📥 復元</button></div><p style="font-size:10px;color:var(--dim)">最終: ' + lbkStr + '</p></div>'
       + '<div class="card" style="border:1px solid rgba(245,158,11,.2)"><p style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:4px">🐕 なもの人格設定</p><p style="font-size:11px;color:var(--muted);margin-bottom:10px">なもの性格をカスタマイズ</p><label class="label-sm">Gemini API Key</label><input id="namo-key-inp" class="inp" style="font-size:12px;font-family:monospace;margin-bottom:10px" value="' + ak + '"><label class="label-sm">人格プロンプト</label><textarea id="namo-persona-inp" class="inp" style="font-size:12px;height:100px;margin-bottom:10px">' + ps + '</textarea><button class="btn-cyan" style="font-size:13px" onclick="saveNamoSettings()">保存</button></div>'
       + '<div class="card"><p style="font-size:13px;font-weight:700;margin-bottom:10px">📋 テキストバックアップ</p><textarea id="backup-text" class="inp" style="height:80px;font-size:10px;margin-bottom:10px"></textarea><div class="row2"><button class="btn-gray" style="font-size:12px" onclick="exportData()">コピー</button><button class="btn-gray" style="font-size:12px" onclick="importData()">復元</button></div></div>'
-      /* 修正：最下部のリセットボタンにマージンを持たせ、スクロールしやすくする */
       + '<div style="margin-top:24px;margin-bottom:16px;"><button style="width:100%;padding:14px;border-radius:12px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.05);color:var(--red);font-size:13px;font-weight:700" onclick="resetAll()">全データをリセット</button></div>';
   }
 
-  /* 修正：閉じるボタンを丸く押しやすくし、コンテンツ全体の下部に余裕（padding-bottom:40px）を持たせる */
   mc.innerHTML = '<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="sheet"><div style="text-align:right;margin-bottom:12px;position:sticky;top:0;z-index:10;"><button onclick="closeModal()" style="font-size:20px;color:var(--text);width:40px;height:40px;background:var(--bg3);border-radius:20px;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.2);">✕</button></div><div style="padding-bottom:40px;">' + content + '</div></div></div>';
 }
 
@@ -604,7 +596,7 @@ function addAttempt(i) { state.tactics[i].attempts = state.tactics[i].attempts |
 function updateAttempt(ti, ai, val) { state.tactics[ti].attempts[ai].effective = val; saveState(); renderContent(); }
 
 // ━━━━━━━━━━━━━ NAMO CHAT ━━━━━━━━━━━━━━━━━━━━━━━
-const DEFAULT_PERSONA = 'あなたは「なも」という名前の柴犬のAIアシスタントです。ユーザーの節酒・断酒をやさしく応援します。明るく前向き。飲んでしまっても責めず次の一歩を考える。短く2-3文で返答。健康データや行動心理学の知識を交える。語尾に「わん」等は使わない自然な日本語。';
+const DEFAULT_PERSONA = 'あなたは「なも」という名前の柴犬のAIアシスタントです。ユーザーの節酒・断酒をやさしく応援します。明るく前向き。飲んでしまっても責めず次の一歩を考える。短く2-3文で返答。健康データや行動心理学の知識を交える。語尾に　も　をつける自然な日本語。';
 
 function renderNamo() {
   let msgsHtml = "";
@@ -618,7 +610,7 @@ function renderNamo() {
   if (_chatLoading) {
     msgsHtml += '<div style="display:flex;margin-bottom:10px"><div style="width:30px;height:30px;border-radius:15px;background:rgba(34,211,238,.1);display:flex;align-items:center;justify-content:center;margin-right:8px;font-size:16px">🐕</div><div style="padding:14px;border-radius:16px 16px 16px 4px;background:var(--bg3);display:flex;gap:4px"><div style="width:5px;height:5px;border-radius:3px;background:var(--muted);animation:dotB .6s 0s infinite ease-in-out"></div><div style="width:5px;height:5px;border-radius:3px;background:var(--muted);animation:dotB .6s .15s infinite ease-in-out"></div><div style="width:5px;height:5px;border-radius:3px;background:var(--muted);animation:dotB .6s .3s infinite ease-in-out"></div></div></div>';
   }
-  return '<div style="display:flex;flex-direction:column;height:calc(100vh - 130px)"><div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px" id="chat-scroll">' + msgsHtml + '<div id="chat-end"></div></div><div style="display:flex;gap:8px;padding:10px 0;border-top:1px solid var(--border)"><input id="chat-input" class="inp" style="flex:1;padding:11px 14px;font-size:14px;border-radius:14px" placeholder="なもに話しかける..." onkeydown="if(event.key===\'Enter\')sendNamoChat()"><button onclick="sendNamoChat()" id="chat-send-btn" style="width:42px;height:42px;border-radius:14px;background:var(--bg3);color:var(--muted);font-size:17px;display:flex;align-items:center;justify-content:center">↑</button></div></div>';
+  return '<div style="display:flex;flex-direction:column;height:calc(100vh - 130px)"><div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px" id="chat-scroll">' + msgsHtml + '<div id="chat-end"></div></div><div style="display:flex;gap:8px;padding:10px 0;border-top:1px solid var(--border)"><input id="chat-input" class="inp" style="flex:1;padding:11px 14px;font-size:14px;border-radius:14px" placeholder="なもに話しかける..." onkeydown="if(event.key==\'Enter\')sendNamoChat()"><button onclick="sendNamoChat()" id="chat-send-btn" style="width:42px;height:42px;border-radius:14px;background:var(--bg3);color:var(--muted);font-size:17px;display:flex;align-items:center;justify-content:center">↑</button></div></div>';
 }
 
 function sendNamoChat() {
@@ -629,15 +621,18 @@ function sendNamoChat() {
   _chatMessages.push({role:"user", text:txt});
   _chatLoading = true;
   renderContent(); scrollChatBottom();
+  
   const apiKey = localStorage.getItem("wb_namo_key") || "";
   if (!apiKey) {
     _chatLoading = false;
     _chatMessages.push({role:"namo", text:"APIキーが設定されていないよ。⚙設定 → なもの人格設定 でGemini APIキーを入力してね。"});
     renderContent(); scrollChatBottom(); return;
   }
+  
   const persona = localStorage.getItem("wb_namo_persona") || DEFAULT_PERSONA;
   const history = _chatMessages.map(m => ({role: m.role === "user" ? "user" : "model", parts: [{text: m.text}]}));
-  fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey, {
+  
+  fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey, {
     method: "POST", headers: {"Content-Type": "application/json"},
     body: JSON.stringify({contents: history, systemInstruction: {parts: [{text: persona}]}})
   })
@@ -646,7 +641,6 @@ function sendNamoChat() {
     _chatLoading = false;
     let reply = "ごめん、うまく返事できなかった...";
     
-    // APIからエラーが返ってきた場合は、その原因をチャットに表示する
     if (d.error) {
       reply = "【APIエラー】" + d.error.message;
     } else if (d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts && d.candidates[0].content.parts[0]) {
