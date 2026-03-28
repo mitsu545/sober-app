@@ -19,19 +19,23 @@ try{var _m={name:"NAMO",short_name:"NAMO",start_url:".",display:"standalone",bac
   --bg:#020b18;--bg2:#0d1b2e;--bg3:#1e293b;--border:#0e2740;
   --cyan:#22d3ee;--green:#34d399;--amber:#f59e0b;--red:#ef4444;
   --text:#f1f5f9;--muted:#64748b;--dim:#475569;
-  --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px)
+  /* 修正：PWA特有のステータスバー見切れ対策（最低でも32pxの余白を確保） */
+  --safe-top:max(env(safe-area-inset-top), 32px);
+  --safe-bot:max(env(safe-area-inset-bottom), 24px);
 }
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',"Hiragino Kaku Gothic ProN",sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
 #app{display:flex;flex-direction:column;height:100%;max-width:430px;margin:0 auto;background:var(--bg)}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;touch-action:manipulation;-webkit-user-select:none;user-select:none;transition:opacity .15s,transform .1s}
 button:active{opacity:.7;transform:scale(.97)}
 input,textarea{font-family:inherit;outline:none;-webkit-appearance:none}
-#danger-banner{background:linear-gradient(90deg,#450a0a,#7f1d1d);padding-top:calc(var(--safe-top)+10px);padding-bottom:10px;padding-left:16px;padding-right:16px;display:none;align-items:center;gap:8px;font-size:12px;color:#fca5a5;font-weight:600;flex-shrink:0}
+/* 修正：ヘッダー部分の余白（padding-top）を --safe-top をベースに計算 */
+#danger-banner{background:linear-gradient(90deg,#450a0a,#7f1d1d);padding-top:calc(var(--safe-top) + 8px);padding-bottom:10px;padding-left:16px;padding-right:16px;display:none;align-items:center;gap:8px;font-size:12px;color:#fca5a5;font-weight:600;flex-shrink:0}
 #danger-banner.show{display:flex}
-#header{padding:calc(var(--safe-top)+14px) 20px 10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(14,39,64,.6);flex-shrink:0}
+#header{padding:calc(var(--safe-top) + 12px) 20px 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(14,39,64,.6);flex-shrink:0}
 #danger-banner.show~#header{padding-top:14px}
-#content{flex:1;overflow-y:auto;padding:16px 20px 90px;-webkit-overflow-scrolling:touch}
-#nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateZ(0);width:100%;max-width:430px;background:rgba(2,11,24,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(14,39,64,.6);display:grid;grid-template-columns:repeat(4,1fr);padding:6px 0 calc(var(--safe-bot)+10px);z-index:100}
+/* 修正：コンテンツ下部とナビゲーションの余白を調整（ホームバーとの被り防止） */
+#content{flex:1;overflow-y:auto;padding:16px 20px calc(var(--safe-bot) + 90px);-webkit-overflow-scrolling:touch}
+#nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateZ(0);width:100%;max-width:430px;background:rgba(2,11,24,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(14,39,64,.6);display:grid;grid-template-columns:repeat(4,1fr);padding:6px 0 calc(var(--safe-bot) + 12px);z-index:100}
 .nav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;opacity:.35;transition:opacity .2s}
 .nav-btn.active{opacity:1}
 .nav-btn .ni{font-size:19px;transition:transform .2s}
@@ -111,6 +115,560 @@ input,textarea{font-family:inherit;outline:none;-webkit-appearance:none}
 </div>
 <div id="modal-container"></div>
 <div id="death-screen"><div id="death-content" style="text-align:center;padding:40px 20px;max-width:320px"></div></div>
-<script src="app.js"></script>
+
+<!-- app.js の内容をここに統合しました -->
+<script>
+"use strict";
+const WEEKLY_LIMIT = 5;
+const WEEKLY_GOAL  = 3;
+
+const REGRET_COSTS = [
+  ["🤢","頭痛・だるさで午前中のパフォーマンスが約40%低下"],
+  ["💸","1回の飲酒コストは酒代+翌日の生産性損失で実質2倍以上"],
+  ["😴","深い睡眠が失われ、翌朝の集中力・記憶力が顕著に低下する"],
+  ["🧠","前頭前野の働きが最大30%低下し、飲みたくなる悪循環を生む"],
+  ["📈","週3日以上の飲酒は肝臓の脂肪蓄積を加速する"],
+  ["🫀","飲酒翌日は心拍数が平均8%上昇し、心臓への負担を作る"],
+  ["💊","アルコールは翌日の気力を根本から奪う睡眠破壊物質"],
+  ["🧬","1回の飲酒で腸内善玉菌が最大24時間ダメージを受ける"],
+  ["💧","利尿作用で脱水し、翌朝の肌・頭皮・目が劣化する"],
+  ["⏰","飲酒後の睡眠は浅く、実質的な休息時間が約30%減少する"],
+];
+
+const ALCOHOL_DEMERITS = [
+  "睡眠の質が著しく低下し、翌日の疲労感が残ります。",
+  "アルコール分解に体内の水分とビタミンが大量に消費されます。",
+  "翌朝の集中力や判断力が低下し、パフォーマンスが落ちます。",
+  "飲酒代という金銭的コストが確実に積み重なります。",
+  "肝臓に負担がかかり、基礎代謝が低下して太りやすくなります。",
+  "筋肉の合成が阻害され、トレーニングの効果が薄れます。",
+  "酔っている間の記憶が曖昧になり、時間を浪費します。",
+  "メンタルが不安定になり、翌日の不安感や鬱っぽさを引き起こします。",
+  "肌の水分が奪われ、乾燥や肌荒れの原因になります。",
+  "免疫力が低下し、風邪や感染症にかかりやすくなります。",
+  "胃腸の粘膜が荒れ、消化不良や胃もたれを引き起こします。",
+  "深酒は睡眠時無呼吸症候群のリスクを高めます。",
+  "翌日の「飲まなければよかった」という自己嫌悪に繋がります。",
+  "飲酒に費やす時間を、自己投資や趣味に使えなくなります。",
+  "アルコールはエンプティカロリーであり、無駄なカロリーを摂取します。",
+  "慢性的な飲酒は、将来的な生活習慣病のリスクを跳ね上げます。",
+  "酔った勢いで、不要な買い物や暴飲暴食をしてしまうリスクがあります。",
+  "お酒を飲むと、コルチゾールの分泌が増加します。",
+  "歯周病や口臭のリスクが高まります。",
+  "脳の萎縮を早めるリスクが指摘されています。",
+  "睡眠中の心拍数が下がらず、体が十分に休まりません。",
+  "飲酒による脱水症状は、頭痛やだるさの直接的な原因になります。",
+  "長期的な飲酒は、感情のコントロールを難しくします。",
+  "翌日のスケジュールが二日酔いによって崩れる可能性があります。",
+  "飲酒習慣は、セロトニンの分泌バランスを崩します。",
+  "お酒に頼るストレス発散は、根本的な解決になりません。",
+  "アルコールは発がんリスクを確実に高める要因の一つです。",
+  "飲んでいる間の生産性は実質ゼロになります。",
+  "大切な人との有意義な時間を奪う可能性があります。",
+  "今日我慢できれば、明日の朝、最高の達成感を味わえます。",
+];
+
+const MILESTONES = [
+  {weeks:1, icon:"🌱",label:"1週間",desc:"節酒習慣のスタート"},
+  {weeks:2, icon:"💧",label:"2週間",desc:"睡眠の質が改善し始める"},
+  {weeks:4, icon:"⚡",label:"1ヶ月",desc:"仕事パフォーマンスが上がる"},
+  {weeks:8, icon:"🏔️",label:"2ヶ月",desc:"肝機能が目に見えて改善"},
+  {weeks:12,icon:"🌟",label:"3ヶ月",desc:"習慣が完全に書き換わる"},
+  {weeks:26,icon:"👑",label:"半年", desc:"人生の質が根本から変わる"},
+];
+
+function getDogSVG(stage) {
+  const ext = stage === 5 ? 'jpg' : 'png';
+  const w   = stage >= 4 ? 160 : 130;
+  const h   = stage >= 4 ? 110 : 130;
+  
+  // ▼ ここを修正：画像が見つからない時は仮の画像(プレースホルダー)を表示するようにしました
+  return '<img src="dog' + stage + '.' + ext + '" width="' + w + '" height="' + h + '" style="object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.4))" alt="なも stage ' + stage + '" onerror="this.src=\'https://placehold.co/' + w + 'x' + h + '/1e293b/f1f5f9?text=dog' + stage + '.' + ext + '\'">';
+}
+
+// ─── STATE ───────────────────────────────────────
+const STATE_KEY = "wb_state_v3";
+let state = {
+  startDate:null, dailyCost:600, log:{}, urges:[], tactics:[],
+  currentTab:"home", historyMonthOffset:0, bestStreak:0, bestWeeks:0,
+};
+let _dataView = "calendar";
+let _chatMessages = [{role:"namo",text:"こんにちは！なもだよ 🐕\n今日も一緒にがんばろうね。何か話したいことある？"}];
+let _chatLoading = false;
+
+// ─── TIMEZONE: 常にローカル日付 ─────────────────
+function localDateStr(date) {
+  const d = date || new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+const todayKey = () => localDateStr(new Date());
+function daysAgoKey(n) { const d = new Date(); d.setDate(d.getDate()-n); return localDateStr(d); }
+
+// ─── PERF ────────────────────────────────────────
+let _gwCache = {v:0, h:""};
+function goalWeeks() {
+  const h = JSON.stringify(state.log);
+  if (_gwCache.h === h) return _gwCache.v;
+  let c = 0;
+  for (let i = 0; i >= -52; i--) {
+    const s = weekStats(getWeekDays(i));
+    if (s.drank < WEEKLY_LIMIT && (s.sober + s.drank) >= 3) c++;
+  }
+  _gwCache = {v:c, h};
+  return c;
+}
+
+// ─── PERSISTENCE ─────────────────────────────────
+function saveState() {
+  try {
+    const streak = calcStreak();
+    if (streak > (state.bestStreak || 0)) state.bestStreak = streak;
+    const gw = goalWeeks();
+    if (gw > (state.bestWeeks || 0)) state.bestWeeks = gw;
+    localStorage.setItem(STATE_KEY, JSON.stringify({
+      startDate: state.startDate ? state.startDate.toISOString() : null,
+      dailyCost: state.dailyCost, log: state.log, urges: state.urges,
+      tactics: state.tactics, bestStreak: state.bestStreak, bestWeeks: state.bestWeeks,
+    }));
+    _gwCache.h = "";
+    scheduleAutoBackup();
+  } catch(e) { console.warn("Save failed:", e); }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STATE_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (d.startDate)  state.startDate  = new Date(d.startDate);
+    if (d.dailyCost)  state.dailyCost  = Number(d.dailyCost);
+    if (d.log)        state.log        = d.log;
+    if (d.urges)      state.urges      = d.urges;
+    if (d.tactics)    state.tactics    = d.tactics;
+    if (d.bestStreak) state.bestStreak = d.bestStreak;
+    if (d.bestWeeks)  state.bestWeeks  = d.bestWeeks;
+  } catch(e) { console.warn("Load failed:", e); }
+}
+
+// ─── BACKUP ──────────────────────────────────────
+let _bkTimer = null, _lastBk = 0;
+function getGasUrl() { return localStorage.getItem("wb_gas_url") || ""; }
+
+function scheduleAutoBackup() {
+  if (_bkTimer) clearTimeout(_bkTimer);
+  _bkTimer = setTimeout(function() {
+    const url = getGasUrl(); if (!url) return;
+    _lastBk = Date.now();
+    const raw = localStorage.getItem(STATE_KEY); if (!raw) return;
+    fetch(url, {method:"POST", headers:{"Content-Type":"text/plain"}, body:raw, redirect:"follow"})
+      .then(r => r.text())
+      .then(t => { try { const j = JSON.parse(t); if (j.success) localStorage.setItem("wb_last_bk", new Date().toISOString()); } catch(e) {} })
+      .catch(() => {});
+  }, Math.max(0, 30000 - (Date.now() - _lastBk)));
+}
+
+function manualBackup() {
+  const url = getGasUrl();
+  if (!url) { alert("GAS URLが未設定です。"); return; }
+  const raw = localStorage.getItem(STATE_KEY);
+  if (!raw) { alert("データがありません。"); return; }
+  fetch(url, {method:"POST", headers:{"Content-Type":"text/plain"}, body:raw, redirect:"follow"})
+    .then(r => r.text())
+    .then(t => { const j = JSON.parse(t); alert(j.success ? "バックアップ完了！" : "失敗: " + (j.error || "")); if (j.success) localStorage.setItem("wb_last_bk", new Date().toISOString()); })
+    .catch(e => { alert("通信エラー: " + e.message); });
+}
+
+function restoreFromSheets() {
+  const url = getGasUrl();
+  if (!url) { alert("GAS URLが未設定です。"); return; }
+  if (!confirm("スプシから復元します。現在のデータは上書きされます。")) return;
+  fetch(url, {redirect:"follow"}).then(r => r.text())
+    .then(t => { const d = JSON.parse(t); if (!d.success) { alert("復元データなし"); return; } delete d.success; localStorage.setItem(STATE_KEY, JSON.stringify(d)); loadState(); closeModal(); renderContent(); alert("復元完了！"); })
+    .catch(e => { alert("通信エラー: " + e.message); });
+}
+
+function exportData() {
+  const raw = localStorage.getItem(STATE_KEY) || "{}";
+  const ta = document.getElementById("backup-text");
+  if (ta) ta.value = raw;
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(raw).then(() => alert("コピーしました！")).catch(() => { if (ta) ta.select(); alert("手動でコピーしてください。"); });
+  } else { if (ta) { ta.select(); try { document.execCommand("copy"); alert("コピーしました！"); } catch(e) { alert("手動でコピーしてください。"); } } }
+}
+
+function importData() {
+  const ta = document.getElementById("backup-text");
+  const raw = ta ? ta.value.trim() : "";
+  if (!raw) { alert("テキストが空です。"); return; }
+  if (!confirm("現在のデータを上書きします。よろしいですか？")) return;
+  try { JSON.parse(raw); localStorage.setItem(STATE_KEY, raw); loadState(); closeModal(); renderContent(); alert("復元しました！"); } catch(e) { alert("データが壊れています。"); }
+}
+
+function forceUpdate() {
+  if ("caches" in window) { caches.keys().then(n => { return Promise.all(n.map(k => caches.delete(k))); }).then(() => { location.reload(true); }); } else { location.reload(true); }
+}
+
+// ─── HELPERS ─────────────────────────────────────
+function getWeekDays(offset) {
+  if (offset === undefined) offset = 0;
+  const days = [], now = new Date(), mon = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7) + offset * 7);
+  for (let i = 0; i < 7; i++) { const d = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + i); days.push(localDateStr(d)); }
+  return days;
+}
+function weekStats(days) { return { drank: days.filter(d => state.log[d] === "drank").length, sober: days.filter(d => state.log[d] === "sober").length }; }
+function totalStats() { const sober = Object.values(state.log).filter(v => v === "sober").length; return { sober, saved: sober * state.dailyCost }; }
+function calcStreak() {
+  let streak = 0; const ts = state.log[todayKey()]; let start = (!ts) ? 1 : (ts === "drank") ? -1 : 0;
+  if (start < 0) return 0;
+  for (let i = start; i < 365; i++) { if (state.log[daysAgoKey(i)] === "sober") streak++; else break; }
+  return streak;
+}
+function getDogStage() {
+  const drankCount = getWeekDays(0).filter(d => state.log[d] === "drank").length;
+  if (drankCount >= WEEKLY_LIMIT) return 5;
+  const recovered = (state.log[daysAgoKey(1)] === "sober" && state.log[daysAgoKey(2)] === "sober");
+  const base = Math.min(4, drankCount);
+  return recovered ? Math.max(0, base - 1) : base;
+}
+function getWeekDrinks() { return getWeekDays(0).filter(d => state.log[d] === "drank").length; }
+function getDaysUntilRecovery() {
+  if (state.log[todayKey()] === "sober" && state.log[daysAgoKey(1)] === "sober") return 0;
+  if (state.log[todayKey()] === "sober") return 1; return 2;
+}
+function checkDangerZone() { const h = new Date().getHours() + new Date().getMinutes() / 60; const el = document.getElementById("danger-banner"); if (el) el.classList.toggle("show", h >= 18 && h < 19.5); }
+function escHtml(s) { return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>"); }
+
+// ─── MODAL ───────────────────────────────────────
+function openModal(type, extra) {
+  if (extra === undefined) extra = null;
+  const mc = document.getElementById("modal-container");
+  let content = "";
+
+  if (type === "setup") {
+    const dv = state.startDate ? localDateStr(state.startDate) : todayKey();
+    content = '<h3 class="tab-title">⚙️ セットアップ</h3><p class="section-desc">基本情報を設定してください。</p><div class="col"><div><label class="label-sm">開始日</label><input type="date" id="setup-date" class="inp" value="' + dv + '"></div><div><label class="label-sm">1日の酒代（平均）</label><input type="number" id="setup-cost" class="inp" value="' + state.dailyCost + '"></div><button class="btn-cyan" onclick="saveSetup()">保存する</button></div>';
+  } else if (type === "recovery") {
+    content = '<h3 class="tab-title">📝 飲酒の記録</h3><p class="section-desc">状況を記録して、次の対策を立てましょう。</p><div class="col"><div><label class="label-sm">状況（原因）</label><textarea id="rec-situation" class="inp" style="height:80px" placeholder="例：仕事で疲れてコンビニに寄った"></textarea></div><div><label class="label-sm">次はどうする？（対策）</label><textarea id="rec-action" class="inp" style="height:80px" placeholder="例：炭酸水を買って帰る"></textarea></div><button style="background:var(--red);color:white;border-radius:14px;padding:14px;font-weight:700;font-size:15px;width:100%" onclick="logToday(\'drank\')">記録を保存</button></div>';
+  } else if (type === "edit-log") {
+    const k = extra, val = state.log[k];
+    const sb = val === "sober" ? "border:2px solid white" : "";
+    const db = val === "drank" ? "border:2px solid white" : "";
+    content = '<h3 class="tab-title">✏️ 記録を修正</h3><p class="section-desc">' + k + '</p><div class="col"><button class="btn-cyan" style="margin-bottom:10px;' + sb + '" onclick="updateLog(\'' + k + '\',\'sober\')">✅ 休肝達成</button><button class="btn-red" style="margin-bottom:10px;' + db + '" onclick="updateLog(\'' + k + '\',\'drank\')">🍷 飲んでしまった</button><button class="btn-gray" onclick="updateLog(\'' + k + '\',null)">🗑️ 記録を削除</button></div>';
+  } else if (type === "tactic") {
+    const t = extra !== null ? state.tactics[extra] : null;
+    const sv = t ? t.situation : "", av = t ? t.action : "", bl = t ? "更新する" : "登録する";
+    content = '<h3 class="tab-title">' + (t ? "🛡️ 対策を編集" : "🛡️ 新しい対策") + '</h3><div class="col"><div><label class="label-sm">状況</label><textarea id="tac-situation" class="inp" style="height:80px">' + sv + '</textarea></div><div><label class="label-sm">対策</label><textarea id="tac-action" class="inp" style="height:80px">' + av + '</textarea></div><button class="btn-cyan" onclick="saveTactic(' + extra + ')">' + bl + '</button></div>';
+  } else if (type === "settings") {
+    const gu = getGasUrl();
+    const lbk = localStorage.getItem("wb_last_bk");
+    const lbkStr = lbk ? new Date(lbk).toLocaleString("ja-JP") : "なし";
+    const ak = localStorage.getItem("wb_namo_key") || "";
+    const ps = localStorage.getItem("wb_namo_persona") || "";
+    content = '<h3 style="font-size:18px;font-weight:700;margin-bottom:16px">⚙️ 設定</h3>'
+      + '<div class="card" style="border:1px solid var(--border)"><p style="font-size:14px;font-weight:700;margin-bottom:8px">🔄 アプリを最新版に更新</p><p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px">キャッシュをクリアして最新版を読み込みます。</p><button class="btn-cyan" onclick="forceUpdate()">更新を確認する</button></div>'
+      + '<div class="card" style="border:1px solid rgba(34,211,238,.2)"><p style="font-size:13px;font-weight:700;color:var(--cyan);margin-bottom:4px">☁️ スプシ連携（自動）</p><p style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px">データ変更時に自動バックアップ（無料）</p><label class="label-sm">GAS URL</label><input id="gas-url-inp" class="inp" style="font-size:12px;margin-bottom:10px" value="' + gu + '" placeholder="https://script.google.com/macros/s/..."><button class="btn-cyan" style="margin-bottom:10px;font-size:13px" onclick="saveGasUrlBtn()">URLを保存</button><div class="row2" style="margin-bottom:8px"><button class="btn-gray" style="font-size:12px" onclick="manualBackup()">📤 バックアップ</button><button class="btn-gray" style="font-size:12px" onclick="restoreFromSheets()">📥 復元</button></div><p style="font-size:10px;color:var(--dim)">最終: ' + lbkStr + '</p></div>'
+      + '<div class="card" style="border:1px solid rgba(245,158,11,.2)"><p style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:4px">🐕 なもの人格設定</p><p style="font-size:11px;color:var(--muted);margin-bottom:10px">なもの性格をカスタマイズ</p><label class="label-sm">Gemini API Key</label><input id="namo-key-inp" class="inp" style="font-size:12px;font-family:monospace;margin-bottom:10px" value="' + ak + '"><label class="label-sm">人格プロンプト</label><textarea id="namo-persona-inp" class="inp" style="font-size:12px;height:100px;margin-bottom:10px">' + ps + '</textarea><button class="btn-cyan" style="font-size:13px" onclick="saveNamoSettings()">保存</button></div>'
+      + '<div class="card"><p style="font-size:13px;font-weight:700;margin-bottom:10px">📋 テキストバックアップ</p><textarea id="backup-text" class="inp" style="height:80px;font-size:10px;margin-bottom:10px"></textarea><div class="row2"><button class="btn-gray" style="font-size:12px" onclick="exportData()">コピー</button><button class="btn-gray" style="font-size:12px" onclick="importData()">復元</button></div></div>'
+      /* 修正：最下部のリセットボタンにマージンを持たせ、スクロールしやすくする */
+      + '<div style="margin-top:24px;margin-bottom:16px;"><button style="width:100%;padding:14px;border-radius:12px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.05);color:var(--red);font-size:13px;font-weight:700" onclick="resetAll()">全データをリセット</button></div>';
+  }
+
+  /* 修正：閉じるボタンを丸く押しやすくし、コンテンツ全体の下部に余裕（padding-bottom:40px）を持たせる */
+  mc.innerHTML = '<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="sheet"><div style="text-align:right;margin-bottom:12px;position:sticky;top:0;z-index:10;"><button onclick="closeModal()" style="font-size:20px;color:var(--text);width:40px;height:40px;background:var(--bg3);border-radius:20px;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.2);">✕</button></div><div style="padding-bottom:40px;">' + content + '</div></div></div>';
+}
+
+function closeModal() { document.getElementById("modal-container").innerHTML = ""; }
+function saveSetup() { const d = document.getElementById("setup-date").value, c = document.getElementById("setup-cost").value; if (!d||!c) return; state.startDate = new Date(d); state.dailyCost = Number(c); saveState(); closeModal(); renderContent(); }
+function saveTactic(idx) { const s = document.getElementById("tac-situation").value.trim(), a = document.getElementById("tac-action").value.trim(); if (!s||!a) return; if (idx !== null) { state.tactics[idx].situation = s; state.tactics[idx].action = a; } else { state.tactics.push({date:todayKey(),situation:s,action:a,attempts:[]}); } saveState(); closeModal(); renderContent(); }
+function updateLog(date, val) { if (val === null) delete state.log[date]; else state.log[date] = val; saveState(); closeModal(); renderContent(); }
+function saveGasUrlBtn() { const u = document.getElementById("gas-url-inp").value.trim(); localStorage.setItem("wb_gas_url", u); alert(u ? "URLを保存しました" : "URLをクリアしました"); }
+function saveNamoSettings() { localStorage.setItem("wb_namo_key", document.getElementById("namo-key-inp").value.trim()); localStorage.setItem("wb_namo_persona", document.getElementById("namo-persona-inp").value.trim()); alert("保存しました"); }
+
+function logToday(val) {
+  const k = todayKey(); state.log[k] = val;
+  if (val === "drank") {
+    const se = document.getElementById("rec-situation"), ae = document.getElementById("rec-action");
+    const s = se ? se.value.trim() : "", a = ae ? ae.value.trim() : "";
+    if (s && a) state.tactics.push({date:k,situation:s,action:a,attempts:[]});
+    localStorage.removeItem("wb_commit_" + k);
+  }
+  saveState(); closeModal(); renderContent();
+  if (val === "drank" && getDogStage() === 5) showDeathScreen();
+}
+function undoToday() { openModal("edit-log", todayKey()); }
+function morningCommit() { localStorage.setItem("wb_commit_" + todayKey(), "1"); renderContent(); }
+function showDeathScreen() {
+  const ds = document.getElementById("death-screen"), dc = document.getElementById("death-content");
+  dc.innerHTML = '<div style="font-size:80px;margin-bottom:20px">💀</div><h2 style="color:var(--red);font-size:24px;margin-bottom:16px">なもが倒れました</h2><p style="color:var(--muted);line-height:1.8;margin-bottom:30px">今週の飲酒上限を超えました。<br>なもを休ませてあげてください。<br>来週の月曜日に復活します。</p><button class="btn-gray" onclick="document.getElementById(\'death-screen\').classList.remove(\'show\')">閉じる</button>';
+  ds.classList.add("show");
+}
+function resetAll() { if (confirm("全てのデータを消去します。よろしいですか？")) { localStorage.clear(); location.reload(); } }
+
+// ─── ROUTING ─────────────────────────────────────
+function switchTab(tab) {
+  state.currentTab = tab;
+  document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+  const el = document.getElementById("nav-" + tab); if (el) el.classList.add("active");
+  document.getElementById("content").scrollTop = 0;
+  renderContent();
+}
+function renderContent() {
+  const el = document.getElementById("content");
+  const map = {home:renderHome, data:renderData, tactics:renderTactics, namo:renderNamo};
+  el.innerHTML = (map[state.currentTab] || renderHome)();
+}
+
+// ─── 5min RESET MODAL ────────────────────────────
+let _urgeTimer = 300, _urgeInterval = null, _urgeDemerit = "";
+function openUrgeModal() {
+  _urgeTimer = 300;
+  _urgeDemerit = ALCOHOL_DEMERITS[Math.floor(Math.random() * ALCOHOL_DEMERITS.length)];
+  document.getElementById("urge-modal").classList.add("show");
+  document.getElementById("urge-demerit").textContent = _urgeDemerit;
+  updateUrgeDisplay();
+  if (_urgeInterval) clearInterval(_urgeInterval);
+  _urgeInterval = setInterval(function() {
+    _urgeTimer--;
+    if (_urgeTimer <= 0) { _urgeTimer = 0; clearInterval(_urgeInterval); _urgeInterval = null; }
+    updateUrgeDisplay();
+  }, 1000);
+}
+function closeUrgeModal() {
+  document.getElementById("urge-modal").classList.remove("show");
+  if (_urgeInterval) { clearInterval(_urgeInterval); _urgeInterval = null; }
+  _urgeTimer = 300;
+}
+function updateUrgeDisplay() {
+  const te = document.getElementById("urge-time"), pe = document.getElementById("urge-phase"), cb = document.getElementById("urge-close-btn");
+  if (!te) return;
+  te.textContent = String(Math.floor(_urgeTimer / 60)).padStart(2, "0") + ":" + String(_urgeTimer % 60).padStart(2, "0");
+  if (_urgeTimer <= 0) {
+    te.style.color = "var(--green)"; pe.textContent = "🎉 波を乗り越えました！"; pe.style.color = "var(--green)";
+    cb.textContent = "完了"; cb.style.background = "rgba(52,211,153,.12)"; cb.style.color = "var(--green)"; cb.style.borderColor = "rgba(52,211,153,.25)";
+  }
+}
+
+// ━━━━━━━━━━━━━ HOME TAB ━━━━━━━━━━━━━━━━━━━━━━━
+function renderHome() {
+  if (!state.startDate) {
+    return '<div style="text-align:center;padding:80px 20px"><div style="font-size:80px;margin-bottom:20px;filter:drop-shadow(0 0 20px rgba(34,211,238,.3))">🐕</div><h2 style="font-family:\'Noto Serif JP\',serif;font-size:24px;margin-bottom:16px;line-height:1.5">NAMOへようこそ</h2><p style="color:var(--muted);font-size:14px;line-height:1.8;margin-bottom:40px">なもと一緒に節酒を続けましょう。<br>飲むたびになもが元気をなくします。</p><button class="btn-cyan" onclick="openModal(\'setup\')">今すぐセットアップ →</button></div>';
+  }
+  const wk = getWeekDrinks(), ds = getDogStage(), rem = WEEKLY_LIMIT - wk, isDead = ds === 5;
+  const tl = state.log[todayKey()], streak = calcStreak(), saved = totalStats().saved;
+  const tw = getWeekDays(0), ti = (new Date().getDay() + 6) % 7;
+  const dn = ["月","火","水","木","金","土","日"];
+  const hr = new Date().getHours(), isMorn = hr >= 5 && hr < 12;
+  const comm = localStorage.getItem("wb_commit_" + todayKey()) === "1";
+
+  // Dog
+  let dbg, dbd;
+  if (isDead) { dbg = "linear-gradient(135deg,#1a0a0a,#0d0505)"; dbd = "#3D1515"; }
+  else if (ds >= 3) { dbg = "linear-gradient(135deg,#1a0d0a,#120800)"; dbd = "#3D2010"; }
+  else if (ds >= 1) { dbg = "linear-gradient(135deg,#1a1a0a,#120d00)"; dbd = "#3D3010"; }
+  else { dbg = "linear-gradient(135deg,#0a1a0a,#061206)"; dbd = "#1A3D1A"; }
+  const sn = ["元気いっぱい","普通","疲れ気味","ぐったり","瀕死","💀 今週終了"];
+  const sc = ["var(--green)","#86d368","var(--amber)","#f97316","var(--red)","#6B7280"];
+  let dots = "";
+  for (let i = 0; i < WEEKLY_LIMIT; i++) { const fl = i < (WEEKLY_LIMIT - wk); dots += '<div class="dog-pip ' + (fl ? (i < WEEKLY_LIMIT - WEEKLY_GOAL ? "alive" : "warned") : "dead") + '"></div>'; }
+
+  // Stats
+  const remColor = rem <= 1 ? "var(--red)" : rem <= 2 ? "var(--amber)" : "var(--cyan)";
+  const stats = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;margin:16px 0;background:var(--border);border-radius:16px;overflow:hidden">'
+    + '<div style="background:#0a1220;padding:16px 8px;text-align:center"><p style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:6px;letter-spacing:1px">連続</p><p style="font-size:24px;font-weight:700;color:var(--amber);line-height:1">' + streak + '<span style="font-size:12px;color:var(--dim);font-weight:500">日</span></p></div>'
+    + '<div style="background:#0a1220;padding:16px 8px;text-align:center"><p style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:6px;letter-spacing:1px">今週あと</p><p style="font-size:24px;font-weight:700;color:' + remColor + ';line-height:1">' + (isDead ? "0" : rem) + '<span style="font-size:12px;color:var(--dim);font-weight:500">回</span></p></div>'
+    + '<div style="background:#0a1220;padding:16px 8px;text-align:center"><p style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:6px;letter-spacing:1px">節約累計</p><p style="font-size:20px;font-weight:700;color:var(--green);line-height:1">¥' + saved.toLocaleString() + '</p></div></div>';
+
+  // Week
+  let wcells = "";
+  tw.forEach((d, i) => {
+    const s = state.log[d], it = i === ti;
+    let cls = "week-cell";
+    if (s === "sober") cls += " sober"; else if (s === "drank") cls += " drank"; else if (it) cls += " today"; else cls += " empty";
+    wcells += '<div onclick="openModal(\'edit-log\',\'' + d + '\')"><div class="week-cell-label" style="color:' + (it ? "var(--cyan)" : "var(--muted)") + '">' + dn[i] + '</div><div class="' + cls + '">' + (s === "sober" ? "○" : s === "drank" ? "×" : "") + '</div></div>';
+  });
+
+  // Commit
+  let commitHtml = "";
+  if (comm) {
+    commitHtml = '<div style="border-radius:18px;padding:18px 20px;margin-bottom:16px;text-align:center;position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(245,158,11,.14),rgba(245,158,11,.04));border:1.5px solid rgba(245,158,11,.45);box-shadow:0 0 30px rgba(245,158,11,.06);animation:commitGlow 3s ease-in-out infinite"><div style="display:flex;align-items:center;justify-content:center;gap:10px"><span style="font-size:28px">✊</span><div><p style="font-size:15px;font-weight:800;color:var(--amber);letter-spacing:2px">宣言済み</p><p style="font-size:11px;color:var(--text);margin-top:3px;font-weight:500">今日は飲まない — なもが見守り中</p></div></div><div style="margin-top:10px;padding:6px 14px;background:rgba(245,158,11,.1);border-radius:10px;display:inline-block"><span style="font-size:10px;color:var(--amber);font-weight:700;letter-spacing:1px">🔥 MISSION IN PROGRESS</span></div></div>';
+  } else if (!tl && isMorn) {
+    commitHtml = '<button onclick="morningCommit()" style="width:100%;padding:20px;border-radius:18px;border:1.5px solid rgba(34,211,238,.4);background:linear-gradient(160deg,rgba(34,211,238,.12),rgba(52,211,153,.06));text-align:left;margin-bottom:16px"><div style="display:flex;align-items:center;justify-content:space-between"><div><p style="font-size:12px;color:var(--cyan);font-weight:700;letter-spacing:2px;margin-bottom:6px">☀️ MORNING COMMITMENT</p><p style="font-size:17px;font-weight:700;color:var(--text)">今日は飲まないと宣言する</p><p style="font-size:11px;color:var(--muted);margin-top:4px">朝の宣言で夕方の衝動が40%抑制</p></div><span style="font-size:24px;opacity:.5">→</span></div></button>';
+  }
+
+  // Today
+  let todayCard = "";
+  if (!tl) {
+    todayCard = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn-cyan" style="padding:20px;font-size:16px" onclick="logToday(\'sober\')">✓ 休肝達成</button><button style="padding:20px;border-radius:14px;border:1px solid rgba(239,68,68,.3);background:transparent;color:var(--red);font-weight:600;font-size:14px" onclick="openModal(\'recovery\')">飲んでしまった</button></div>';
+  } else {
+    const lb = tl === "sober" ? "rgba(34,211,238,.06)" : "rgba(239,68,68,.06)";
+    const lbd = tl === "sober" ? "rgba(34,211,238,.2)" : "rgba(239,68,68,.2)";
+    const lc = tl === "sober" ? "var(--cyan)" : "var(--red)";
+    const li = tl === "sober" ? "✅" : "📝", lm = tl === "sober" ? "休肝達成！" : "記録しました";
+    const dn2 = tl === "drank" ? '<p style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6">原因と対策が「作戦タブ」に記録されました。</p>' : "";
+    todayCard = '<div style="text-align:center;padding:20px;border-radius:18px;background:' + lb + ';border:1px solid ' + lbd + ';margin-bottom:16px;position:relative"><button onclick="undoToday()" style="position:absolute;top:12px;right:12px;font-size:11px;color:var(--muted);background:var(--bg3);padding:5px 10px;border-radius:8px;border:1px solid var(--border)">↩</button><p style="font-size:32px;margin-bottom:6px">' + li + '</p><p style="color:' + lc + ';font-weight:700;font-size:15px">' + lm + '</p>' + dn2 + '</div>';
+  }
+
+  // 5min Reset
+  const urgeCard = '<button onclick="openUrgeModal()" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:rgba(0,212,255,.04);padding:16px 20px;border-radius:14px;border:1px solid rgba(0,212,255,.15);margin-top:20px;text-align:left"><div style="display:flex;align-items:center;gap:12px"><div style="width:36px;height:36px;border-radius:18px;background:rgba(0,212,255,.1);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="14.31" y1="8" x2="20.05" y2="17.94"/><line x1="9.69" y1="8" x2="21.17" y2="8"/><line x1="7.38" y1="12" x2="13.12" y2="2.06"/></svg></div><div><p style="font-weight:700;font-size:14px">5min Reset</p><p style="font-size:11px;color:#00D4FF;font-weight:500;margin-top:2px">衝動をやり過ごす5分間</p></div></div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--dim)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>';
+
+  return '<div class="col"><div style="text-align:center;padding-top:12px;padding-bottom:4px"><div class="dog-svg-wrap">' + getDogSVG(ds) + '</div><div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:4px"><p style="font-size:12px;font-weight:700;color:' + sc[ds] + '">🐕 ' + sn[ds] + '</p></div><div class="dog-meter">' + dots + '</div></div>' + stats + '<div class="week-grid" style="margin:0 0 20px">' + wcells + '</div>' + commitHtml + todayCard + urgeCard + '</div>';
+}
+
+// ━━━━━━━━━━━━━ DATA TAB ━━━━━━━━━━━━━━━━━━━━━━━━
+function switchDataView(v) { _dataView = v; renderContent(); }
+
+function renderData() {
+  const calAct = _dataView === "calendar" ? " act" : "";
+  const savAct = _dataView === "savings" ? " act" : "";
+  return '<div class="col"><div class="dtog"><button class="' + calAct.trim() + '" onclick="switchDataView(\'calendar\')">📅 記録</button><button class="' + savAct.trim() + '" onclick="switchDataView(\'savings\')">💰 資産</button></div>' + (_dataView === "calendar" ? renderCalendar() : renderSavings()) + '</div>';
+}
+
+function renderCalendar() {
+  const now = new Date(), tgt = new Date(now.getFullYear(), now.getMonth() + state.historyMonthOffset, 1);
+  const Y = tgt.getFullYear(), M = tgt.getMonth();
+  const fd = (new Date(Y, M, 1).getDay() + 6) % 7, ld = new Date(Y, M + 1, 0).getDate();
+  const cells = []; for (let i = 0; i < fd; i++) cells.push(null); for (let d = 1; d <= ld; d++) cells.push(d);
+  const dh = ["月","火","水","木","金","土","日"];
+  let grid = "";
+  dh.forEach(d => { grid += '<div style="text-align:center;font-size:10px;color:var(--muted);font-weight:700;padding-bottom:8px">' + d + '</div>'; });
+  cells.forEach(dd => {
+    if (!dd) { grid += '<div style="aspect-ratio:1"></div>'; return; }
+    const k = Y + "-" + String(M + 1).padStart(2, "0") + "-" + String(dd).padStart(2, "0");
+    const sv = state.log[k];
+    let st = "aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;cursor:pointer;";
+    if (sv === "sober") st += "background:var(--cyan);color:var(--bg);";
+    else if (sv === "drank") st += "background:var(--red);color:white;";
+    else st += "background:var(--bg3);color:var(--muted);";
+    grid += '<div onclick="openModal(\'edit-log\',\'' + k + '\')" style="' + st + '">' + dd + '</div>';
+  });
+  const mp = Y + "-" + String(M + 1).padStart(2, "0");
+  let sm = 0, dm = 0;
+  Object.keys(state.log).forEach(k => { if (k.indexOf(mp) === 0) { if (state.log[k] === "sober") sm++; else if (state.log[k] === "drank") dm++; } });
+
+  let milestones = "";
+  const totalSober = totalStats().sober, totalWeeks = Math.floor(totalSober / WEEKLY_GOAL);
+  MILESTONES.forEach((m, i) => {
+    const pct = Math.min((totalWeeks / m.weeks) * 100, 100);
+    milestones += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:' + (i < MILESTONES.length - 1 ? 10 : 0) + 'px"><span style="font-size:16px;width:24px;text-align:center">' + m.icon + '</span><div style="flex:1"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:12px;font-weight:600">' + m.label + '</span><span style="font-size:10px;color:var(--dim);font-weight:600">' + Math.round(pct) + '%</span></div><div style="background:var(--bg3);height:4px;border-radius:2px;overflow:hidden"><div style="width:' + pct + '%;height:100%;background:var(--cyan);border-radius:2px"></div></div></div></div>';
+  });
+
+  return '<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><button onclick="changeMonth(-1)" style="padding:6px 10px;background:var(--bg3);border-radius:8px;color:var(--text)">◀</button><p style="font-weight:700;font-size:15px;letter-spacing:1px">' + Y + '年 ' + (M + 1) + '月</p><button onclick="changeMonth(1)" style="padding:6px 10px;background:var(--bg3);border-radius:8px;color:var(--text)">▶</button></div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:16px">' + grid + '</div><div class="row2"><div style="text-align:center"><p style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:4px">休肝</p><p style="font-size:20px;font-weight:700;color:var(--cyan)">' + sm + '</p></div><div style="text-align:center"><p style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:4px">飲酒</p><p style="font-size:20px;font-weight:700;color:var(--red)">' + dm + '</p></div></div></div><div class="card"><p style="font-size:11px;color:var(--amber);font-weight:700;letter-spacing:2px;margin-bottom:14px">🏆 ROADMAP</p>' + milestones + '</div>';
+}
+function changeMonth(v) { state.historyMonthOffset += v; renderContent(); }
+
+function renderSavings() {
+  const ts = totalStats(), sober = ts.sober, saved = ts.saved, daily = state.dailyCost;
+  const monthly = Math.round(daily * 30 * (7 - WEEKLY_GOAL) / 7), yearly = Math.round(daily * 365 * (7 - WEEKLY_GOAL) / 7);
+  let goals = []; try { goals = JSON.parse(localStorage.getItem("wb_saving_goals") || "[]"); } catch(e) {}
+  let goalCards = "";
+  goals.forEach((g, i) => {
+    const pct = Math.min((saved / g.amount) * 100, 100);
+    const pt = pct >= 100 ? "達成！" : Math.round(pct) + "%";
+    goalCards += '<div style="background:var(--bg2);border-radius:14px;padding:16px;border:1px solid var(--border);margin-bottom:12px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:24px">' + g.icon + '</span><div><p style="font-weight:700;font-size:14px">' + g.name + '</p><p style="font-size:11px;color:var(--muted)">¥' + g.amount.toLocaleString() + '</p></div></div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;font-weight:700;color:' + (pct >= 100 ? "var(--green)" : "var(--cyan)") + '">' + pt + '</span><button onclick="removeGoal(' + i + ')" style="font-size:18px;color:var(--dim);padding:2px 6px">×</button></div></div><div style="background:var(--bg3);height:6px;border-radius:3px;overflow:hidden"><div style="width:' + Math.min(pct, 100) + '%;height:100%;background:linear-gradient(90deg,var(--cyan),var(--green));border-radius:3px"></div></div></div>';
+  });
+  const ICONS = ["✈️","🍖","📈","🌿","📷","🎮","🏋️","🎁","💻","🛒"];
+  const isel = localStorage.getItem("wb_icon_sel") || "✈️";
+  let ip = "";
+  ICONS.forEach(ic => { ip += '<span onclick="selectIcon(this,event)" data-ic="' + ic + '" style="font-size:24px;cursor:pointer;padding:6px;border-radius:10px;background:' + (ic === isel ? "rgba(34,211,238,.2)" : "transparent") + ';border:1px solid ' + (ic === isel ? "var(--cyan)" : "transparent") + '">' + ic + '</span>'; });
+
+  return '<div style="text-align:center;margin-bottom:20px"><p style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:2px;margin-bottom:8px">節酒で生み出した資金</p><p style="font-size:48px;font-weight:700;color:var(--green);line-height:1">¥' + saved.toLocaleString() + '</p><p style="font-size:12px;color:var(--dim);margin-top:8px">休肝 ' + sober + '日 × ¥' + daily.toLocaleString() + '/日</p></div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px"><div style="background:#0a1220;padding:16px;text-align:center"><p style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:6px">月間予測</p><p style="font-size:22px;font-weight:700;color:var(--cyan)">¥' + monthly.toLocaleString() + '</p></div><div style="background:#0a1220;padding:16px;text-align:center"><p style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:6px">年間予測</p><p style="font-size:22px;font-weight:700;color:var(--amber)">¥' + yearly.toLocaleString() + '</p></div></div>'
+    + (goalCards || '<p style="font-size:13px;color:var(--muted);text-align:center;margin:8px 0;font-weight:600">下から目標を追加しましょう</p>')
+    + '<div class="card" style="border:1px solid rgba(245,158,11,.3)"><p style="font-size:14px;font-weight:700;color:var(--amber);margin-bottom:14px">＋ 目標を追加</p><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">' + ip + '</div><input id="goal-name" class="inp" placeholder="目標名" style="margin-bottom:10px"><input id="goal-amount" class="inp" type="number" placeholder="目標金額（円）" style="margin-bottom:14px"><button class="btn-cyan" onclick="addGoal()">目標を設定する</button></div>';
+}
+function selectIcon(el, e) { e.stopPropagation(); localStorage.setItem("wb_icon_sel", el.getAttribute("data-ic")); renderContent(); }
+function addGoal() { const ne = document.getElementById("goal-name"), ae = document.getElementById("goal-amount"); const name = ne ? ne.value.trim() : "", amount = ae ? Number(ae.value) : 0; const icon = localStorage.getItem("wb_icon_sel") || "✈️"; if (!name || !amount) return; let goals = []; try { goals = JSON.parse(localStorage.getItem("wb_saving_goals") || "[]"); } catch(e) {} goals.push({name, amount, icon}); localStorage.setItem("wb_saving_goals", JSON.stringify(goals)); renderContent(); }
+function removeGoal(idx) { let goals = []; try { goals = JSON.parse(localStorage.getItem("wb_saving_goals") || "[]"); } catch(e) {} goals.splice(idx, 1); localStorage.setItem("wb_saving_goals", JSON.stringify(goals)); renderContent(); }
+
+// ━━━━━━━━━━━━━ TACTICS TAB ━━━━━━━━━━━━━━━━━━━━━
+function renderTactics() {
+  const tactics = (state.tactics || []).slice().reverse(), total = state.tactics.length;
+  let cards = "";
+  tactics.forEach((t, ri) => {
+    const oi = total - 1 - ri, num = String(total - ri).padStart(3, "0");
+    const atts = t.attempts || [], tot = atts.length;
+    const wins = atts.filter(a => a.effective === true).length;
+    const rate = tot > 0 ? Math.round((wins / tot) * 100) : null;
+    const rc = rate === null ? "var(--muted)" : rate >= 70 ? "var(--green)" : rate >= 40 ? "var(--amber)" : "var(--red)";
+    let dts = "";
+    atts.forEach((a, ai) => {
+      dts += '<div style="display:flex;gap:2px"><button onclick="updateAttempt(' + oi + ',' + ai + ',true)" style="width:24px;height:24px;border-radius:6px;background:' + (a.effective === true ? "var(--green)" : "var(--bg3)") + ';color:' + (a.effective === true ? "var(--bg)" : "var(--muted)") + ';font-size:11px;font-weight:700;border:1px solid ' + (a.effective === true ? "var(--green)" : "var(--border)") + '">✓</button><button onclick="updateAttempt(' + oi + ',' + ai + ',false)" style="width:24px;height:24px;border-radius:6px;background:' + (a.effective === false ? "var(--red)" : "var(--bg3)") + ';color:' + (a.effective === false ? "white" : "var(--muted)") + ';font-size:11px;font-weight:700;border:1px solid ' + (a.effective === false ? "var(--red)" : "var(--border)") + '">×</button></div>';
+    });
+    cards += '<div style="background:var(--bg2);border-radius:16px;padding:16px;border:1px solid ' + (tot > 0 && wins / tot >= 0.5 ? "rgba(52,211,153,.25)" : "var(--border)") + ';margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:10px;color:var(--dim);background:var(--bg3);padding:2px 6px;border-radius:4px;font-weight:600">#' + num + '</span><span style="font-size:10px;color:var(--dim)">' + t.date + '</span></div><div style="display:flex;gap:8px"><button onclick="openModal(\'tactic\',' + oi + ')" style="color:var(--cyan);font-size:12px;font-weight:700">編集</button><button onclick="removeTactic(' + oi + ')" style="color:var(--dim);font-size:18px">×</button></div></div><p style="font-size:14px;font-weight:700;line-height:1.5;margin-bottom:8px">' + t.situation + '</p><div style="background:rgba(34,211,238,.05);padding:10px 12px;border-radius:10px;margin-bottom:12px;border-left:3px solid rgba(34,211,238,.3)"><p style="font-size:13px;font-weight:600;line-height:1.5;color:rgba(241,245,249,.85)">' + t.action + '</p></div><div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:10px;border-top:1px solid var(--border)"><div style="display:flex;gap:4px;align-items:center;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px">' + dts + '<button onclick="addAttempt(' + oi + ')" style="width:24px;height:24px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);font-size:14px;color:var(--muted);display:flex;align-items:center;justify-content:center">+</button></div><div style="text-align:right;flex-shrink:0;margin-left:12px"><p style="font-size:10px;color:var(--muted);margin-bottom:2px;font-weight:600">有効率</p><p style="font-size:18px;font-weight:700;color:' + rc + '">' + (rate === null ? "--" : rate + "%") + '</p></div></div></div>';
+  });
+  return '<div class="col"><div style="background:rgba(34,211,238,.04);border-radius:16px;padding:18px;border:1px solid rgba(34,211,238,.15);margin-bottom:16px"><p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:14px">「〇〇のとき → ✕✕する」と決めておくと、脳の自動操縦を防げます。</p><button class="btn-cyan" style="font-size:14px" onclick="openModal(\'tactic\')">＋ 新しい対策を登録</button></div>' + cards + '</div>';
+}
+function removeTactic(i) { if (!confirm("削除しますか？")) return; state.tactics.splice(i, 1); saveState(); renderContent(); }
+function addAttempt(i) { state.tactics[i].attempts = state.tactics[i].attempts || []; state.tactics[i].attempts.push({date:todayKey(), effective:null}); saveState(); renderContent(); }
+function updateAttempt(ti, ai, val) { state.tactics[ti].attempts[ai].effective = val; saveState(); renderContent(); }
+
+// ━━━━━━━━━━━━━ NAMO CHAT ━━━━━━━━━━━━━━━━━━━━━━━
+const DEFAULT_PERSONA = 'あなたは「なも」という名前の柴犬のAIアシスタントです。ユーザーの節酒・断酒をやさしく応援します。明るく前向き。飲んでしまっても責めず次の一歩を考える。短く2-3文で返答。健康データや行動心理学の知識を交える。語尾に　も　をつける自然な日本語。';
+
+function renderNamo() {
+  let msgsHtml = "";
+  _chatMessages.forEach(m => {
+    if (m.role === "namo") {
+      msgsHtml += '<div style="display:flex;margin-bottom:10px"><div style="width:30px;height:30px;border-radius:15px;background:rgba(34,211,238,.1);display:flex;align-items:center;justify-content:center;margin-right:8px;flex-shrink:0;font-size:16px;margin-top:2px">🐕</div><div style="max-width:78%;padding:10px 14px;border-radius:16px 16px 16px 4px;background:var(--bg3);font-size:14px;line-height:1.6;font-weight:500;white-space:pre-wrap">' + escHtml(m.text) + '</div></div>';
+    } else {
+      msgsHtml += '<div style="display:flex;justify-content:flex-end;margin-bottom:10px"><div style="max-width:78%;padding:10px 14px;border-radius:16px 16px 4px 16px;background:linear-gradient(135deg,#0891b2,#0e7490);font-size:14px;line-height:1.6;font-weight:500;box-shadow:0 2px 8px rgba(8,145,178,.3)">' + escHtml(m.text) + '</div></div>';
+    }
+  });
+  if (_chatLoading) {
+    msgsHtml += '<div style="display:flex;margin-bottom:10px"><div style="width:30px;height:30px;border-radius:15px;background:rgba(34,211,238,.1);display:flex;align-items:center;justify-content:center;margin-right:8px;font-size:16px">🐕</div><div style="padding:14px;border-radius:16px 16px 16px 4px;background:var(--bg3);display:flex;gap:4px"><div style="width:5px;height:5px;border-radius:3px;background:var(--muted);animation:dotB .6s 0s infinite ease-in-out"></div><div style="width:5px;height:5px;border-radius:3px;background:var(--muted);animation:dotB .6s .15s infinite ease-in-out"></div><div style="width:5px;height:5px;border-radius:3px;background:var(--muted);animation:dotB .6s .3s infinite ease-in-out"></div></div></div>';
+  }
+  return '<div style="display:flex;flex-direction:column;height:calc(100vh - 130px)"><div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px" id="chat-scroll">' + msgsHtml + '<div id="chat-end"></div></div><div style="display:flex;gap:8px;padding:10px 0;border-top:1px solid var(--border)"><input id="chat-input" class="inp" style="flex:1;padding:11px 14px;font-size:14px;border-radius:14px" placeholder="なもに話しかける..." onkeydown="if(event.key===\'Enter\')sendNamoChat()"><button onclick="sendNamoChat()" id="chat-send-btn" style="width:42px;height:42px;border-radius:14px;background:var(--bg3);color:var(--muted);font-size:17px;display:flex;align-items:center;justify-content:center">↑</button></div></div>';
+}
+
+function sendNamoChat() {
+  const inp = document.getElementById("chat-input");
+  if (!inp) return;
+  const txt = inp.value.trim(); if (!txt) return;
+  inp.value = "";
+  _chatMessages.push({role:"user", text:txt});
+  _chatLoading = true;
+  renderContent(); scrollChatBottom();
+  const apiKey = localStorage.getItem("wb_namo_key") || "";
+  if (!apiKey) {
+    _chatLoading = false;
+    _chatMessages.push({role:"namo", text:"APIキーが設定されていないよ。⚙設定 → なもの人格設定 でGemini APIキーを入力してね。"});
+    renderContent(); scrollChatBottom(); return;
+  }
+  const persona = localStorage.getItem("wb_namo_persona") || DEFAULT_PERSONA;
+  const history = _chatMessages.map(m => ({role: m.role === "user" ? "user" : "model", parts: [{text: m.text}]}));
+  fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey, {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({contents: history, systemInstruction: {parts: [{text: persona}]}})
+  })
+  .then(r => r.json())
+  .then(d => {
+    _chatLoading = false;
+    const reply = (d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts && d.candidates[0].content.parts[0] && d.candidates[0].content.parts[0].text) || "ごめん、うまく返事できなかった...";
+    _chatMessages.push({role:"namo", text:reply});
+    renderContent(); scrollChatBottom();
+  })
+  .catch(() => {
+    _chatLoading = false;
+    _chatMessages.push({role:"namo", text:"通信エラーもなあ・・・"});
+    renderContent(); scrollChatBottom();
+  });
+}
+function scrollChatBottom() { setTimeout(function() { const el = document.getElementById("chat-end"); if (el) el.scrollIntoView({behavior:"smooth"}); }, 50); }
+
+// ─── SWIPE ───────────────────────────────────────
+let _swipeX = null;
+document.addEventListener("touchstart", e => { if (state.currentTab === "data" && _dataView === "calendar") _swipeX = e.touches[0].clientX; }, {passive:true});
+document.addEventListener("touchend", e => { if (state.currentTab !== "data" || _dataView !== "calendar" || _swipeX === null) return; const dx = e.changedTouches[0].clientX - _swipeX; _swipeX = null; if (Math.abs(dx) > 60) changeMonth(dx < 0 ? -1 : 1); }, {passive:true});
+
+let _lastVis = Date.now();
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { const now = Date.now(); if (now - _lastVis > 60000) { renderContent(); checkDangerZone(); } _lastVis = now; } });
+
+window._mainScriptLoaded = true;
+document.addEventListener("DOMContentLoaded", function() {
+  try { loadState(); } catch(e) { console.error(e); }
+  try { renderContent(); checkDangerZone(); setInterval(checkDangerZone, 60000); } catch(e) { console.error(e); }
+});
+</script>
 </body>
 </html>
