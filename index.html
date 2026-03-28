@@ -603,6 +603,7 @@ function sendNamoChat() {
   if (!inp) return;
   const txt = inp.value.trim(); if (!txt) return;
   inp.value = "";
+  
   _chatMessages.push({role:"user", text:txt});
   _chatLoading = true;
   renderContent(); scrollChatBottom();
@@ -615,9 +616,12 @@ function sendNamoChat() {
   }
   
   const persona = localStorage.getItem("wb_namo_persona") || DEFAULT_PERSONA;
-  const history = _chatMessages.map(m => ({role: m.role === "user" ? "user" : "model", parts: [{text: m.text}]}));
+  // 修正箇所：送信する履歴を直近6件に絞る（NeoReadと同じ仕様）
+  const historyToSent = _chatMessages.slice(-6);
+  const history = historyToSent.map(m => ({role: m.role === "user" ? "user" : "model", parts: [{text: m.text}]}));
   
-  fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey, {
+  // 修正箇所：安定したモデル「gemini-2.5-flash」に変更
+  fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey, {
     method: "POST", headers: {"Content-Type": "application/json"},
     body: JSON.stringify({contents: history, systemInstruction: {parts: [{text: persona}]}})
   })
@@ -658,3 +662,6 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 </body>
 </html>
+
+できた！
+このコードで相違点あれば念のため修正して
