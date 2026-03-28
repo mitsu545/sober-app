@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="NAMO">
+<meta name="apple-mobile-web-app-title" content="節酒アプリ NAMO">
 <meta name="theme-color" content="#020b18">
-<title>NAMO - Smart Moderation</title>
+<title>節酒アプリ NAMO - Smart Moderation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=DM+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <script>
-try{var _m={name:"NAMO",short_name:"NAMO",start_url:".",display:"standalone",background_color:"#020b18",theme_color:"#020b18",orientation:"portrait"};var _ml=document.createElement("link");_ml.rel="manifest";_ml.href=URL.createObjectURL(new Blob([JSON.stringify(_m)],{type:"application/json"}));document.head.appendChild(_ml);}catch(e){}
+try{var _m={name:"節酒アプリ NAMO",short_name:"節酒アプリ NAMO",start_url:".",display:"standalone",background_color:"#020b18",theme_color:"#020b18",orientation:"portrait"};var _ml=document.createElement("link");_ml.rel="manifest";_ml.href=URL.createObjectURL(new Blob([JSON.stringify(_m)],{type:"application/json"}));document.head.appendChild(_ml);}catch(e){}
 </script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -85,7 +85,7 @@ input,textarea{font-family:inherit;outline:none;-webkit-appearance:none}
   <div id="danger-banner"><span style="font-size:16px">⚠️</span><span>魔の時間帯 (18:00–19:30) — 財布を置いてから出発</span></div>
   <div id="header">
     <div style="display:flex;align-items:baseline;gap:8px">
-      <span style="font-size:18px;font-weight:800;color:var(--cyan);letter-spacing:3px">NAMO</span>
+      <span style="font-size:18px;font-weight:800;color:var(--cyan);letter-spacing:3px">節酒アプリ NAMO</span>
       <span style="font-size:11px;color:var(--dim);font-weight:600;letter-spacing:1px">Smart Moderation</span>
     </div>
     <button onclick="openModal('settings')" style="color:var(--dim);font-size:18px;padding:4px">⚙</button>
@@ -185,6 +185,7 @@ const STATE_KEY = "wb_state_v3";
 let state = {
   startDate:null, dailyCost:600, log:{}, urges:[], tactics:[],
   currentTab:"home", historyMonthOffset:0, bestStreak:0, bestWeeks:0,
+  savingGoals: [], iconSel: "✈️" // 資産の目標設定もメインデータに統合しました
 };
 let _dataView = "calendar";
 let _chatMessages = [{role:"namo",text:"こんにちは！なもだよ 🐕\n今日も一緒にがんばろうね。何か話したいことある？"}];
@@ -223,6 +224,7 @@ function saveState() {
       startDate: state.startDate ? state.startDate.toISOString() : null,
       dailyCost: state.dailyCost, log: state.log, urges: state.urges,
       tactics: state.tactics, bestStreak: state.bestStreak, bestWeeks: state.bestWeeks,
+      savingGoals: state.savingGoals, iconSel: state.iconSel // 資産データもスプシ連携に含める
     }));
     _gwCache.h = "";
     scheduleAutoBackup();
@@ -241,6 +243,8 @@ function loadState() {
     if (d.tactics)    state.tactics    = d.tactics;
     if (d.bestStreak) state.bestStreak = d.bestStreak;
     if (d.bestWeeks)  state.bestWeeks  = d.bestWeeks;
+    if (d.savingGoals) state.savingGoals = d.savingGoals;
+    if (d.iconSel)    state.iconSel    = d.iconSel;
   } catch(e) { console.warn("Load failed:", e); }
 }
 
@@ -279,23 +283,6 @@ function restoreFromSheets() {
   fetch(url, {redirect:"follow"}).then(r => r.text())
     .then(t => { const d = JSON.parse(t); if (!d.success) { alert("復元データなし"); return; } delete d.success; localStorage.setItem(STATE_KEY, JSON.stringify(d)); loadState(); closeModal(); renderContent(); alert("復元完了！"); })
     .catch(e => { alert("通信エラー: " + e.message); });
-}
-
-function exportData() {
-  const raw = localStorage.getItem(STATE_KEY) || "{}";
-  const ta = document.getElementById("backup-text");
-  if (ta) ta.value = raw;
-  if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(raw).then(() => alert("コピーしました！")).catch(() => { if (ta) ta.select(); alert("手動でコピーしてください。"); });
-  } else { if (ta) { ta.select(); try { document.execCommand("copy"); alert("コピーしました！"); } catch(e) { alert("手動でコピーしてください。"); } } }
-}
-
-function importData() {
-  const ta = document.getElementById("backup-text");
-  const raw = ta ? ta.value.trim() : "";
-  if (!raw) { alert("テキストが空です。"); return; }
-  if (!confirm("現在のデータを上書きします。よろしいですか？")) return;
-  try { JSON.parse(raw); localStorage.setItem(STATE_KEY, raw); loadState(); closeModal(); renderContent(); alert("復元しました！"); } catch(e) { alert("データが壊れています。"); }
 }
 
 function forceUpdate() {
@@ -363,7 +350,6 @@ function openModal(type, extra) {
       + '<div class="card" style="border:1px solid var(--border)"><p style="font-size:14px;font-weight:700;margin-bottom:8px">🔄 アプリを最新版に更新</p><p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px">キャッシュをクリアして最新版を読み込みます。</p><button class="btn-cyan" onclick="forceUpdate()">更新を確認する</button></div>'
       + '<div class="card" style="border:1px solid rgba(34,211,238,.2)"><p style="font-size:13px;font-weight:700;color:var(--cyan);margin-bottom:4px">☁️ スプシ連携（自動）</p><p style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px">データ変更時に自動バックアップ（無料）</p><label class="label-sm">GAS URL</label><input id="gas-url-inp" class="inp" style="font-size:12px;margin-bottom:10px" value="' + gu + '" placeholder="https://script.google.com/macros/s/..."><button class="btn-cyan" style="margin-bottom:10px;font-size:13px" onclick="saveGasUrlBtn()">URLを保存</button><div class="row2" style="margin-bottom:8px"><button class="btn-gray" style="font-size:12px" onclick="manualBackup()">📤 バックアップ</button><button class="btn-gray" style="font-size:12px" onclick="restoreFromSheets()">📥 復元</button></div><p style="font-size:10px;color:var(--dim)">最終: ' + lbkStr + '</p></div>'
       + '<div class="card" style="border:1px solid rgba(245,158,11,.2)"><p style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:4px">🐕 なもの人格設定</p><p style="font-size:11px;color:var(--muted);margin-bottom:10px">なもの性格をカスタマイズ</p><label class="label-sm">Gemini API Key</label><input id="namo-key-inp" class="inp" style="font-size:12px;font-family:monospace;margin-bottom:10px" value="' + ak + '"><label class="label-sm">人格プロンプト</label><textarea id="namo-persona-inp" class="inp" style="font-size:12px;height:100px;margin-bottom:10px">' + ps + '</textarea><button class="btn-cyan" style="font-size:13px" onclick="saveNamoSettings()">保存</button></div>'
-      + '<div class="card"><p style="font-size:13px;font-weight:700;margin-bottom:10px">📋 テキストバックアップ</p><textarea id="backup-text" class="inp" style="height:80px;font-size:10px;margin-bottom:10px"></textarea><div class="row2"><button class="btn-gray" style="font-size:12px" onclick="exportData()">コピー</button><button class="btn-gray" style="font-size:12px" onclick="importData()">復元</button></div></div>'
       + '<div style="margin-top:24px;margin-bottom:16px;"><button style="width:100%;padding:14px;border-radius:12px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.05);color:var(--red);font-size:13px;font-weight:700" onclick="resetAll()">全データをリセット</button></div>';
   }
 
@@ -552,7 +538,7 @@ function changeMonth(v) { state.historyMonthOffset += v; renderContent(); }
 function renderSavings() {
   const ts = totalStats(), sober = ts.sober, saved = ts.saved, daily = state.dailyCost;
   const monthly = Math.round(daily * 30 * (7 - WEEKLY_GOAL) / 7), yearly = Math.round(daily * 365 * (7 - WEEKLY_GOAL) / 7);
-  let goals = []; try { goals = JSON.parse(localStorage.getItem("wb_saving_goals") || "[]"); } catch(e) {}
+  let goals = state.savingGoals || [];
   let goalCards = "";
   goals.forEach((g, i) => {
     const pct = Math.min((saved / g.amount) * 100, 100);
@@ -560,7 +546,7 @@ function renderSavings() {
     goalCards += '<div style="background:var(--bg2);border-radius:14px;padding:16px;border:1px solid var(--border);margin-bottom:12px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:24px">' + g.icon + '</span><div><p style="font-weight:700;font-size:14px">' + g.name + '</p><p style="font-size:11px;color:var(--muted)">¥' + g.amount.toLocaleString() + '</p></div></div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;font-weight:700;color:' + (pct >= 100 ? "var(--green)" : "var(--cyan)") + '">' + pt + '</span><button onclick="removeGoal(' + i + ')" style="font-size:18px;color:var(--dim);padding:2px 6px">×</button></div></div><div style="background:var(--bg3);height:6px;border-radius:3px;overflow:hidden"><div style="width:' + Math.min(pct, 100) + '%;height:100%;background:linear-gradient(90deg,var(--cyan),var(--green));border-radius:3px"></div></div></div>';
   });
   const ICONS = ["✈️","🍖","📈","🌿","📷","🎮","🏋️","🎁","💻","🛒"];
-  const isel = localStorage.getItem("wb_icon_sel") || "✈️";
+  const isel = state.iconSel || "✈️";
   let ip = "";
   ICONS.forEach(ic => { ip += '<span onclick="selectIcon(this,event)" data-ic="' + ic + '" style="font-size:24px;cursor:pointer;padding:6px;border-radius:10px;background:' + (ic === isel ? "rgba(34,211,238,.2)" : "transparent") + ';border:1px solid ' + (ic === isel ? "var(--cyan)" : "transparent") + '">' + ic + '</span>'; });
 
@@ -569,9 +555,9 @@ function renderSavings() {
     + (goalCards || '<p style="font-size:13px;color:var(--muted);text-align:center;margin:8px 0;font-weight:600">下から目標を追加しましょう</p>')
     + '<div class="card" style="border:1px solid rgba(245,158,11,.3)"><p style="font-size:14px;font-weight:700;color:var(--amber);margin-bottom:14px">＋ 目標を追加</p><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">' + ip + '</div><input id="goal-name" class="inp" placeholder="目標名" style="margin-bottom:10px"><input id="goal-amount" class="inp" type="number" placeholder="目標金額（円）" style="margin-bottom:14px"><button class="btn-cyan" onclick="addGoal()">目標を設定する</button></div>';
 }
-function selectIcon(el, e) { e.stopPropagation(); localStorage.setItem("wb_icon_sel", el.getAttribute("data-ic")); renderContent(); }
-function addGoal() { const ne = document.getElementById("goal-name"), ae = document.getElementById("goal-amount"); const name = ne ? ne.value.trim() : "", amount = ae ? Number(ae.value) : 0; const icon = localStorage.getItem("wb_icon_sel") || "✈️"; if (!name || !amount) return; let goals = []; try { goals = JSON.parse(localStorage.getItem("wb_saving_goals") || "[]"); } catch(e) {} goals.push({name, amount, icon}); localStorage.setItem("wb_saving_goals", JSON.stringify(goals)); renderContent(); }
-function removeGoal(idx) { let goals = []; try { goals = JSON.parse(localStorage.getItem("wb_saving_goals") || "[]"); } catch(e) {} goals.splice(idx, 1); localStorage.setItem("wb_saving_goals", JSON.stringify(goals)); renderContent(); }
+function selectIcon(el, e) { e.stopPropagation(); state.iconSel = el.getAttribute("data-ic"); saveState(); renderContent(); }
+function addGoal() { const ne = document.getElementById("goal-name"), ae = document.getElementById("goal-amount"); const name = ne ? ne.value.trim() : "", amount = ae ? Number(ae.value) : 0; const icon = state.iconSel || "✈️"; if (!name || !amount) return; state.savingGoals = state.savingGoals || []; state.savingGoals.push({name, amount, icon}); saveState(); renderContent(); }
+function removeGoal(idx) { if(!state.savingGoals) return; state.savingGoals.splice(idx, 1); saveState(); renderContent(); }
 
 // ━━━━━━━━━━━━━ TACTICS TAB ━━━━━━━━━━━━━━━━━━━━━
 function renderTactics() {
@@ -596,7 +582,7 @@ function addAttempt(i) { state.tactics[i].attempts = state.tactics[i].attempts |
 function updateAttempt(ti, ai, val) { state.tactics[ti].attempts[ai].effective = val; saveState(); renderContent(); }
 
 // ━━━━━━━━━━━━━ NAMO CHAT ━━━━━━━━━━━━━━━━━━━━━━━
-const DEFAULT_PERSONA = 'あなたは「なも」という名前の柴犬のAIアシスタントです。ユーザーの節酒・断酒をやさしく応援します。明るく前向き。飲んでしまっても責めず次の一歩を考える。短く2-3文で返答。健康データや行動心理学の知識を交える。語尾に　も　をつける自然な日本語。';
+const DEFAULT_PERSONA = 'あなたは「なも」という名前の柴犬のAIアシスタントです。ユーザーの節酒・断酒をやさしく応援します。明るく前向き。飲んでしまっても責めず次の一歩を考える。短く2-3文で返答。健康データや行動心理学の知識を交える。語尾に「わん」等は使わない自然な日本語。';
 
 function renderNamo() {
   let msgsHtml = "";
@@ -610,7 +596,7 @@ function renderNamo() {
   if (_chatLoading) {
     msgsHtml += '<div style="display:flex;margin-bottom:10px"><div style="width:30px;height:30px;border-radius:15px;background:rgba(34,211,238,.1);display:flex;align-items:center;justify-content:center;margin-right:8px;font-size:16px">🐕</div><div style="padding:14px;border-radius:16px 16px 16px 4px;background:var(--bg3);display:flex;gap:4px"><div style="width:5px;height:5px;border-radius:3px;background:var(--muted);animation:dotB .6s 0s infinite ease-in-out"></div><div style="width:5px;height:5px;border-radius:3px;background:var(--muted);animation:dotB .6s .15s infinite ease-in-out"></div><div style="width:5px;height:5px;border-radius:3px;background:var(--muted);animation:dotB .6s .3s infinite ease-in-out"></div></div></div>';
   }
-  return '<div style="display:flex;flex-direction:column;height:calc(100vh - 130px)"><div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px" id="chat-scroll">' + msgsHtml + '<div id="chat-end"></div></div><div style="display:flex;gap:8px;padding:10px 0;border-top:1px solid var(--border)"><input id="chat-input" class="inp" style="flex:1;padding:11px 14px;font-size:14px;border-radius:14px" placeholder="なもに話しかける..." onkeydown="if(event.key==\'Enter\')sendNamoChat()"><button onclick="sendNamoChat()" id="chat-send-btn" style="width:42px;height:42px;border-radius:14px;background:var(--bg3);color:var(--muted);font-size:17px;display:flex;align-items:center;justify-content:center">↑</button></div></div>';
+  return '<div style="display:flex;flex-direction:column;height:calc(100vh - 130px)"><div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px" id="chat-scroll">' + msgsHtml + '<div id="chat-end"></div></div><div style="display:flex;gap:8px;padding:10px 0;border-top:1px solid var(--border)"><input id="chat-input" class="inp" style="flex:1;padding:11px 14px;font-size:14px;border-radius:14px" placeholder="なもに話しかける..." onkeydown="if(event.key===\'Enter\')sendNamoChat()"><button onclick="sendNamoChat()" id="chat-send-btn" style="width:42px;height:42px;border-radius:14px;background:var(--bg3);color:var(--muted);font-size:17px;display:flex;align-items:center;justify-content:center">↑</button></div></div>';
 }
 
 function sendNamoChat() {
@@ -632,6 +618,7 @@ function sendNamoChat() {
   const persona = localStorage.getItem("wb_namo_persona") || DEFAULT_PERSONA;
   const history = _chatMessages.map(m => ({role: m.role === "user" ? "user" : "model", parts: [{text: m.text}]}));
   
+  // 無料枠で最も安定している gemini-1.5-flash エンドポイントを指定。
   fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey, {
     method: "POST", headers: {"Content-Type": "application/json"},
     body: JSON.stringify({contents: history, systemInstruction: {parts: [{text: persona}]}})
@@ -641,6 +628,7 @@ function sendNamoChat() {
     _chatLoading = false;
     let reply = "ごめん、うまく返事できなかった...";
     
+    // APIからエラーが返ってきた場合は、その原因をチャットに表示する
     if (d.error) {
       reply = "【APIエラー】" + d.error.message;
     } else if (d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts && d.candidates[0].content.parts[0]) {
@@ -671,6 +659,7 @@ document.addEventListener("DOMContentLoaded", function() {
   try { loadState(); } catch(e) { console.error(e); }
   try { renderContent(); checkDangerZone(); setInterval(checkDangerZone, 60000); } catch(e) { console.error(e); }
 });
+
 </script>
 </body>
 </html>
