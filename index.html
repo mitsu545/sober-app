@@ -175,7 +175,7 @@ const MILESTONES = [
 
 function getDogSVG(stage) {
   const ext = stage === 5 ? 'jpg' : 'png';
-  const w   = stage >= 4 ? 160 : 130;
+  const w   = stage >= 4 ? 160 : 110;
   const h   = stage >= 4 ? 110 : 130;
   return '<img src="dog' + stage + '.' + ext + '" width="' + w + '" height="' + h + '" style="object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.4))" alt="なも stage ' + stage + '" onerror="this.src=\'https://placehold.co/' + w + 'x' + h + '/1e293b/f1f5f9?text=dog' + stage + '.' + ext + '\'">';
 }
@@ -316,13 +316,20 @@ function calcStreak() {
   for (let i = start; i < 365; i++) { if (state.log[daysAgoKey(i)] === "sober") streak++; else break; }
   return streak;
 }
+
+// 【変更箇所】「今日と昨日」または「昨日と一昨日」の連続休肝をチェックするよう拡張
 function getDogStage() {
   const drankCount = getWeekDays(0).filter(d => state.log[d] === "drank").length;
   if (drankCount >= WEEKLY_LIMIT) return 5;
-  const recovered = (state.log[daysAgoKey(1)] === "sober" && state.log[daysAgoKey(2)] === "sober");
+  
+  const recovered = 
+    (state.log[todayKey()] === "sober" && state.log[daysAgoKey(1)] === "sober") || 
+    (state.log[daysAgoKey(1)] === "sober" && state.log[daysAgoKey(2)] === "sober");
+    
   const base = Math.min(4, drankCount);
   return recovered ? Math.max(0, base - 1) : base;
 }
+
 function getWeekDrinks() { return getWeekDays(0).filter(d => state.log[d] === "drank").length; }
 function getDaysUntilRecovery() {
   if (state.log[todayKey()] === "sober" && state.log[daysAgoKey(1)] === "sober") return 0;
@@ -457,11 +464,10 @@ function renderHome() {
   let dots = "";
   for (let i = 0; i < WEEKLY_LIMIT; i++) { const fl = i < (WEEKLY_LIMIT - wk); dots += '<div class="dog-pip ' + (fl ? (i < WEEKLY_LIMIT - WEEKLY_GOAL ? "alive" : "warned") : "dead") + '"></div>'; }
 
-  const remColor = rem <= 1 ? "var(--red)" : rem <= 2 ? "var(--amber)" : "var(--cyan)";
-  const stats = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;margin:16px 0;background:var(--border);border-radius:16px;overflow:hidden">'
+  // 【変更箇所】「今週あと」を削除し、2カラムレイアウトに変更（金額の文字サイズも24pxに調整）
+  const stats = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;margin:16px 0;background:var(--border);border-radius:16px;overflow:hidden">'
     + '<div style="background:#0a1220;padding:16px 8px;text-align:center"><p style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:6px;letter-spacing:1px">連続</p><p style="font-size:24px;font-weight:700;color:var(--amber);line-height:1">' + streak + '<span style="font-size:12px;color:var(--dim);font-weight:500">日</span></p></div>'
-    + '<div style="background:#0a1220;padding:16px 8px;text-align:center"><p style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:6px;letter-spacing:1px">今週あと</p><p style="font-size:24px;font-weight:700;color:' + remColor + ';line-height:1">' + (isDead ? "0" : rem) + '<span style="font-size:12px;color:var(--dim);font-weight:500">回</span></p></div>'
-    + '<div style="background:#0a1220;padding:16px 8px;text-align:center"><p style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:6px;letter-spacing:1px">節約累計</p><p style="font-size:20px;font-weight:700;color:var(--green);line-height:1">¥' + saved.toLocaleString() + '</p></div></div>';
+    + '<div style="background:#0a1220;padding:16px 8px;text-align:center"><p style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:6px;letter-spacing:1px">節約累計</p><p style="font-size:24px;font-weight:700;color:var(--green);line-height:1">¥' + saved.toLocaleString() + '</p></div></div>';
 
   let wcells = "";
   tw.forEach((d, i) => {
@@ -616,11 +622,9 @@ function sendNamoChat() {
   }
   
   const persona = localStorage.getItem("wb_namo_persona") || DEFAULT_PERSONA;
-  // 修正箇所：送信する履歴を直近6件に絞る（NeoReadと同じ仕様）
   const historyToSent = _chatMessages.slice(-6);
   const history = historyToSent.map(m => ({role: m.role === "user" ? "user" : "model", parts: [{text: m.text}]}));
   
-  // 修正箇所：安定したモデル「gemini-2.5-flash」に変更
   fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey, {
     method: "POST", headers: {"Content-Type": "application/json"},
     body: JSON.stringify({contents: history, systemInstruction: {parts: [{text: persona}]}})
@@ -662,6 +666,3 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 </body>
 </html>
-
-できた！
-このコードで相違点あれば念のため修正して
