@@ -104,6 +104,54 @@ input,textarea{font-family:inherit;outline:none;-webkit-appearance:none}
 @keyframes pipPulse{0%,100%{opacity:1}50%{opacity:.3}}
 #death-screen{position:fixed;inset:0;background:#000;z-index:500;display:none;align-items:center;justify-content:center;flex-direction:column}
 #death-screen.show{display:flex;animation:fadeIn .5s ease}
+
+/* ── 誓約 / 破約 ── */
+#vow-screen{position:fixed;inset:0;background:#000;z-index:600;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:calc(var(--safe-top) + 24px) 24px calc(var(--safe-bot) + 24px)}
+#vow-screen.show{display:flex;animation:fadeIn .5s ease}
+.vow-date{position:absolute;top:calc(var(--safe-top) + 26px);right:26px;display:flex;flex-direction:column;align-items:center;gap:5px;font-family:'Noto Serif JP',serif;font-size:13px;line-height:1;color:#3a3a3a}
+.vow-date span{display:block;opacity:0;transition:opacity .5s ease}
+#vow-screen.in .vow-date span{opacity:1}
+.vow-dog{opacity:0;transition:opacity .8s ease .6s;margin-bottom:26px}
+#vow-screen.in .vow-dog{opacity:.55}
+.vow-dog.sad{filter:grayscale(.55) brightness(.78)}
+.vow-line{font-family:'Noto Serif JP',serif;font-size:22px;line-height:1.9;letter-spacing:.08em;color:#fff;opacity:0;transition:opacity .9s ease,color .8s ease}
+.vow-line.dim{color:#555}
+#vow-screen.in .vow-l1{opacity:1}
+#vow-screen.in .vow-l2{opacity:1}
+.vow-l1{transition:opacity .9s ease 1.2s,color .8s ease}
+.vow-l2{transition:opacity .9s ease 1.9s,color .8s ease}
+#vow-screen.sworn .vow-line{color:#7fd8e8}
+.vow-act{opacity:0;transition:opacity .8s ease 2.8s;margin-top:38px;display:flex;flex-direction:column;align-items:center}
+#vow-screen.in .vow-act{opacity:1}
+.vow-hold{position:relative;width:88px;height:88px;display:flex;align-items:center;justify-content:center;touch-action:none;-webkit-touch-callout:none;user-select:none}
+.vow-hold svg{position:absolute;inset:0}
+.vow-hint{font-family:'Noto Serif JP',serif;font-size:12px;color:#4b5563;letter-spacing:.2em;margin-top:14px}
+.vow-quiet{font-size:11px;color:#333;letter-spacing:.1em;margin-top:44px;padding:10px;opacity:0;transition:opacity .8s ease 3.4s}
+#vow-screen.in .vow-quiet{opacity:1}
+.seal{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Noto Serif JP',serif;font-size:30px;font-weight:700;color:#fff;background:#c0392b;box-shadow:inset 0 0 0 2px rgba(255,255,255,.14)}
+.seal.broke{background:#7f2418;color:#e0bdb6}
+.seal-pop{animation:sealPop .28s cubic-bezier(.2,1.4,.4,1) both}
+.seal-late{animation:sealPop .28s cubic-bezier(.2,1.4,.4,1) 2.3s both,sealShake .45s 2.58s ease-in-out}
+@keyframes sealPop{0%{transform:scale(1.7);opacity:0}60%{opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes sealShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-3px)}40%{transform:translateX(3px)}60%{transform:translateX(-2px)}80%{transform:translateX(2px)}}
+.vow-after{opacity:0;transition:opacity .9s ease 3.1s;margin-top:30px;display:flex;flex-direction:column;align-items:center;gap:12px}
+#vow-screen.in .vow-after{opacity:1}
+.vow-msg{font-family:'Noto Serif JP',serif;font-size:18px;color:#fff;letter-spacing:.08em}
+.vow-kept{font-size:12px;color:#555;letter-spacing:.05em}
+.vow-note{font-size:11px;color:#333;line-height:1.8;margin-top:6px}
+.vow-again{margin-top:20px;padding:14px 30px;border:1px solid #2a3a4a;border-radius:12px;font-family:'Noto Serif JP',serif;font-size:14px;color:#94a3b8;letter-spacing:.1em}
+
+/* 誓約帯（ホーム常駐） */
+.vow-band{display:flex;align-items:center;gap:12px;padding:14px 4px;border-bottom:1px solid #1c2a3a;margin-bottom:20px;animation:fadeIn .5s ease}
+.seal-mini{width:30px;height:30px;border-radius:50%;background:#c0392b;color:#fff;font-family:'Noto Serif JP',serif;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.seal-mini.broke{background:#4a1a12;color:#8d6a63}
+.vow-band-title{font-family:'Noto Serif JP',serif;font-size:15px;color:var(--text);display:block}
+.vow-band.broke .vow-band-title{color:#6b7280}
+.vow-band-sub{font-size:10px;color:var(--dim);letter-spacing:.15em;display:block;margin-top:3px}
+
+/* 破約した日の印 */
+.broke-dot{position:relative}
+.broke-dot::after{content:"";position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.85)}
 </style>
 </head>
 <body>
@@ -122,6 +170,7 @@ input,textarea{font-family:inherit;outline:none;-webkit-appearance:none}
 </div>
 <div id="modal-container"></div>
 <div id="death-screen"><div id="death-content" style="text-align:center;padding:40px 20px;max-width:320px"></div></div>
+<div id="vow-screen"></div>
 
 <script>
 "use strict";
@@ -310,17 +359,151 @@ function openModal(type, extra) {
 
 function closeModal() { document.getElementById("modal-container").innerHTML = ""; }
 function saveSetup() { const d = document.getElementById("setup-date").value, c = document.getElementById("setup-cost").value; if (!d||!c) return; state.startDate = new Date(d); state.dailyCost = Number(c); saveState(); closeModal(); renderContent(); }
-function updateLog(date, val) { if (val === null) delete state.log[date]; else state.log[date] = val; saveState(); closeModal(); renderContent(); }
+function updateLog(date, val) {
+  if (val === null) delete state.log[date]; else state.log[date] = val;
+  // 誤タップの取り消しなら、その日の誓約を元に戻す
+  if (val !== "drank") {
+    const b = getBrokeAt(date);
+    if (b) { localStorage.removeItem("wb_broke_" + date); localStorage.setItem("wb_commit_" + date, b); }
+  }
+  saveState(); closeModal(); renderContent();
+}
 function saveGasUrlBtn() { const u = document.getElementById("gas-url-inp").value.trim(); localStorage.setItem("wb_gas_url", u); alert(u ? "URLを保存しました" : "URLをクリアしました"); }
 
 function logToday(val) {
-  const k = todayKey(); state.log[k] = val;
-  if (val === "drank") localStorage.removeItem("wb_commit_" + k);
+  const k = todayKey();
+  const committedAt = (val === "drank") ? getCommittedAt(k) : null;
+  state.log[k] = val;
+  if (val === "drank") {
+    localStorage.removeItem("wb_commit_" + k);
+    if (committedAt) localStorage.setItem("wb_broke_" + k, committedAt);
+  }
   saveState(); closeModal(); renderContent();
-  if (val === "drank" && isDead()) showDeathScreen();
+  if (val !== "drank") return;
+  const dead = isDead();
+  if (committedAt) openBroken(committedAt, dead);
+  else if (dead) showDeathScreen();
 }
 function undoToday() { openModal("edit-log", todayKey()); }
-function morningCommit() { localStorage.setItem("wb_commit_" + todayKey(), "1"); renderContent(); }
+
+/* ───────── 誓約 / 破約 ───────── */
+const KANJI = "〇一二三四五六七八九";
+function kanjiYear(n) { return String(n).split("").map(c => KANJI[Number(c)]).join(""); }
+function kanjiCount(n) {
+  if (n < 10) return KANJI[n];
+  if (n === 10) return "十";
+  if (n < 20) return "十" + KANJI[n - 10];
+  const t = Math.floor(n / 10), r = n % 10;
+  return KANJI[t] + "十" + (r ? KANJI[r] : "");
+}
+function kanjiDate(d) { return kanjiYear(d.getFullYear()) + "年" + kanjiCount(d.getMonth() + 1) + "月" + kanjiCount(d.getDate()) + "日"; }
+function kanjiDateHtml(d) {
+  return kanjiDate(d).split("").map((c, i) => '<span style="transition-delay:' + (400 + i * 55) + 'ms">' + c + '</span>').join("");
+}
+
+function getCommittedAt(k) { return localStorage.getItem("wb_commit_" + k); }
+function getBrokeAt(k) { return localStorage.getItem("wb_broke_" + k); }
+function keptText(iso) {
+  const t = Date.parse(iso);
+  if (isNaN(t)) return "";
+  const m = Math.floor((Date.now() - t) / 60000);
+  if (m < 1) return "";
+  return m < 60 ? ("約束から " + m + "分 守れました") : ("約束から " + Math.floor(m / 60) + "時間 守れました");
+}
+
+const VOW_HOLD = 2500, RING_LEN = 213.6;
+let _vowTimer = null, _vowDone = false, _pendingDeath = false;
+
+function vowScreenOpen(html) {
+  const el = document.getElementById("vow-screen");
+  el.className = "";
+  el.innerHTML = html;
+  el.classList.add("show");
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("in")));
+}
+function vowScreenClose() {
+  const el = document.getElementById("vow-screen");
+  el.className = "";
+  el.innerHTML = "";
+}
+
+function openVow() {
+  _vowDone = false;
+  _vowTimer = null;
+  vowScreenOpen(
+    '<div class="vow-date">' + kanjiDateHtml(new Date()) + '</div>'
+    + '<img class="vow-dog" src="dog0.png" width="90" height="106" style="object-fit:contain" alt="なも">'
+    + '<p class="vow-line vow-l1">私は今日、酒を飲まない。</p>'
+    + '<p class="vow-line vow-l2">なもと約束する。</p>'
+    + '<div class="vow-act" id="vow-act">'
+    +   '<div class="vow-hold" id="vow-hold" oncontextmenu="return false">'
+    +     '<svg width="88" height="88" viewBox="0 0 88 88" aria-hidden="true">'
+    +       '<circle cx="44" cy="44" r="34" fill="none" stroke="#132234" stroke-width="2"></circle>'
+    +       '<circle id="vow-ring" cx="44" cy="44" r="34" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" transform="rotate(-90 44 44)" stroke-dasharray="' + RING_LEN + '" stroke-dashoffset="' + RING_LEN + '"></circle>'
+    +     '</svg>'
+    +   '</div>'
+    +   '<p class="vow-hint" id="vow-hint">押し続けて誓う</p>'
+    + '</div>'
+    + '<button class="vow-quiet" onclick="vowScreenClose()">まだ決めない</button>'
+  );
+  const hold = document.getElementById("vow-hold");
+  hold.addEventListener("pointerdown", vowPressStart);
+  hold.addEventListener("pointerup", vowPressEnd);
+  hold.addEventListener("pointercancel", vowPressEnd);
+  hold.addEventListener("pointerleave", vowPressEnd);
+}
+
+function vowPressStart(e) {
+  if (_vowDone) return;
+  if (e && e.preventDefault) e.preventDefault();
+  const r = document.getElementById("vow-ring");
+  if (!r) return;
+  r.style.transition = "stroke-dashoffset " + VOW_HOLD + "ms linear";
+  r.style.strokeDashoffset = "0";
+  _vowTimer = setTimeout(vowComplete, VOW_HOLD);
+}
+function vowPressEnd() {
+  if (_vowDone) return;
+  if (_vowTimer) { clearTimeout(_vowTimer); _vowTimer = null; }
+  const r = document.getElementById("vow-ring");
+  if (!r) return;
+  r.style.transition = "stroke-dashoffset 300ms ease-out";
+  r.style.strokeDashoffset = String(RING_LEN);
+}
+function vowComplete() {
+  _vowDone = true;
+  _vowTimer = null;
+  localStorage.setItem("wb_commit_" + todayKey(), new Date().toISOString());
+  try { if (navigator.vibrate) navigator.vibrate([40, 60, 140]); } catch (e) {}
+  const el = document.getElementById("vow-screen");
+  const act = document.getElementById("vow-act");
+  if (act) act.innerHTML = '<div class="seal seal-pop">誓</div><p class="vow-hint">誓いました</p>';
+  if (el) el.classList.add("sworn");
+  setTimeout(function() { vowScreenClose(); renderContent(); }, 1800);
+}
+
+function openBroken(committedAt, alsoDead) {
+  _pendingDeath = !!alsoDead;
+  const kept = keptText(committedAt);
+  vowScreenOpen(
+    '<div class="vow-date">' + kanjiDateHtml(new Date()) + '</div>'
+    + '<img class="vow-dog sad" src="dog2.png" width="90" height="106" style="object-fit:contain" alt="なも">'
+    + '<p class="vow-line dim vow-l1">私は今日、酒を飲まない。</p>'
+    + '<p class="vow-line dim vow-l2">なもと約束する。</p>'
+    + '<div style="margin-top:34px"><div class="seal broke seal-late">破</div></div>'
+    + '<div class="vow-after">'
+    +   '<p class="vow-msg">なもは悲しがっています・・・</p>'
+    +   (kept ? '<p class="vow-kept">' + kept + '</p>' : '')
+    +   '<p class="vow-note">記録できたあなたは、逃げなかった。</p>'
+    +   '<button class="vow-again" onclick="closeBroken()">明日、また約束する</button>'
+    + '</div>'
+  );
+  setTimeout(function() { try { if (navigator.vibrate) navigator.vibrate(320); } catch (e) {} }, 2300);
+}
+function closeBroken() {
+  vowScreenClose();
+  if (_pendingDeath) { _pendingDeath = false; showDeathScreen(); }
+}
 function showDeathScreen() {
   const ds = document.getElementById("death-screen"), dc = document.getElementById("death-content");
   dc.innerHTML = '<div style="font-size:80px;margin-bottom:20px">💀</div><h2 style="color:var(--red);font-size:24px;margin-bottom:16px">なもが倒れました</h2><p style="color:var(--muted);line-height:1.8;margin-bottom:16px">今週の飲酒が' + WEEKLY_LIMIT + '回に達しました。<br>なもを休ませてあげてください。<br>来週の月曜日に復活します。</p><p style="color:var(--dim);font-size:12px;line-height:1.7;margin-bottom:30px">記録はこのまま続けられます。<br>今週の休肝日も連続記録・節約額に加算されます。</p><button class="btn-gray" onclick="document.getElementById(\'death-screen\').classList.remove(\'show\')">閉じる</button>';
@@ -346,7 +529,8 @@ function renderHome() {
   const tl = state.log[todayKey()], streak = calcStreak();
   const tw = getWeekDays(0), ti = (new Date().getDay() + 6) % 7;
   const dn = ["月","火","水","木","金","土","日"];
-  const comm = localStorage.getItem("wb_commit_" + todayKey()) === "1";
+  const comm = !!getCommittedAt(todayKey());
+  const broke = !!getBrokeAt(todayKey());
 
   const soberCount = Object.values(state.log).filter(v => v === "sober").length;
   const saved = soberCount * (state.dailyCost || 600);
@@ -367,20 +551,22 @@ function renderHome() {
     const s = state.log[d], it = i === ti;
     let cls = "week-cell";
     if (s === "sober") cls += " sober"; else if (s === "drank") cls += " drank"; else if (it) cls += " today"; else cls += " empty";
+    if (getBrokeAt(d)) cls += " broke-dot";
     wcells += '<div onclick="openModal(\'edit-log\',\'' + d + '\')"><div class="week-cell-label" style="color:' + (it ? "var(--cyan)" : "var(--muted)") + '">' + dn[i] + '</div><div class="' + cls + '">' + (s === "sober" ? "○" : s === "drank" ? "×" : "") + '</div></div>';
   });
 
+  const kanjiToday = kanjiDate(new Date());
   let commitHtml = "";
-  if (comm) {
-    commitHtml = '<div class="btn-minimal-done">'
-               + '<div style="text-align: left;">'
-               + '<span style="font-size: 18px; font-weight: 800; color: var(--green); letter-spacing: 2px;">禁酒宣言中！</span>'
-               + '<span style="font-size: 10px; color: var(--dim); font-weight: 700; letter-spacing: 1px; display: block; margin-top: 4px;">なもが隣で応援しています</span>'
-               + '</div>'
-               + '<span style="font-size: 24px; color: var(--green);">🛡️</span>'
-               + '</div>';
+  if (broke) {
+    commitHtml = '<div class="vow-band broke"><span class="seal-mini broke">破</span><div>'
+               + '<span class="vow-band-title">約束は守られなかった</span>'
+               + '<span class="vow-band-sub">' + kanjiToday + '</span></div></div>';
+  } else if (comm) {
+    commitHtml = '<div class="vow-band"><span class="seal-mini">誓</span><div>'
+               + '<span class="vow-band-title">なもと約束しています</span>'
+               + '<span class="vow-band-sub">' + kanjiToday + '</span></div></div>';
   } else if (!tl) {
-    commitHtml = '<button onclick="morningCommit()" class="btn-minimal">'
+    commitHtml = '<button onclick="openVow()" class="btn-minimal">'
                + '<div style="text-align: left;">'
                + '<span>今日は飲まないと宣言する！</span>'
                + '<span class="sub-text">MORNING COMMITMENT</span>'
@@ -423,7 +609,7 @@ function renderCalendar() {
     if (sv === "sober") st += "background:var(--cyan);color:var(--bg);";
     else if (sv === "drank") st += "background:var(--red);color:white;";
     else st += "background:var(--bg3);color:var(--muted);";
-    grid += '<div onclick="openModal(\'edit-log\',\'' + k + '\')" style="' + st + '">' + dd + '</div>';
+    grid += '<div class="' + (getBrokeAt(k) ? "broke-dot" : "") + '" onclick="openModal(\'edit-log\',\'' + k + '\')" style="' + st + '">' + dd + '</div>';
   });
   
   const mp = Y + "-" + String(M + 1).padStart(2, "0");
