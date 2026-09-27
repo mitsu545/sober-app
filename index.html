@@ -248,21 +248,39 @@ function loadState() {
   } catch(e) { console.warn("Load failed:", e); }
 }
 
-let _bkTimer = null, _lastBk = 0;
+const DIRTY_KEY = "wb_bk_dirty";
+let _bkTimer = null, _bkSending = false;
 function getGasUrl() { return localStorage.getItem("wb_gas_url") || ""; }
+function setDirty(v) { try { v ? localStorage.setItem(DIRTY_KEY, "1") : localStorage.removeItem(DIRTY_KEY); } catch(e) {} }
+function isDirty() { try { return localStorage.getItem(DIRTY_KEY) === "1"; } catch(e) { return false; } }
+
+// 未送信なら即送る。keepalive でアプリを閉じても送信が最後まで走る
+function sendBackup() {
+  const url = getGasUrl(); if (!url) return;
+  const raw = localStorage.getItem(STATE_KEY); if (!raw) return;
+  if (_bkSending) return;
+  _bkSending = true;
+  fetch(url, {method:"POST", headers:{"Content-Type":"text/plain"}, body:raw, redirect:"follow", keepalive:true})
+    .then(r => r.text())
+    .then(t => {
+      const j = JSON.parse(t);
+      if (!j.success) return;
+      localStorage.setItem("wb_last_bk", new Date().toISOString());
+      // 送信中に記録が変わっていたら、送ったのは古い内容なので未送信のまま再送する
+      if (localStorage.getItem(STATE_KEY) === raw) setDirty(false);
+      else scheduleAutoBackup();
+    })
+    .catch(() => {})            // 失敗時は未送信のまま残し、次回の起動・復帰で再送
+    .finally(() => { _bkSending = false; });
+}
 
 function scheduleAutoBackup() {
+  setDirty(true);
   if (_bkTimer) clearTimeout(_bkTimer);
-  _bkTimer = setTimeout(function() {
-    const url = getGasUrl(); if (!url) return;
-    _lastBk = Date.now();
-    const raw = localStorage.getItem(STATE_KEY); if (!raw) return;
-    fetch(url, {method:"POST", headers:{"Content-Type":"text/plain"}, body:raw, redirect:"follow"})
-      .then(r => r.text())
-      .then(t => { try { const j = JSON.parse(t); if (j.success) localStorage.setItem("wb_last_bk", new Date().toISOString()); } catch(e) {} })
-      .catch(() => {});
-  }, Math.max(0, 30000 - (Date.now() - _lastBk)));
+  _bkTimer = setTimeout(sendBackup, 500); // 連続タップをまとめるだけの短い待ち
 }
+
+function flushBackup() { if (!isDirty()) return; if (_bkTimer) { clearTimeout(_bkTimer); _bkTimer = null; } sendBackup(); }
 
 function manualBackup() {
   const url = getGasUrl();
@@ -271,7 +289,7 @@ function manualBackup() {
   if (!raw) { alert("データがありません。"); return; }
   fetch(url, {method:"POST", headers:{"Content-Type":"text/plain"}, body:raw, redirect:"follow"})
     .then(r => r.text())
-    .then(t => { const j = JSON.parse(t); alert(j.success ? "バックアップ完了！" : "失敗: " + (j.error || "")); if (j.success) localStorage.setItem("wb_last_bk", new Date().toISOString()); })
+    .then(t => { const j = JSON.parse(t); alert(j.success ? "バックアップ完了！" : "失敗: " + (j.error || "")); if (j.success) { localStorage.setItem("wb_last_bk", new Date().toISOString()); setDirty(false); } })
     .catch(e => { alert("通信エラー: " + e.message); });
 }
 
@@ -690,12 +708,17 @@ document.addEventListener("touchstart", e => { if (state.currentTab === "data") 
 document.addEventListener("touchend", e => { if (state.currentTab !== "data" || _swipeX === null) return; const dx = e.changedTouches[0].clientX - _swipeX; _swipeX = null; if (Math.abs(dx) > 60) changeMonth(dx < 0 ? -1 : 1); }, {passive:true});
 
 let _lastVis = Date.now();
-document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { const now = Date.now(); if (now - _lastVis > 60000) { renderContent(); } _lastVis = now; } });
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") { const now = Date.now(); if (now - _lastVis > 60000) { renderContent(); } _lastVis = now; flushBackup(); }
+  else { flushBackup(); } // 閉じる・他アプリに切り替える瞬間に送り切る
+});
+window.addEventListener("pagehide", flushBackup);
 
 window._mainScriptLoaded = true;
 document.addEventListener("DOMContentLoaded", function() {
   try { loadState(); } catch(e) { console.error(e); }
   try { renderContent(); } catch(e) { console.error(e); }
+  try { flushBackup(); } catch(e) { console.error(e); } // 前回送れなかった分を再送
 });
 </script>
 </body>
